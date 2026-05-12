@@ -1,16 +1,27 @@
 // src/components/SocketEventLog.tsx
+import { Code, Paper, Stack, Text } from "@mantine/core";
 import type { SocketEvent } from "../api/socket";
 
 export function SocketEventLog({ events }: { events: SocketEvent[] }) {
-  if (events.length === 0) return <p style={{ fontSize: 12, opacity: 0.6 }}>No events yet.</p>;
+  if (events.length === 0) {
+    return (
+      <Text size="xs" c="dimmed">
+        No events yet.
+      </Text>
+    );
+  }
   return (
-    <div>
+    <Stack gap="xs" mt="xs">
       {events.map((e, i) => (
-        <pre key={i} className="response" style={{ marginTop: 6 }}>
-          {e.receivedAt}{"\n"}
-          {JSON.stringify(e.payload, null, 2)}
-        </pre>
+        <Paper key={i} p="xs">
+          <Text size="xs" c="dimmed">
+            {e.receivedAt}
+          </Text>
+          <Code block style={{ fontFamily: "ui-monospace, Menlo, monospace", fontSize: 12 }}>
+            {JSON.stringify(e.payload, null, 2)}
+          </Code>
+        </Paper>
       ))}
-    </div>
+    </Stack>
   );
 }

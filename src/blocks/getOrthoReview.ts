@@ -1,5 +1,5 @@
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 export const getOrthoReviewDef: BlockDef = {
   kind: "getOrthoReview",
@@ -11,7 +11,7 @@ export const getOrthoReviewDef: BlockDef = {
   outputs: [{ jsonPath: "$", contextKey: "orthoReview" }],
   build: (v) => ({
     method: "GET",
-    url: `${API_BASE_URL}/v1/aligner/dentist/ortho-reviews/${v.orthoReviewId}`,
+    url: `${getBaseUrl()}/v1/aligner/dentist/ortho-reviews/${v.orthoReviewId}`,
     headers: { accept: "application/json", "x-client-version": "0.4.0" },
   }),
 };

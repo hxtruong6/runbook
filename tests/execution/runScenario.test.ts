@@ -121,3 +121,44 @@ describe("runScenarioFrom", () => {
     expect((global.fetch as any).mock.calls).toHaveLength(2);
   });
 });
+
+// ─── runBlock with env ────────────────────────────────────────────────────────
+describe("runBlock – env propagation", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("passes envAuth bearer header to the fetch call when auth !== none", async () => {
+    (global.fetch as any).mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200, headers: { "content-type": "application/json" } })
+    );
+    const def: BlockDef = {
+      kind: "stub-jwt",
+      label: "stub-jwt",
+      auth: "jwt",
+      inputs: [],
+      outputs: [],
+      build: () => ({ method: "GET", url: "https://api.example/protected", headers: {} }),
+    };
+    const inst: BlockInstance = { id: "99", kind: "stub-jwt", overrides: {} };
+    const ctx: RuntimeContext = { socketSessionUuid: "u" };
+    const env = {
+      id: "e1",
+      name: "Test",
+      baseUrl: "https://api.example",
+      auth: { kind: "bearer" as const, token: "env-bearer-tok" },
+      headers: { "X-Tenant": "t1" },
+      createdAt: "2026-05-12T00:00:00Z",
+    };
+
+    const result = await runBlock(def, inst, ctx, env);
+    expect(result.status).toBe("ok");
+
+    const [, init] = (global.fetch as any).mock.calls[0];
+    expect(init.headers["Authorization"]).toBe("Bearer env-bearer-tok");
+    expect(init.headers["X-Tenant"]).toBe("t1");
+  });
+});

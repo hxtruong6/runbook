@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { Badge, Button, Group, Paper, Title } from "@mantine/core";
 import { getBlockDef } from "../blocks";
 import { runBlock, resolveInputs } from "../execution/runScenario";
 import type { BlockInstance, BlockRunResult } from "../blocks/types";
 import { useRuntimeContext } from "../context/ContextStore";
+import { useEnvironments } from "../environments/EnvironmentsStore";
 import { BlockForm } from "./BlockForm";
 import { ResponseViewer } from "./ResponseViewer";
 import { openChairsideSocket, type SocketEvent, type SocketSession } from "../api/socket";
@@ -14,9 +16,17 @@ type Props = {
   onRunFromHere?: () => void;
 };
 
+const STATUS_COLOR: Record<string, string> = {
+  idle: "gray",
+  running: "yellow",
+  ok: "teal",
+  err: "red",
+};
+
 export function BlockCard({ block, onChange, onRunFromHere }: Props) {
   const def = getBlockDef(block.kind);
   const { context, dispatch } = useRuntimeContext();
+  const { activeEnv } = useEnvironments();
   const [result, setResult] = useState<BlockRunResult | null>(null);
   const [running, setRunning] = useState(false);
   const sessionRef = useRef<SocketSession | null>(null);
@@ -31,7 +41,7 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
 
   async function runHttp() {
     setRunning(true);
-    const r = await runBlock(def, block, context);
+    const r = await runBlock(def, block, context, activeEnv);
     setResult(r);
     if (r.status === "ok") dispatch({ type: "MERGE", values: r.captured });
     setRunning(false);
@@ -62,31 +72,55 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
   }
 
   const status: "idle" | "running" | "ok" | "err" = isSocket
-    ? (connected ? "ok" : "idle")
+    ? connected ? "ok" : "idle"
     : running
-      ? "running"
-      : result?.status === "ok" ? "ok" : result?.status === "err" ? "err" : "idle";
+    ? "running"
+    : result?.status === "ok"
+    ? "ok"
+    : result?.status === "err"
+    ? "err"
+    : "idle";
+
+  const statusLabel = isSocket ? (connected ? "connected" : "idle") : status;
 
   return (
-    <div className="block-card">
-      <header>
-        <span className={`badge ${status}`}>{isSocket ? (connected ? "connected" : "idle") : status}</span>
-        <h3>{def.label}</h3>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+    <Paper p="md" mb="sm">
+      <Group justify="space-between" mb="sm">
+        <Group gap="sm">
+          <Badge variant="light" color={STATUS_COLOR[status]} size="sm">
+            {statusLabel}
+          </Badge>
+          <Title order={6} style={{ margin: 0 }}>
+            {def.label}
+          </Title>
+        </Group>
+        <Group gap="xs">
           {onRunFromHere && !isSocket && (
-            <button className="btn" onClick={onRunFromHere}>Run from here</button>
+            <Button variant="default" size="xs" onClick={onRunFromHere}>
+              Run from here
+            </Button>
           )}
           {isSocket ? (
-            <button className="btn primary" onClick={connected ? disconnectSocket : connectSocket}>
+            <Button
+              variant="filled"
+              size="xs"
+              color={connected ? "red" : "indigo"}
+              onClick={connected ? disconnectSocket : connectSocket}
+            >
               {connected ? "Disconnect" : "Connect"}
-            </button>
+            </Button>
           ) : (
-            <button className="btn primary" onClick={runHttp} disabled={running}>
-              {running ? "Running..." : "Run"}
-            </button>
+            <Button
+              variant="filled"
+              size="xs"
+              loading={running}
+              onClick={runHttp}
+            >
+              Run
+            </Button>
           )}
-        </div>
-      </header>
+        </Group>
+      </Group>
       <BlockForm
         def={def}
         overrides={block.overrides}
@@ -94,6 +128,6 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
         onChange={(o) => onChange({ ...block, overrides: o })}
       />
       {isSocket ? <SocketEventLog events={events} /> : <ResponseViewer result={result} />}
-    </div>
+    </Paper>
   );
 }

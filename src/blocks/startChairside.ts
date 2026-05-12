@@ -1,6 +1,6 @@
 // src/blocks/startChairside.ts
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 export const startChairsideDef: BlockDef = {
   kind: "startChairside",
@@ -24,7 +24,7 @@ export const startChairsideDef: BlockDef = {
   ],
   build: (v) => ({
     method: "POST",
-    url: `${API_BASE_URL}/v1/aligner/user/ortho-reviews/chairside`,
+    url: `${getBaseUrl()}/v1/aligner/user/ortho-reviews/chairside`,
     headers: { accept: "application/json" },
     body: {
       firstName: v.firstName,

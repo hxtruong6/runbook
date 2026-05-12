@@ -1,6 +1,7 @@
 // src/execution/runScenario.ts
 import type { BlockDef, BlockInstance, BlockRunResult, RuntimeContext } from "../blocks/types";
 import type { Scenario } from "../scenarios/types";
+import type { Environment } from "../environments/types";
 import { BLOCK_REGISTRY } from "../blocks";
 import { runRequest } from "../api/fetcher";
 import { captureOutputs } from "../blocks/capture";
@@ -24,7 +25,8 @@ export function resolveInputs(
 export async function runBlock(
   def: BlockDef,
   inst: BlockInstance,
-  ctx: RuntimeContext
+  ctx: RuntimeContext,
+  env?: Environment | null
 ): Promise<BlockRunResult> {
   const started = performance.now();
   try {
@@ -33,6 +35,8 @@ export async function runBlock(
     const { httpStatus, body, elapsedMs } = await runRequest(req, {
       auth: def.auth,
       jwt: typeof ctx.jwt === "string" ? ctx.jwt : undefined,
+      envAuth: env?.auth,
+      envHeaders: env?.headers,
     });
     if (httpStatus >= 200 && httpStatus < 300) {
       return {
@@ -64,7 +68,8 @@ export async function runScenarioFrom(
   blocks: Scenario["blocks"],
   startIdx: number,
   initialCtx: RuntimeContext,
-  onResult: (ctx: RuntimeContext, idx: number, result: BlockRunResult) => void
+  onResult: (ctx: RuntimeContext, idx: number, result: BlockRunResult) => void,
+  env?: Environment | null
 ): Promise<void> {
   let ctx = initialCtx;
   for (let i = startIdx; i < blocks.length; i++) {
@@ -83,7 +88,7 @@ export async function runScenarioFrom(
       onResult(ctx, i, { status: "ok", httpStatus: 0, elapsedMs: 0, response: "skipped (socket)", captured: {} });
       continue;
     }
-    const result = await runBlock(def, inst, ctx);
+    const result = await runBlock(def, inst, ctx, env);
     if (result.status === "ok") {
       ctx = { ...ctx, ...result.captured };
     }

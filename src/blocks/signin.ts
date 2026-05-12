@@ -1,5 +1,5 @@
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 export const signinDef: BlockDef = {
   kind: "signin",
@@ -15,7 +15,7 @@ export const signinDef: BlockDef = {
   ],
   build: (v) => ({
     method: "POST",
-    url: `${API_BASE_URL}/v1/user/auth/signin`,
+    url: `${getBaseUrl()}/v1/user/auth/signin`,
     headers: { "x-client-version": "0.4.0", accept: "application/json" },
     body: { email: v.email, password: v.password },
   }),

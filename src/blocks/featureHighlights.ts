@@ -1,7 +1,7 @@
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
-const BASE = `${API_BASE_URL}/v1/aligner/dentist/feature-highlights`;
+const baseFor = () => `${getBaseUrl()}/v1/aligner/dentist/feature-highlights`;
 const headers = { accept: "application/json", "x-client-version": "0.4.0" };
 
 export const featureHighlightsGetDef: BlockDef = {
@@ -12,7 +12,7 @@ export const featureHighlightsGetDef: BlockDef = {
   outputs: [
     { jsonPath: "showChairsideInstallBanner", contextKey: "showChairsideInstallBanner" },
   ],
-  build: () => ({ method: "GET", url: BASE, headers }),
+  build: () => ({ method: "GET", url: baseFor(), headers }),
 };
 
 export const featureHighlightsDismissDef: BlockDef = {
@@ -23,7 +23,7 @@ export const featureHighlightsDismissDef: BlockDef = {
   outputs: [],
   build: () => ({
     method: "PUT",
-    url: BASE,
+    url: baseFor(),
     headers,
     body: { showChairsideInstallBanner: false },
   }),

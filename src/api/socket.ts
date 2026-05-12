@@ -1,6 +1,6 @@
 // src/api/socket.ts
 import { io, type Socket } from "socket.io-client";
-import { API_BASE_URL } from "./config";
+import { getBaseUrl } from "./config";
 
 export type SocketEvent = {
   receivedAt: string;
@@ -20,7 +20,7 @@ export function openChairsideSocket(opts: {
   orthoReviewId: string;
   ownSocketSessionUuid: string;
 }): SocketSession {
-  const socket = io(API_BASE_URL, {
+  const socket = io(getBaseUrl(), {
     path: "/chat",
     query: { userId: opts.userId, role: opts.role },
     withCredentials: true,

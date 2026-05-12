@@ -1,5 +1,5 @@
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 const STATUSES = ["IN_PROGRESS", "COMPLETED", "ARCHIVED"] as const;
 
@@ -15,7 +15,7 @@ export const updateChairsideStatusDef: BlockDef = {
   outputs: [{ jsonPath: "chairsideStatus", contextKey: "chairsideStatus" }],
   build: (v) => ({
     method: "PUT",
-    url: `${API_BASE_URL}/v1/aligner/user/ortho-reviews/chairside/${v.orthoReviewId}`,
+    url: `${getBaseUrl()}/v1/aligner/user/ortho-reviews/chairside/${v.orthoReviewId}`,
     headers: { accept: "application/json" },
     body: { syncToken: v.syncToken, chairsideStatus: v.chairsideStatus },
   }),

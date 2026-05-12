@@ -1,5 +1,5 @@
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 export const profileDef: BlockDef = {
   kind: "profile",
@@ -12,7 +12,7 @@ export const profileDef: BlockDef = {
   ],
   build: () => ({
     method: "GET",
-    url: `${API_BASE_URL}/v1/user/auth/profile`,
+    url: `${getBaseUrl()}/v1/user/auth/profile`,
     headers: { accept: "application/json", "x-client-version": "0.4.0" },
   }),
 };

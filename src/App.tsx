@@ -7,12 +7,21 @@ import { BlockCard } from "./components/BlockCard";
 import { ContextPanel } from "./components/ContextPanel";
 import { TopBar } from "./components/TopBar";
 import { useRuntimeContext } from "./context/ContextStore";
+import { useEnvironments } from "./environments/EnvironmentsStore";
 import { runScenarioFrom } from "./execution/runScenario";
+import {
+  AppShell,
+  Button,
+  NavLink,
+  Stack,
+  Text,
+} from "@mantine/core";
 
 export function App() {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { context, dispatch } = useRuntimeContext();
+  const { activeEnv } = useEnvironments();
 
   useEffect(() => {
     let loaded = loadScenarios();
@@ -35,7 +44,7 @@ export function App() {
     if (!active) return;
     await runScenarioFrom(active.blocks, startIdx, context, (newCtx) => {
       dispatch({ type: "MERGE", values: newCtx });
-    });
+    }, activeEnv);
   }
 
   function importScenario(s: Scenario) {
@@ -45,37 +54,58 @@ export function App() {
   }
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <h2>Scenarios</h2>
-        <button
-          className="btn"
-          style={{ width: "100%", marginBottom: 12 }}
-          onClick={() => {
-            saveScenarios(PREBUILT_SCENARIOS);
-            setScenarios(PREBUILT_SCENARIOS);
-            setActiveId(PREBUILT_SCENARIOS[0]?.id ?? null);
-          }}
-        >
-          Reset to prebuilt
-        </button>
-        <ul>
-          {scenarios.map((s) => (
-            <li key={s.id}>
-              <button
-                className={s.id === activeId ? "active" : ""}
-                onClick={() => setActiveId(s.id)}
-              >
-                {s.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      <main className="main">
+    <AppShell
+      navbar={{ width: 240, breakpoint: "sm" }}
+      aside={{ width: 320, breakpoint: "md" }}
+      header={{ height: 60 }}
+      padding="md"
+    >
+      <AppShell.Header>
         <TopBar active={active} onRunAll={() => runFrom(0)} onImport={importScenario} />
-        <section className="blocks">
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">
+        <Stack gap="xs">
+          <Button
+            variant="default"
+            size="xs"
+            fullWidth
+            onClick={() => {
+              saveScenarios(PREBUILT_SCENARIOS);
+              setScenarios(PREBUILT_SCENARIOS);
+              setActiveId(PREBUILT_SCENARIOS[0]?.id ?? null);
+            }}
+          >
+            Reset to prebuilt
+          </Button>
+
+          <Text size="xs" tt="uppercase" c="dimmed" fw={600} mt="xs">
+            Scenarios
+          </Text>
+
+          {scenarios.map((s) => (
+            <NavLink
+              key={s.id}
+              label={s.name}
+              active={s.id === activeId}
+              onClick={() => setActiveId(s.id)}
+              style={{ borderRadius: "var(--mantine-radius-md)" }}
+            />
+          ))}
+        </Stack>
+      </AppShell.Navbar>
+
+      <AppShell.Aside p="md">
+        <Stack gap="xs">
+          <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
+            Context
+          </Text>
+          <ContextPanel />
+        </Stack>
+      </AppShell.Aside>
+
+      <AppShell.Main>
+        <Stack gap="md">
           {active ? (
             active.blocks.map((b, i) => (
               <BlockCard
@@ -90,15 +120,10 @@ export function App() {
               />
             ))
           ) : (
-            <p>Select a scenario from the left.</p>
+            <Text c="dimmed">Select a scenario from the left.</Text>
           )}
-        </section>
-      </main>
-
-      <aside className="context">
-        <h2>Context</h2>
-        <ContextPanel />
-      </aside>
-    </div>
+        </Stack>
+      </AppShell.Main>
+    </AppShell>
   );
 }

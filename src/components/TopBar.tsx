@@ -1,6 +1,10 @@
 // src/components/TopBar.tsx
+import { useRef, useState } from "react";
 import type { Scenario } from "../scenarios/types";
 import { downloadScenario, readScenarioFile } from "../scenarios/exportImport";
+import { EnvSwitcher } from "./EnvSwitcher";
+import { EnvEditorModal } from "./EnvEditorModal";
+import { Button, Group, Title } from "@mantine/core";
 
 type Props = {
   active: Scenario | null;
@@ -9,6 +13,9 @@ type Props = {
 };
 
 export function TopBar({ active, onRunAll, onImport }: Props) {
+  const [editorOpen, setEditorOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -22,20 +29,41 @@ export function TopBar({ active, onRunAll, onImport }: Props) {
   }
 
   return (
-    <header className="topbar">
-      <h1>{active?.name ?? "No scenario"}</h1>
-      <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-        <button className="btn primary" disabled={!active} onClick={onRunAll}>
-          Run all
-        </button>
-        <button className="btn" disabled={!active} onClick={() => active && downloadScenario(active)}>
-          Export
-        </button>
-        <label className="btn" style={{ cursor: "pointer" }}>
-          Import
-          <input type="file" accept="application/json" hidden onChange={handleImport} />
-        </label>
-      </div>
-    </header>
+    <>
+      <Group justify="space-between" h="100%" px="md">
+        <EnvSwitcher onOpenEditor={() => setEditorOpen(true)} />
+
+        <Title order={5}>{active?.name ?? "No scenario"}</Title>
+
+        <Group gap="xs">
+          <Button variant="filled" disabled={!active} onClick={onRunAll} size="sm">
+            Run all
+          </Button>
+          <Button
+            variant="default"
+            disabled={!active}
+            onClick={() => active && downloadScenario(active)}
+            size="sm"
+          >
+            Export
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Import
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            hidden
+            onChange={handleImport}
+          />
+        </Group>
+      </Group>
+      <EnvEditorModal opened={editorOpen} onClose={() => setEditorOpen(false)} />
+    </>
   );
 }

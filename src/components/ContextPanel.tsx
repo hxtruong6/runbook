@@ -1,4 +1,5 @@
 // src/components/ContextPanel.tsx
+import { Button, Code, Table, Text, TextInput } from "@mantine/core";
 import { useRuntimeContext } from "../context/ContextStore";
 
 const REDACTED_KEYS = new Set(["password"]);
@@ -9,37 +10,47 @@ export function ContextPanel() {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button className="btn" onClick={() => dispatch({ type: "RESET" })}>Reset</button>
-      </div>
-      <table>
-        <tbody>
-          {entries.map(([k, v]) => (
-            <tr key={k}>
-              <td className="key">{k}</td>
-              <td>
-                {REDACTED_KEYS.has(k) ? (
-                  <span style={{ opacity: 0.5 }}>•••</span>
-                ) : typeof v === "object" ? (
-                  <code style={{ fontSize: 11 }}>{JSON.stringify(v).slice(0, 80)}</code>
-                ) : (
-                  <input
-                    value={v === undefined || v === null ? "" : String(v)}
-                    onChange={(e) =>
-                      dispatch({ type: "SET_KEY", key: k, value: e.target.value })
-                    }
-                  />
-                )}
-              </td>
-            </tr>
-          ))}
-          {entries.length === 0 && (
-            <tr>
-              <td colSpan={2} style={{ opacity: 0.5, fontSize: 12 }}>Empty</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <Button
+        variant="default"
+        size="xs"
+        mb="sm"
+        onClick={() => dispatch({ type: "RESET" })}
+      >
+        Reset
+      </Button>
+      {entries.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          Empty
+        </Text>
+      ) : (
+        <Table withRowBorders={false} verticalSpacing={2}>
+          <Table.Tbody>
+            {entries.map(([k, v]) => (
+              <Table.Tr key={k}>
+                <Table.Td fw={500} c="dimmed" w="40%" style={{ wordBreak: "break-all", verticalAlign: "top" }}>
+                  {k}
+                </Table.Td>
+                <Table.Td>
+                  {REDACTED_KEYS.has(k) ? (
+                    <Text c="dimmed">•••</Text>
+                  ) : typeof v === "object" ? (
+                    <Code>{JSON.stringify(v).slice(0, 80)}</Code>
+                  ) : (
+                    <TextInput
+                      size="xs"
+                      variant="unstyled"
+                      value={v === undefined || v === null ? "" : String(v)}
+                      onChange={(e) =>
+                        dispatch({ type: "SET_KEY", key: k, value: e.currentTarget.value })
+                      }
+                    />
+                  )}
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      )}
     </div>
   );
 }

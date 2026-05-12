@@ -1,6 +1,6 @@
 // src/blocks/uploadPhoto.ts
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 const SLOTS = [
   "chairside-full-face",
@@ -25,7 +25,7 @@ export const uploadPhotoDef: BlockDef = {
     const qs = v.socketSessionUuid ? `?socketSessionUuid=${encodeURIComponent(String(v.socketSessionUuid))}` : "";
     return {
       method: "POST",
-      url: `${API_BASE_URL}/v1/aligner/user/ortho-reviews/chairside/${v.orthoReviewId}/photos${qs}`,
+      url: `${getBaseUrl()}/v1/aligner/user/ortho-reviews/chairside/${v.orthoReviewId}/photos${qs}`,
       headers: { accept: "application/json" },
       body: { syncToken: v.syncToken, slot: v.slot, url: v.url },
     };

@@ -1,6 +1,6 @@
 // src/blocks/verifyDeviceToken.ts
 import type { BlockDef } from "./types";
-import { API_BASE_URL } from "../api/config";
+import { getBaseUrl } from "../api/config";
 
 export const verifyDeviceTokenDef: BlockDef = {
   kind: "verifyDeviceToken",
@@ -22,7 +22,7 @@ export const verifyDeviceTokenDef: BlockDef = {
   ],
   build: (v) => ({
     method: "POST",
-    url: `${API_BASE_URL}/v1/aligner/user/ortho-reviews/chairside/device-token`,
+    url: `${getBaseUrl()}/v1/aligner/user/ortho-reviews/chairside/device-token`,
     headers: { accept: "application/json" },
     body: { token: v.orthoReviewChairsideToken },
   }),
