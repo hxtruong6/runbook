@@ -1,6 +1,7 @@
 {
   "name": "runbook-workspace",
   "private": true,
+  "type": "module",
   "devDependencies": {
     "husky": "^9.1.7"
   },
