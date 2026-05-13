@@ -45,6 +45,13 @@ export type BlockInstance = {
   overrides: Record<string, unknown>; // user-set literal values (empty = use context)
 };
 
+export type ResolvedRequest = {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: unknown;
+};
+
 export type BlockRunResult =
-  | { status: "ok"; httpStatus: number; elapsedMs: number; response: unknown; captured: Record<string, unknown>; subResults?: BlockRunResult[] }
-  | { status: "err"; httpStatus?: number; elapsedMs: number; response: unknown; error: string; subResults?: BlockRunResult[] };
+  | { status: "ok"; httpStatus: number; elapsedMs: number; response: unknown; captured: Record<string, unknown>; request?: ResolvedRequest; subResults?: BlockRunResult[] }
+  | { status: "err"; httpStatus?: number; elapsedMs: number; response: unknown; error: string; request?: ResolvedRequest; subResults?: BlockRunResult[] };
