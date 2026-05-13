@@ -12,6 +12,7 @@ export const ScenarioSchema = z.object({
   name: z.string(),
   createdAt: z.string(),
   blocks: z.array(BlockInstanceSchema),
+  reusable: z.boolean().optional().default(false),
 });
 
 export const ScenariosSchema = z.array(ScenarioSchema);

@@ -46,5 +46,5 @@ export type BlockInstance = {
 };
 
 export type BlockRunResult =
-  | { status: "ok"; httpStatus: number; elapsedMs: number; response: unknown; captured: Record<string, unknown> }
-  | { status: "err"; httpStatus?: number; elapsedMs: number; response: unknown; error: string };
+  | { status: "ok"; httpStatus: number; elapsedMs: number; response: unknown; captured: Record<string, unknown>; subResults?: BlockRunResult[] }
+  | { status: "err"; httpStatus?: number; elapsedMs: number; response: unknown; error: string; subResults?: BlockRunResult[] };

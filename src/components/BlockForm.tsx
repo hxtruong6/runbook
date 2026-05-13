@@ -37,7 +37,7 @@ function Field({
   const label = usingContext ? (
     <Group gap={6}>
       {field.label}
-      <Badge size="xs" variant="light" color="indigo">
+      <Badge size="xs" variant="light" color="violet">
         ← context: {field.fromContextKey}
       </Badge>
     </Group>

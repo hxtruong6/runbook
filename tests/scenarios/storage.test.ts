@@ -12,7 +12,7 @@ describe("scenarios/storage", () => {
   });
 
   it("saveScenarios + loadScenarios round-trips", () => {
-    const s = { id: "1", name: "x", createdAt: "2026-05-12T00:00:00Z", blocks: [] };
+    const s = { id: "1", name: "x", createdAt: "2026-05-12T00:00:00Z", blocks: [], reusable: false };
     saveScenarios([s]);
     expect(loadScenarios()).toEqual([s]);
   });

@@ -6,13 +6,13 @@ import type { AuthConfig } from "../environments/types";
 function authBadgeProps(auth: AuthConfig): { label: string; color: string } {
   switch (auth.kind) {
     case "bearer":
-      return { label: "Bearer", color: "indigo" };
+      return { label: "Bearer", color: "blue" };
     case "cookie":
       return { label: "Cookie", color: "teal" };
     case "apiKey":
-      return { label: "API key", color: "violet" };
+      return { label: "API key", color: "grape" };
     case "basic":
-      return { label: "Basic", color: "orange" };
+      return { label: "Basic", color: "amber" };
     case "none":
       return { label: "None", color: "gray" };
   }

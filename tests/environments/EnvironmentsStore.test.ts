@@ -108,7 +108,7 @@ describe("environmentsReducer – persistence side effects", () => {
 
   it("DELETE calls saveState (localStorage.setItem is invoked)", () => {
     const env = makeEnv({ id: "env-1" });
-    let s = environmentsReducer(makeInitialEnvState(), { type: "UPSERT", env });
+    const s = environmentsReducer(makeInitialEnvState(), { type: "UPSERT", env });
     const spy = vi.spyOn(Storage.prototype, "setItem");
     environmentsReducer(s, { type: "DELETE", id: "env-1" });
     expect(spy).toHaveBeenCalled();

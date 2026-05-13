@@ -8,6 +8,7 @@ describe("scenario export/import", () => {
     name: "Test",
     createdAt: "2026-05-12T00:00:00Z",
     blocks: [{ id: "b1", kind: "signin", overrides: { email: "a@b.com" } }],
+    reusable: false,
   };
 
   it("round-trips through JSON", () => {

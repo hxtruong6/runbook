@@ -7,6 +7,7 @@ export const PREBUILT_SCENARIOS: Scenario[] = [
     id: "prebuilt-happy-path",
     name: "Chairside happy path",
     createdAt: t,
+    reusable: false,
     blocks: [
       { id: "b1", kind: "signin", overrides: { email: "truong.hoang+chairside-p001@32co.com", password: "P@ss123456_" } },
       { id: "b2", kind: "profile", overrides: {} },
@@ -23,6 +24,7 @@ export const PREBUILT_SCENARIOS: Scenario[] = [
     id: "prebuilt-phone-first-pair",
     name: "Phone first-pair",
     createdAt: t,
+    reusable: false,
     blocks: [
       { id: "b1", kind: "verifyDeviceToken", overrides: { orthoReviewChairsideToken: "0e0ee405c57b90f97c7cd330380e9730" } },
     ],
@@ -31,6 +33,7 @@ export const PREBUILT_SCENARIOS: Scenario[] = [
     id: "prebuilt-dismiss-banner",
     name: "Dismiss install banner",
     createdAt: t,
+    reusable: false,
     blocks: [
       { id: "b1", kind: "signin", overrides: { email: "truong.hoang+chairside-p001@32co.com", password: "P@ss123456_" } },
       { id: "b2", kind: "featureHighlightsGet", overrides: {} },
@@ -41,6 +44,7 @@ export const PREBUILT_SCENARIOS: Scenario[] = [
     id: "prebuilt-realtime-sanity",
     name: "Realtime sanity",
     createdAt: t,
+    reusable: false,
     blocks: [
       { id: "b1", kind: "signin", overrides: { email: "truong.hoang+chairside-p001@32co.com", password: "P@ss123456_" } },
       { id: "b2", kind: "startChairside", overrides: { firstName: "Test", lastName: "Realtime" } },

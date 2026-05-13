@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Badge, Button, Group, Paper, Title } from "@mantine/core";
-import { getBlockDef } from "../blocks";
+import { Alert, ActionIcon, Badge, Button, Group, Menu, Paper, Title } from "@mantine/core";
+import { useBlockRegistry } from "../blocks/RegistryContext";
 import { runBlock, resolveInputs } from "../execution/runScenario";
 import type { BlockInstance, BlockRunResult } from "../blocks/types";
 import { useRuntimeContext } from "../context/ContextStore";
@@ -9,22 +9,30 @@ import { BlockForm } from "./BlockForm";
 import { ResponseViewer } from "./ResponseViewer";
 import { openChairsideSocket, type SocketEvent, type SocketSession } from "../api/socket";
 import { SocketEventLog } from "./SocketEventLog";
+import { SCENARIO_REF_KIND } from "../blocks/scenarioRef";
+import type { Scenario } from "../scenarios/types";
+import { ScenarioRefCard } from "./ScenarioRefCard";
 
-type Props = {
-  block: BlockInstance;
-  onChange: (next: BlockInstance) => void;
-  onRunFromHere?: () => void;
-};
-
-const STATUS_COLOR: Record<string, string> = {
+export const STATUS_COLOR_BADGE: Record<string, string> = {
   idle: "gray",
   running: "yellow",
   ok: "teal",
   err: "red",
 };
 
-export function BlockCard({ block, onChange, onRunFromHere }: Props) {
-  const def = getBlockDef(block.kind);
+type Props = {
+  block: BlockInstance;
+  onChange: (next: BlockInstance) => void;
+  onRunFromHere?: () => void;
+  scenarios: Scenario[];
+  onDuplicate?: () => void;
+  onRemove?: () => void;
+  onInsertBelow?: () => void;
+};
+
+export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplicate, onRemove, onInsertBelow }: Props) {
+  const registry = useBlockRegistry();
+  const def = registry[block.kind];
   const { context, dispatch } = useRuntimeContext();
   const { activeEnv } = useEnvironments();
   const [result, setResult] = useState<BlockRunResult | null>(null);
@@ -36,6 +44,28 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
   useEffect(() => {
     return () => sessionRef.current?.disconnect();
   }, []);
+
+  if (block.kind === SCENARIO_REF_KIND) {
+    return (
+      <ScenarioRefCard
+        block={block}
+        onChange={onChange}
+        scenarios={scenarios}
+        onRunFromHere={onRunFromHere}
+        onDuplicate={onDuplicate}
+        onRemove={onRemove}
+        onInsertBelow={onInsertBelow}
+      />
+    );
+  }
+
+  if (!def) {
+    return (
+      <Alert color="red" variant="light">
+        Unknown block kind: {block.kind}
+      </Alert>
+    );
+  }
 
   const isSocket = def.kind === "socketConnect";
 
@@ -87,7 +117,7 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
     <Paper p="md" mb="sm">
       <Group justify="space-between" mb="sm">
         <Group gap="sm">
-          <Badge variant="light" color={STATUS_COLOR[status]} size="sm">
+          <Badge variant="light" color={STATUS_COLOR_BADGE[status]} size="sm">
             {statusLabel}
           </Badge>
           <Title order={6} style={{ margin: 0 }}>
@@ -104,7 +134,7 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
             <Button
               variant="filled"
               size="xs"
-              color={connected ? "red" : "indigo"}
+              color={connected ? "red" : "violet"}
               onClick={connected ? disconnectSocket : connectSocket}
             >
               {connected ? "Disconnect" : "Connect"}
@@ -119,6 +149,26 @@ export function BlockCard({ block, onChange, onRunFromHere }: Props) {
               Run
             </Button>
           )}
+          <Menu shadow="md" width={180} position="bottom-end">
+            <Menu.Target>
+              <ActionIcon variant="subtle" size="sm" aria-label="Block actions">
+                ⋮
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {onRunFromHere && !isSocket && (
+                <Menu.Item onClick={onRunFromHere}>Run from here</Menu.Item>
+              )}
+              {onDuplicate && <Menu.Item onClick={onDuplicate}>Duplicate</Menu.Item>}
+              {onInsertBelow && <Menu.Item onClick={onInsertBelow}>Insert below…</Menu.Item>}
+              {onRemove && (
+                <>
+                  <Menu.Divider />
+                  <Menu.Item color="red" onClick={onRemove}>Remove</Menu.Item>
+                </>
+              )}
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </Group>
       <BlockForm

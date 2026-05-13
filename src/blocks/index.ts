@@ -8,8 +8,9 @@ import { uploadPhotoDef } from "./uploadPhoto";
 import { getOrthoReviewDef } from "./getOrthoReview";
 import { updateChairsideStatusDef } from "./updateChairsideStatus";
 import { socketConnectDef } from "./socketConnect";
+import { dataDefToBlockDef, type BlockDefData } from "./dataBlock";
 
-export const BLOCK_REGISTRY: Record<string, BlockDef> = {
+export const COMPILED_BLOCKS: Record<string, BlockDef> = {
   [signinDef.kind]: signinDef,
   [profileDef.kind]: profileDef,
   [featureHighlightsGetDef.kind]: featureHighlightsGetDef,
@@ -22,8 +23,29 @@ export const BLOCK_REGISTRY: Record<string, BlockDef> = {
   [socketConnectDef.kind]: socketConnectDef,
 };
 
-export function getBlockDef(kind: string): BlockDef {
-  const def = BLOCK_REGISTRY[kind];
+// Backwards compat export — existing imports keep working
+export const BLOCK_REGISTRY = COMPILED_BLOCKS;
+
+export function buildRegistry(
+  dataDefs: BlockDefData[],
+  resolveBaseUrl: () => string
+): Record<string, BlockDef> {
+  const registry: Record<string, BlockDef> = { ...COMPILED_BLOCKS };
+  for (const d of dataDefs) {
+    registry[d.kind] = dataDefToBlockDef(d, { resolveBaseUrl });
+  }
+  return registry;
+}
+
+export function getBlockDefFromRegistry(
+  registry: Record<string, BlockDef>,
+  kind: string
+): BlockDef {
+  const def = registry[kind];
   if (!def) throw new Error(`Unknown block kind: ${kind}`);
   return def;
+}
+
+export function getBlockDef(kind: string): BlockDef {
+  return getBlockDefFromRegistry(COMPILED_BLOCKS, kind);
 }

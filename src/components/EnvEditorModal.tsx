@@ -233,10 +233,10 @@ function AuthFields({ auth, onChange }: AuthFieldsProps) {
 
 function envAuthBadge(auth: AuthConfig) {
   const map: Record<AuthKind, { label: string; color: string }> = {
-    bearer: { label: "Bearer", color: "indigo" },
+    bearer: { label: "Bearer", color: "blue" },
     cookie: { label: "Cookie", color: "teal" },
-    apiKey: { label: "API key", color: "violet" },
-    basic: { label: "Basic", color: "orange" },
+    apiKey: { label: "API key", color: "grape" },
+    basic: { label: "Basic", color: "amber" },
     none: { label: "None", color: "gray" },
   };
   return map[auth.kind];
