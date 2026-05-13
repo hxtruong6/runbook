@@ -4,7 +4,8 @@ import type { Scenario } from "../scenarios/types";
 import { downloadScenario, readScenarioFile } from "../scenarios/exportImport";
 import { EnvSwitcher } from "./EnvSwitcher";
 import { EnvEditorModal } from "./EnvEditorModal";
-import { ActionIcon, Badge, Button, Group, Menu, Title } from "@mantine/core";
+import { Logo } from "./Logo";
+import { ActionIcon, Badge, Button, Divider, Group, Menu, Title } from "@mantine/core";
 import { useProjects } from "../projects/ProjectsStore";
 
 const ZapIcon = () => (
@@ -65,7 +66,11 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
   return (
     <>
       <Group justify="space-between" h="100%" px="md">
-        <EnvSwitcher onOpenEditor={() => setEditorOpen(true)} />
+        <Group gap="sm" align="center" wrap="nowrap">
+          <Logo size={26} />
+          <Divider orientation="vertical" />
+          <EnvSwitcher onOpenEditor={() => setEditorOpen(true)} />
+        </Group>
 
         <Group gap="xs" align="center">
           <Title order={5}>{active?.name ?? "No scenario"}</Title>

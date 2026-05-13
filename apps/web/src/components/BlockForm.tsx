@@ -29,8 +29,10 @@ function Field({
 }: { field: FieldSpec } & Omit<Props, "def">) {
   const override = overrides[field.name];
   const ctxVal = field.fromContextKey ? context[field.fromContextKey] : undefined;
-  const effective = override !== undefined && override !== "" ? override : ctxVal ?? "";
-  const usingContext = (override === undefined || override === "") && ctxVal !== undefined;
+  // Only inherit context when the user has never set an override (undefined).
+  // An empty string override means the user explicitly cleared the field.
+  const effective = override !== undefined ? override : ctxVal ?? "";
+  const usingContext = override === undefined && ctxVal !== undefined;
 
   function update(value: string) {
     onChange({ ...overrides, [field.name]: value });
@@ -118,9 +120,24 @@ export function BlockForm({ def, overrides, context, onChange }: Props) {
   const hasLocations = def.inputs.some((f) => f.location);
   const allValues = { ...(context as Record<string, unknown>), ...overrides };
 
-  const urlPreview = def.urlTemplate
-    ? previewUrl(def.urlTemplate, allValues)
-    : null;
+  const urlPreview = (() => {
+    if (def.urlTemplate) return previewUrl(def.urlTemplate, allValues);
+    try {
+      const built = def.build(allValues);
+      return built.url ?? null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const urlMethod = (() => {
+    if (def.method) return def.method;
+    try {
+      return def.build(allValues).method ?? null;
+    } catch {
+      return null;
+    }
+  })();
 
   if (def.inputs.length === 0 && !urlPreview) {
     return (
@@ -135,9 +152,9 @@ export function BlockForm({ def, overrides, context, onChange }: Props) {
       {urlPreview && (
         <Paper withBorder p="xs">
           <Group gap="xs" wrap="nowrap">
-            {def.method && (
+            {urlMethod && (
               <Badge variant="light" color="violet" size="sm">
-                {def.method}
+                {urlMethod}
               </Badge>
             )}
             <Text size="xs" ff="monospace" c="dimmed" style={{ wordBreak: "break-all" }}>

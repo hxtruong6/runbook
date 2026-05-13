@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "husky": "^9.1.7"
   },
   "scripts": {
     "dev": "pnpm --filter @runbook/web dev",
     "dev:server": "pnpm --filter @runbook/server dev",
+    "dev:all": "concurrently -n web,server -c cyan,magenta \"pnpm dev\" \"pnpm dev:server\"",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
