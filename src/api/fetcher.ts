@@ -1,5 +1,5 @@
 // src/api/fetcher.ts
-import type { HttpRequest, AuthMode } from "../blocks/types";
+import type { HttpRequest, AuthMode, ResolvedRequest } from "../blocks/types";
 import type { AuthConfig } from "../environments/types";
 
 export type RunRequestOptions = {
@@ -13,6 +13,7 @@ export type RunRequestResult = {
   httpStatus: number;
   body: unknown;
   elapsedMs: number;
+  resolvedRequest: ResolvedRequest;
 };
 
 export async function runRequest(
@@ -93,5 +94,10 @@ export async function runRequest(
     }
   }
 
-  return { httpStatus: res.status, body, elapsedMs };
+  return {
+    httpStatus: res.status,
+    body,
+    elapsedMs,
+    resolvedRequest: { method: req.method, url, headers, body: req.body },
+  };
 }

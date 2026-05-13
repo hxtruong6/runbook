@@ -4,6 +4,7 @@ import {
   Group,
   JsonInput,
   NumberInput,
+  Paper,
   PasswordInput,
   Select,
   Stack,
@@ -11,6 +12,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import type { BlockDef, FieldSpec, RuntimeContext } from "../blocks/types";
+import { previewUrl } from "../blocks/urlTemplate";
 
 type Props = {
   def: BlockDef;
@@ -94,7 +96,6 @@ function Field({
     );
   }
 
-  // default: string
   return (
     <TextInput
       label={label}
@@ -105,19 +106,122 @@ function Field({
   );
 }
 
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <Text size="xs" fw={600} c="dimmed" mt="xs">
+      {children}
+    </Text>
+  );
+}
+
 export function BlockForm({ def, overrides, context, onChange }: Props) {
-  if (def.inputs.length === 0) {
+  const hasLocations = def.inputs.some((f) => f.location);
+  const allValues = { ...(context as Record<string, unknown>), ...overrides };
+
+  const urlPreview = def.urlTemplate
+    ? previewUrl(def.urlTemplate, allValues)
+    : null;
+
+  if (def.inputs.length === 0 && !urlPreview) {
     return (
       <Text size="xs" c="dimmed">
         No inputs.
       </Text>
     );
   }
+
   return (
     <Stack gap="sm">
-      {def.inputs.map((f) => (
-        <Field key={f.name} field={f} overrides={overrides} context={context} onChange={onChange} />
-      ))}
+      {urlPreview && (
+        <Paper withBorder p="xs">
+          <Group gap="xs" wrap="nowrap">
+            {def.method && (
+              <Badge variant="light" color="violet" size="sm">
+                {def.method}
+              </Badge>
+            )}
+            <Text size="xs" ff="monospace" c="dimmed" style={{ wordBreak: "break-all" }}>
+              {urlPreview}
+            </Text>
+          </Group>
+        </Paper>
+      )}
+
+      {!hasLocations &&
+        def.inputs.map((f) => (
+          <Field
+            key={f.name}
+            field={f}
+            overrides={overrides}
+            context={context}
+            onChange={onChange}
+          />
+        ))}
+
+      {hasLocations && (() => {
+        const pathFields = def.inputs.filter((f) => f.location === "path");
+        const queryFields = def.inputs.filter((f) => f.location === "query");
+        const bodyFields = def.inputs.filter((f) => f.location === "body");
+        const otherFields = def.inputs.filter(
+          (f) => !f.location || f.location === "header"
+        );
+
+        return (
+          <>
+            {pathFields.length > 0 && (
+              <>
+                <SectionLabel>Path Params</SectionLabel>
+                {pathFields.map((f) => (
+                  <Field
+                    key={f.name}
+                    field={f}
+                    overrides={overrides}
+                    context={context}
+                    onChange={onChange}
+                  />
+                ))}
+              </>
+            )}
+            {queryFields.length > 0 && (
+              <>
+                <SectionLabel>Query Params</SectionLabel>
+                {queryFields.map((f) => (
+                  <Field
+                    key={f.name}
+                    field={f}
+                    overrides={overrides}
+                    context={context}
+                    onChange={onChange}
+                  />
+                ))}
+              </>
+            )}
+            {bodyFields.length > 0 && (
+              <>
+                <SectionLabel>Body</SectionLabel>
+                {bodyFields.map((f) => (
+                  <Field
+                    key={f.name}
+                    field={f}
+                    overrides={overrides}
+                    context={context}
+                    onChange={onChange}
+                  />
+                ))}
+              </>
+            )}
+            {otherFields.map((f) => (
+              <Field
+                key={f.name}
+                field={f}
+                overrides={overrides}
+                context={context}
+                onChange={onChange}
+              />
+            ))}
+          </>
+        );
+      })()}
     </Stack>
   );
 }

@@ -14,6 +14,7 @@ export type FieldSpec = {
   fromContextKey?: string;          // auto-fill from context if not overridden
   enumValues?: readonly string[];   // when type === "enum"
   placeholder?: string;
+  location?: "path" | "query" | "body" | "header";
 };
 
 export type OutputSpec = {
@@ -36,6 +37,8 @@ export type BlockDef = {
   inputs: FieldSpec[];
   outputs: OutputSpec[];
   auth: AuthMode;
+  urlTemplate?: string;
+  method?: string;
   build: (values: Record<string, unknown>) => HttpRequest;
 };
 

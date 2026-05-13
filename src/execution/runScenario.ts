@@ -33,7 +33,7 @@ export async function runBlock(
   try {
     const values = resolveInputs(def, inst, ctx);
     const req = def.build(values);
-    const { httpStatus, body, elapsedMs } = await runRequest(req, {
+    const { httpStatus, body, elapsedMs, resolvedRequest } = await runRequest(req, {
       auth: def.auth,
       jwt: typeof ctx.jwt === "string" ? ctx.jwt : undefined,
       envAuth: env?.auth,
@@ -46,6 +46,7 @@ export async function runBlock(
         elapsedMs,
         response: body,
         captured: captureOutputs(body, def.outputs),
+        request: resolvedRequest,
       };
     }
     return {
@@ -54,6 +55,7 @@ export async function runBlock(
       elapsedMs,
       response: body,
       error: `HTTP ${httpStatus}`,
+      request: resolvedRequest,
     };
   } catch (e) {
     return {
