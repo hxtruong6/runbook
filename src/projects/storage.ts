@@ -5,8 +5,9 @@ import {
   type ProjectsState,
   type ProjectVersion,
 } from "./types";
+import { sortVersionsDesc } from "./semver";
 
-const KEY = "chairside-runner:projects";
+const KEY = "runbook:projects";
 
 const emptyState = (): ProjectsState => ({
   bundles: [],
@@ -76,7 +77,7 @@ export function findVersion(bundle: ProjectBundle, version: string): ProjectVers
  * Returns the active version for the active project:
  * - null if no active project
  * - The explicitly chosen version if it exists in the bundle
- * - Falls back to versions[0] (conventionally newest) if:
+ * - Falls back to the semver-latest version if:
  *   - No explicit version is set, OR
  *   - The chosen version no longer exists in the bundle
  * - null if the active project has no versions at all
@@ -88,14 +89,14 @@ export function getActiveVersion(): ProjectVersion | null {
   const bundle = state.bundles.find((b) => b.id === state.activeProjectId);
   if (!bundle || bundle.versions.length === 0) return null;
 
+  const sorted = sortVersionsDesc(bundle.versions);
+
   const chosenVersion = state.activeVersionByProject[state.activeProjectId];
   if (chosenVersion) {
     const found = findVersion(bundle, chosenVersion);
     if (found) return found;
-    // chosen version no longer exists — fall back to versions[0]
-    return bundle.versions[0];
   }
 
-  // No explicit version set — return newest (versions[0] by convention)
-  return bundle.versions[0];
+  // No explicit version set (or chosen no longer exists) — return semver latest
+  return sorted[0];
 }

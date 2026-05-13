@@ -5,6 +5,7 @@ import { openConfirmModal } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useProjects } from "../projects/ProjectsStore";
 import { downloadBundle, readBundleFile } from "../projects/exportImport";
+import { sortVersionsDesc } from "../projects/semver";
 
 export function ProjectSwitcher() {
   const { state, dispatch, activeProject, activeVersion } = useProjects();
@@ -13,7 +14,7 @@ export function ProjectSwitcher() {
   const projectOptions = state.bundles.map((b) => ({ value: b.id, label: b.name }));
 
   const versionOptions = activeProject
-    ? activeProject.versions.map((v) => ({ value: v.version, label: v.version }))
+    ? sortVersionsDesc(activeProject.versions).map((v) => ({ value: v.version, label: v.version }))
     : [];
 
   const activeVersionValue = activeVersion?.version ?? null;

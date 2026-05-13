@@ -1,7 +1,7 @@
 // src/environments/storage.ts
 import { EnvironmentsStateSchema, type Environment, type EnvironmentsState } from "./types";
 
-const KEY = "chairside-runner:environments";
+const KEY = "runbook:environments";
 
 const emptyState = (): EnvironmentsState => ({ environments: [], activeId: null });
 

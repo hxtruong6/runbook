@@ -1,7 +1,7 @@
 // src/scenarios/storage.ts
 import { ScenariosSchema, type Scenario } from "./types";
 
-const KEY = "chairside-runner:scenarios";
+const KEY = "runbook:scenarios";
 
 export function loadScenarios(): Scenario[] {
   const raw = localStorage.getItem(KEY);

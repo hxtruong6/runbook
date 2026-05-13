@@ -1,5 +1,6 @@
 // src/scenarios/types.ts
 import { z } from "zod";
+import { GraphDataSchema } from "../graph/types";
 
 export const BlockInstanceSchema = z.object({
   id: z.string(),
@@ -13,6 +14,7 @@ export const ScenarioSchema = z.object({
   createdAt: z.string(),
   blocks: z.array(BlockInstanceSchema),
   reusable: z.boolean().optional().default(false),
+  graphData: GraphDataSchema.optional(),
 });
 
 export const ScenariosSchema = z.array(ScenarioSchema);
