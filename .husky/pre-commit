@@ -1,1 +1,1 @@
-pnpm exec lint-staged
+pnpm --filter @runbook/web exec lint-staged
