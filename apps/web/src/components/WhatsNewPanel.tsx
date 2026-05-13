@@ -10,7 +10,7 @@ import {
   Title,
   TypographyStylesProvider,
 } from "@mantine/core";
-import { useProjects } from "../projects/ProjectsStore";
+import { useProjectsStore } from "../projects/projectsStore";
 import type { ChangeEntry } from "../projects/types";
 
 // ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ import type { ChangeEntry } from "../projects/types";
 const CHANGE_TYPE_COLOR: Record<ChangeEntry["type"], string> = {
   added: "green",
   modified: "blue",
-  deprecated: "yellow",
+  deprecated: "amber",
   removed: "red",
   fixed: "gray",
   note: "gray",
@@ -64,9 +64,10 @@ function ChangeRow({ change }: { change: ChangeEntry }) {
 // WhatsNewPanel
 // ---------------------------------------------------------------------------
 export function WhatsNewPanel() {
-  const { activeProject, activeVersion } = useProjects();
+  const { projects, activeProjectId } = useProjectsStore();
+  const activeProject = projects.find((p) => p._id === activeProjectId) ?? null;
 
-  if (!activeProject || !activeVersion) {
+  if (!activeProject) {
     return (
       <Text size="sm" c="dimmed">
         No project selected.
@@ -74,14 +75,22 @@ export function WhatsNewPanel() {
     );
   }
 
-  const { version, releasedAt, releaseNotes, changes, docs } = activeVersion;
+  const latestVersion = activeProject.versions?.[0];
 
-  // Format date as YYYY-MM-DD
+  if (!latestVersion) {
+    return (
+      <Stack gap="xs">
+        <Title order={5}>{activeProject.name}</Title>
+        <Text size="sm" c="dimmed">
+          No version information available for this project.
+        </Text>
+      </Stack>
+    );
+  }
+
+  const { version, releasedAt, releaseNotes, changes, docs } = latestVersion;
   const formattedDate = releasedAt.slice(0, 10);
-
-  const sortedDocEntries = Object.entries(docs).sort(([a], [b]) =>
-    a.localeCompare(b)
-  );
+  const sortedDocEntries = Object.entries(docs).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <Stack gap="md">
@@ -140,7 +149,7 @@ export function WhatsNewPanel() {
                 </Accordion.Control>
                 <Accordion.Panel>
                   <TypographyStylesProvider>
-                    <ReactMarkdown>{markdown}</ReactMarkdown>
+                    <ReactMarkdown>{markdown as string}</ReactMarkdown>
                   </TypographyStylesProvider>
                 </Accordion.Panel>
               </Accordion.Item>

@@ -1,66 +1,38 @@
-// src/components/TopBar.tsx
-import { useRef, useState } from "react";
-import type { Scenario } from "../scenarios/types";
-import { downloadScenario, readScenarioFile } from "../scenarios/exportImport";
-import { EnvSwitcher } from "./EnvSwitcher";
-import { EnvEditorModal } from "./EnvEditorModal";
-import { Logo } from "./Logo";
-import { ActionIcon, Badge, Button, Divider, Group, Menu, Title } from "@mantine/core";
-import { useProjects } from "../projects/ProjectsStore";
-
-const ZapIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-  </svg>
-);
+import { useRef, useState } from 'react'
+import type { Scenario } from '../scenarios/types'
+import { downloadScenario, readScenarioFile } from '../scenarios/exportImport'
+import { EnvSwitcher } from './EnvSwitcher'
+import { EnvEditorModal } from './EnvEditorModal'
+import { Logo } from './Logo'
+import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Title } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import { IconBolt, IconDots } from '@tabler/icons-react'
+import { useTeamStore } from '../teams/teamStore'
 
 type Props = {
-  active: Scenario | null;
-  onRunAll: () => void;
-  onImport: (s: Scenario) => void;
-  onDuplicate?: (s: Scenario) => void;
-  onToggleReusable?: () => void;
-  onBurst?: () => void;
-};
+  active: Scenario | null
+  onRunAll: () => void
+  onImport: (s: Scenario) => void
+  onDuplicate?: (s: Scenario) => void
+  onToggleReusable?: () => void
+  onBurst?: () => void
+}
 
 export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusable, onBurst }: Props) {
-  const [editorOpen, setEditorOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { activeProject, activeVersion } = useProjects();
+  const [editorOpen, setEditorOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { teams, activeTeamId, setActiveTeam } = useTeamStore()
 
-  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleScenarioImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
     try {
-      const s = await readScenarioFile(file);
-      onImport({ ...s, id: crypto.randomUUID(), createdAt: new Date().toISOString() });
+      const s = await readScenarioFile(file)
+      onImport({ ...s, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
     } catch (err) {
-      alert("Invalid scenario file: " + (err as Error).message);
+      notifications.show({ color: 'red', title: 'Invalid scenario file', message: (err as Error).message })
     }
-    e.target.value = "";
-  }
-
-  function importHandler() {
-    fileInputRef.current?.click();
-  }
-
-  function exportHandler() {
-    if (active) downloadScenario(active);
-  }
-
-  function duplicateHandler() {
-    if (!active || activeProject) return;
-    onDuplicate?.({
-      ...active,
-      id: crypto.randomUUID(),
-      name: active.name + " (copy)",
-      createdAt: new Date().toISOString(),
-    });
-  }
-
-  function toggleReusableHandler() {
-    if (!active || activeProject) return;
-    onToggleReusable?.();
+    e.target.value = ''
   }
 
   return (
@@ -69,16 +41,21 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
         <Group gap="sm" align="center" wrap="nowrap">
           <Logo size={26} />
           <Divider orientation="vertical" />
+          {teams.length > 1 && (
+            <Select
+              size="xs"
+              data={teams.map((t) => ({ value: t._id, label: t.name }))}
+              value={activeTeamId}
+              onChange={(v) => v && setActiveTeam(v)}
+              w={140}
+              comboboxProps={{ withinPortal: true }}
+            />
+          )}
           <EnvSwitcher onOpenEditor={() => setEditorOpen(true)} />
         </Group>
 
         <Group gap="xs" align="center">
-          <Title order={5}>{active?.name ?? "No scenario"}</Title>
-          {activeProject && (
-            <Badge size="xs" variant="light" color="gray">
-              {activeProject.name} @ {activeVersion?.version}
-            </Badge>
-          )}
+          <Title order={5}>{active?.name ?? 'No scenario'}</Title>
           {active?.reusable === true && (
             <Badge size="xs" variant="light" color="violet">ref</Badge>
           )}
@@ -90,38 +67,27 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
           </Button>
           <Menu position="bottom-end" withinPortal>
             <Menu.Target>
-              <ActionIcon variant="subtle" size="lg" aria-label="More actions">
-                ⋮
-              </ActionIcon>
+              <ActionIcon variant="subtle" size="lg" aria-label="More actions"><IconDots size={18} /></ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
+              <Menu.Item leftSection={<IconBolt size={14} />} disabled={!active} onClick={onBurst}>Burst…</Menu.Item>
+              <Menu.Item onClick={() => fileInputRef.current?.click()}>Import scenario</Menu.Item>
+              <Menu.Item onClick={() => active && downloadScenario(active)} disabled={!active}>Export scenario</Menu.Item>
               <Menu.Item
+                onClick={() => active && onDuplicate?.({ ...active, id: crypto.randomUUID(), name: active.name + ' (copy)', createdAt: new Date().toISOString() })}
                 disabled={!active}
-                leftSection={<ZapIcon />}
-                onClick={onBurst}
               >
-                Burst…
-              </Menu.Item>
-              <Menu.Item onClick={importHandler}>Import scenario</Menu.Item>
-              <Menu.Item onClick={exportHandler} disabled={!active}>Export scenario</Menu.Item>
-              <Menu.Item onClick={duplicateHandler} disabled={!active || !!activeProject}>
                 Duplicate scenario
               </Menu.Item>
-              <Menu.Item onClick={toggleReusableHandler} disabled={!active || !!activeProject}>
-                {active?.reusable ? "Mark as flow" : "Mark as reusable"}
+              <Menu.Item onClick={onToggleReusable} disabled={!active}>
+                {active?.reusable ? 'Mark as flow' : 'Mark as reusable'}
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json"
-            hidden
-            onChange={handleImport}
-          />
+          <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleScenarioImport} />
         </Group>
       </Group>
       <EnvEditorModal opened={editorOpen} onClose={() => setEditorOpen(false)} />
     </>
-  );
+  )
 }

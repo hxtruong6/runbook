@@ -9,6 +9,8 @@ const CreateScenarioBodySchema = z.object({
   name: z.string().min(1),
   projectId: z.string(),
   blocks: z.array(z.unknown()).default([]),
+  reusable: z.boolean().optional(),
+  graphData: z.unknown().optional(),
 })
 
 async function assertMember(db: ReturnType<typeof getDb>, userId: string, teamId: string) {
@@ -18,10 +20,13 @@ async function assertMember(db: ReturnType<typeof getDb>, userId: string, teamId
 export async function scenariosRoutes(app: FastifyInstance): Promise<void> {
   app.get('/:teamId/scenarios', { preHandler: [authenticate] }, async (req, reply) => {
     const { teamId } = req.params as { teamId: string }
+    const { projectId } = req.query as { projectId?: string }
     const user = req.user as { sub: string }
     const db = getDb()
     if (!(await assertMember(db, user.sub, teamId))) return reply.code(403).send({ error: 'Forbidden' })
-    const scenarios = await db.collection('scenarios').find({ teamId }).toArray()
+    const filter: Record<string, unknown> = { teamId }
+    if (projectId) filter['projectId'] = projectId
+    const scenarios = await db.collection('scenarios').find(filter).toArray()
     return reply.send(scenarios)
   })
 
@@ -39,6 +44,8 @@ export async function scenariosRoutes(app: FastifyInstance): Promise<void> {
       projectId: body.data.projectId,
       name: body.data.name,
       blocks: body.data.blocks,
+      reusable: body.data.reusable ?? false,
+      graphData: body.data.graphData ?? null,
       updatedAt: new Date(),
       updatedBy: user.sub,
     })
@@ -68,7 +75,10 @@ export async function scenariosRoutes(app: FastifyInstance): Promise<void> {
     const patch = req.body as Operation[]
     const patched = applyPatch(scenario, patch, false, false).newDocument
     // applyPatch serializes ObjectId to string — restore the original ObjectId
+    // Also restore immutable fields to prevent privilege escalation via PATCH
     patched['_id'] = new ObjectId(scenarioId)
+    patched['teamId'] = scenario['teamId']
+    patched['projectId'] = scenario['projectId']
     patched['updatedAt'] = new Date()
     patched['updatedBy'] = user.sub
 

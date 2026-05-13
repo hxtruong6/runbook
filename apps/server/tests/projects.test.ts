@@ -83,4 +83,69 @@ describe('Projects routes', () => {
     expect(res.statusCode).toBe(200)
     await app.close()
   })
+
+  it('POST /teams/:teamId/projects/import creates project and scenarios from bundle', async () => {
+    const app = buildApp()
+    await app.ready()
+    const { token, teamId } = await setupTeam(app, 'import-test-1@example.com')
+
+    const bundle = {
+      id: 'bundle-1',
+      name: 'My Bundle',
+      createdAt: '2026-01-01T00:00:00Z',
+      versions: [
+        {
+          version: '1.0.0',
+          releasedAt: '2026-01-01T00:00:00Z',
+          releaseNotes: '',
+          changes: [],
+          blocks: [],
+          environments: [],
+          docs: {},
+          scenarios: [
+            {
+              id: 'sc-1',
+              name: 'Happy path',
+              createdAt: '2026-01-01T00:00:00Z',
+              blocks: [{ id: 'b1', kind: 'signin', overrides: {} }],
+              reusable: false,
+            },
+          ],
+        },
+      ],
+    }
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/teams/${teamId}/projects/import`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: bundle,
+    })
+
+    expect(res.statusCode).toBe(201)
+    const body = JSON.parse(res.body) as { project: { name: string }; scenarios: unknown[] }
+    expect(body.project.name).toBe('My Bundle')
+    expect(body.scenarios.length).toBe(1)
+    await app.close()
+  })
+
+  it('POST /teams/:teamId/projects/import returns 400 on invalid bundle', async () => {
+    const app = buildApp()
+    await app.ready()
+    const { token, teamId } = await setupTeam(app, 'import-test-2@example.com')
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/teams/${teamId}/projects/import`,
+      headers: { authorization: `Bearer ${token}` },
+      payload: { name: 123, versions: 'bad' }, // invalid
+    })
+
+    expect(res.statusCode).toBe(400)
+    const body = JSON.parse(res.body) as { error: string; details: string[] }
+    expect(body.error).toBe('Invalid bundle')
+    expect(Array.isArray(body.details)).toBe(true)
+    expect(body.details.length).toBeGreaterThan(0)
+    await app.close()
+  })
 })

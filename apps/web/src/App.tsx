@@ -1,9 +1,9 @@
 // src/App.tsx
 import { useEffect, useMemo, useState } from "react";
+import { useAuthStore } from "./auth/authStore";
+import { LoginPage } from "./auth/LoginPage";
 import { BurstDrawer } from "./components/BurstDrawer";
 import { makeInitialContext } from "./context/ContextStore";
-import { loadScenarios, saveScenarios, upsertScenario, deleteScenario } from "./scenarios/storage";
-import { PREBUILT_SCENARIOS } from "./scenarios/prebuilt";
 import type { Scenario } from "./scenarios/types";
 import { AddBlockMenu } from "./components/AddBlockMenu";
 import { BlockCard } from "./components/BlockCard";
@@ -15,15 +15,19 @@ import { BlockDefsPanel } from "./components/BlockDefsPanel";
 import { SchemaDocsPanel } from "./components/SchemaDocsPanel";
 import { useRuntimeContext } from "./context/ContextStore";
 import { useEnvironments } from "./environments/EnvironmentsStore";
+import { useTeamStore } from "./teams/teamStore";
+import { CreateTeamModal } from "./teams/CreateTeamModal";
+import { useProjectsStore } from "./projects/projectsStore";
+import { useScenariosStore } from "./scenarios/scenariosStore";
 import { runScenarioFrom } from "./execution/runScenario";
 import { buildRegistry } from "./blocks";
 import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
-import { useProjects } from "./projects/ProjectsStore";
 import { loadLocalBlocks, upsertLocalBlock, deleteLocalBlock } from "./blocks/localBlocksStore";
 import type { BlockDefData } from "./blocks/dataBlock";
 import {
   ActionIcon,
+  Alert,
   AppShell,
   Badge,
   Button,
@@ -33,6 +37,7 @@ import {
   NavLink,
   SegmentedControl,
   ScrollArea,
+  Skeleton,
   Stack,
   Text,
   TextInput,
@@ -44,104 +49,124 @@ import { GraphCanvas } from "./components/GraphCanvas";
 import { runGraph } from "./graph/runner";
 import type { GraphData } from "./graph/types";
 
-export function App() {
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+export function AppContent() {
+  const { activeTeamId, fetchTeams } = useTeamStore()
+  const { projects, activeProjectId, fetchProjects } = useProjectsStore()
+  const { scenarios, loading: scenariosLoading, error: scenariosError, fetchScenarios, createScenario, updateScenario, deleteScenario } = useScenariosStore()
+
+  const [activeId, setActiveId] = useState<string | null>(null)
   const { context, dispatch } = useRuntimeContext();
   const { activeEnv } = useEnvironments();
-  const { activeProject, activeVersion } = useProjects();
   const [localBlocks, setLocalBlocks] = useState<BlockDefData[]>(() => loadLocalBlocks());
-  const [view, setView] = useState<"blocks" | "whatsnew" | "apis" | "schema">("blocks");
+  const [view, setView] = useState<'blocks' | 'whatsnew' | 'apis' | 'schema'>('blocks')
   const [insertAfterIdx, setInsertAfterIdx] = useState<number | null>(null);
   const [burstOpen, setBurstOpen] = useState(false);
-  const [graphMode, setGraphMode] = useState<Record<string, "list" | "graph">>({});
+  const [graphMode, setGraphMode] = useState<Record<string, 'list' | 'graph'>>({});
+
+  // Fetch teams on mount
+  useEffect(() => {
+    fetchTeams()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Fetch projects when active team changes
+  useEffect(() => {
+    if (activeTeamId) fetchProjects(activeTeamId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTeamId])
+
+  // Fetch scenarios when active project changes
+  useEffect(() => {
+    if (activeTeamId && activeProjectId) {
+      fetchScenarios(activeTeamId, activeProjectId)
+      setActiveId(null)
+    } else {
+      useScenariosStore.getState().reset()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTeamId, activeProjectId])
+
+  // Auto-select first scenario when list loads
+  useEffect(() => {
+    if (scenarios.length > 0 && !activeId) {
+      setActiveId(scenarios[0]!.id)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenarios])
 
   // Reset view when active project changes
   useEffect(() => {
-    setView("blocks");
-  }, [activeProject?.id]);
+    setView('blocks')
+  }, [activeProjectId])
 
   const registry = useMemo(
-    () => buildRegistry([...localBlocks, ...(activeVersion?.blocks ?? [])], getBaseUrl),
-    [activeVersion, localBlocks]
+    () => buildRegistry(localBlocks, getBaseUrl),
+    [localBlocks]
   );
 
-  useEffect(() => {
-    let loaded = loadScenarios();
-    if (loaded.length === 0) {
-      saveScenarios(PREBUILT_SCENARIOS);
-      loaded = PREBUILT_SCENARIOS;
-    }
-    setScenarios(loaded);
-    setActiveId(loaded[0]?.id ?? null);
-  }, []);
-
-  // When a project is active, use its version's scenarios; otherwise local state
-  const displayScenarios = activeProject
-    ? (activeVersion?.scenarios ?? [])
-    : scenarios;
-
   const burstDeps = useMemo(() => ({
-    scenarioLookup: (id: string) => displayScenarios.find(s => s.id === id) ?? null,
+    scenarioLookup: (id: string) => scenarios.find((s) => s.id === id) ?? null,
     registry,
     env: activeEnv ?? null,
     makeCtx: makeInitialContext,
-  }), [displayScenarios, registry, activeEnv]);
+  }), [scenarios, registry, activeEnv]);
 
-  const active = displayScenarios.find((s) => s.id === activeId) ?? null;
-  const activeMode = active ? (graphMode[active.id] ?? (active.graphData ? "graph" : "list")) : "list";
+  const active = scenarios.find((s) => s.id === activeId) ?? null;
+  const activeMode = active ? (graphMode[active.id] ?? (active.graphData ? 'graph' : 'list')) : 'list';
+  const activeProject = projects.find((p) => p._id === activeProjectId) ?? null;
 
   function updateActive(next: Scenario) {
-    if (activeProject) return; // read-only when project is active
-    setScenarios((all) => all.map((s) => (s.id === next.id ? next : s)));
-    upsertScenario(next);
+    if (!activeTeamId) return
+    updateScenario(activeTeamId, next)
   }
 
   async function runFrom(startIdx: number) {
     if (!active) return;
-    if (activeMode === "graph" && active.graphData) {
+    if (activeMode === 'graph' && active.graphData) {
       await runGraph(
         active.graphData,
         context,
-        (newCtx) => { dispatch({ type: "MERGE", values: newCtx }); },
+        (newCtx) => { dispatch({ type: 'MERGE', values: newCtx }) },
         activeEnv,
         registry,
-        (id) => displayScenarios.find((s) => s.id === id) ?? null,
+        (id) => scenarios.find((s) => s.id === id) ?? null,
       );
     } else {
       await runScenarioFrom(active.blocks, startIdx, context, (newCtx) => {
-        dispatch({ type: "MERGE", values: newCtx });
+        dispatch({ type: 'MERGE', values: newCtx });
       }, activeEnv, registry);
     }
   }
 
-  function importScenario(s: Scenario) {
-    if (activeProject) return; // read-only when project is active
-    setScenarios((all) => [...all, s]);
-    upsertScenario(s);
-    setActiveId(s.id);
+  async function importScenario(s: Scenario) {
+    if (!activeTeamId || !activeProjectId) return
+    try {
+      const created = await createScenario(activeTeamId, activeProjectId, s.name)
+      updateScenario(activeTeamId, { ...created, blocks: s.blocks, reusable: s.reusable ?? false, graphData: s.graphData })
+      setActiveId(created.id)
+    } catch (e) {
+      console.error('Failed to import scenario:', e)
+    }
   }
 
   function openRenameModal(scenario: Scenario) {
     let newName = scenario.name;
     modals.open({
-      title: "Rename scenario",
+      title: 'Rename scenario',
       children: (
         <form
           onSubmit={(e) => {
-            e.preventDefault();
-            const trimmed = newName.trim();
-            if (trimmed) {
-              const updated = { ...scenario, name: trimmed };
-              setScenarios((all) => all.map((s) => (s.id === updated.id ? updated : s)));
-              upsertScenario(updated);
+            e.preventDefault()
+            const trimmed = newName.trim()
+            if (trimmed && activeTeamId) {
+              updateScenario(activeTeamId, { ...scenario, name: trimmed })
             }
-            modals.closeAll();
+            modals.closeAll()
           }}
         >
           <TextInput
             defaultValue={scenario.name}
-            onChange={(e) => { newName = e.currentTarget.value; }}
+            onChange={(e) => { newName = e.currentTarget.value }}
             data-autofocus
             mb="sm"
           />
@@ -153,17 +178,15 @@ export function App() {
 
   function openDeleteModal(scenario: Scenario) {
     openConfirmModal({
-      title: "Delete scenario",
-      children: (
-        <Text size="sm">Delete &ldquo;{scenario.name}&rdquo;? This cannot be undone.</Text>
-      ),
-      labels: { confirm: "Delete", cancel: "Cancel" },
-      confirmProps: { color: "red" },
+      title: 'Delete scenario',
+      children: <Text size="sm">Delete &ldquo;{scenario.name}&rdquo;? This cannot be undone.</Text>,
+      labels: { confirm: 'Delete', cancel: 'Cancel' },
+      confirmProps: { color: 'red' },
       onConfirm: () => {
-        setScenarios((all) => all.filter((s) => s.id !== scenario.id));
-        deleteScenario(scenario.id);
+        if (!activeTeamId) return
+        deleteScenario(activeTeamId, scenario.id)
         if (activeId === scenario.id) {
-          setActiveId(scenarios.find((s) => s.id !== scenario.id)?.id ?? null);
+          setActiveId(scenarios.find((s) => s.id !== scenario.id)?.id ?? null)
         }
       },
     });
@@ -171,7 +194,7 @@ export function App() {
 
   function enableGraphMode(scenario: Scenario) {
     if (scenario.graphData) {
-      setGraphMode((m) => ({ ...m, [scenario.id]: "graph" }));
+      setGraphMode((m) => ({ ...m, [scenario.id]: 'graph' }));
       return;
     }
     const startId = crypto.randomUUID();
@@ -182,22 +205,21 @@ export function App() {
         name: b.kind,
         position: { x: 200, y: 80 + i * 120 },
       })).concat([{
-        blockInstance: { id: startId, kind: "start", overrides: {} },
-        name: "Start",
+        blockInstance: { id: startId, kind: 'start', overrides: {} },
+        name: 'Start',
         position: { x: 200, y: 0 },
       }]),
       edges: [],
     };
-    const updated = { ...scenario, graphData: initialGraphData };
-    updateActive(updated);
-    setGraphMode((m) => ({ ...m, [scenario.id]: "graph" }));
+    updateActive({ ...scenario, graphData: initialGraphData });
+    setGraphMode((m) => ({ ...m, [scenario.id]: 'graph' }));
   }
 
   return (
     <RegistryProvider registry={registry}>
       <AppShell
-        navbar={{ width: 240, breakpoint: "sm" }}
-        aside={{ width: 320, breakpoint: "md" }}
+        navbar={{ width: 240, breakpoint: 'sm' }}
+        aside={{ width: 320, breakpoint: 'md' }}
         header={{ height: 60 }}
         padding="md"
       >
@@ -207,71 +229,66 @@ export function App() {
             onRunAll={() => runFrom(0)}
             onImport={importScenario}
             onBurst={() => setBurstOpen(true)}
-            onDuplicate={(s) => {
-              if (activeProject) return;
-              const duped = { ...s, id: crypto.randomUUID(), name: s.name + " (copy)", createdAt: new Date().toISOString() };
-              setScenarios((all) => [...all, duped]);
-              upsertScenario(duped);
-              setActiveId(duped.id);
+            onDuplicate={async (s) => {
+              if (!activeTeamId || !activeProjectId) return
+              try {
+                const created = await createScenario(activeTeamId, activeProjectId, s.name + ' (copy)')
+                updateScenario(activeTeamId, { ...created, blocks: s.blocks, reusable: s.reusable ?? false })
+                setActiveId(created.id)
+              } catch (e) {
+                console.error('Failed to duplicate scenario:', e)
+              }
             }}
             onToggleReusable={() => {
-              if (!active || activeProject) return;
-              updateActive({ ...active, reusable: !active.reusable });
+              if (!active) return
+              updateActive({ ...active, reusable: !active.reusable })
             }}
           />
         </AppShell.Header>
 
-        <AppShell.Navbar p="md" style={{ display: "flex", flexDirection: "column" }}>
+        <AppShell.Navbar p="md" style={{ display: 'flex', flexDirection: 'column' }}>
           <Stack gap="xs" style={{ flexShrink: 0 }}>
             <ProjectSwitcher />
             <Divider my="sm" />
-            <Button
-              variant="default"
-              size="xs"
-              fullWidth
-              disabled={!!activeProject}
-              onClick={() => {
-                if (activeProject) return;
-                saveScenarios(PREBUILT_SCENARIOS);
-                setScenarios(PREBUILT_SCENARIOS);
-                setActiveId(PREBUILT_SCENARIOS[0]?.id ?? null);
-              }}
-            >
-              Reset to prebuilt
-            </Button>
 
-            {activeProject && (
-              <Text size="xs" c="dimmed">
-                Read-only — defined by project version
-              </Text>
+            {activeProject ? (
+              <Text size="xs" c="dimmed">{activeProject.name}</Text>
+            ) : (
+              <Text size="xs" c="dimmed">No project selected</Text>
             )}
 
             <Group justify="space-between" mt="xs">
-              <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                Scenarios
-              </Text>
-              <Text size="xs" c="dimmed">{displayScenarios.length}</Text>
+              <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Scenarios</Text>
+              <Text size="xs" c="dimmed">{scenarios.length}</Text>
             </Group>
           </Stack>
 
           <ScrollArea style={{ flex: 1, minHeight: 0 }} mt="xs">
-            <Stack gap={2}>
-              {displayScenarios.length === 0 ? (
-                <Text size="xs" c="dimmed" pl="xs">No scenarios yet</Text>
-              ) : (
-                displayScenarios.map((s) => (
-                  <NavLink
-                    key={s.id}
-                    label={s.name}
-                    active={s.id === activeId}
-                    onClick={() => setActiveId(s.id)}
-                    style={{ borderRadius: "var(--mantine-radius-md)" }}
-                    rightSection={
-                      <Group gap={4} wrap="nowrap">
-                        {s.reusable && (
-                          <Badge size="xs" variant="light" color="teal">reusable</Badge>
-                        )}
-                        {!activeProject && (
+            {scenariosLoading ? (
+              <Stack gap={4}>
+                {[1, 2, 3].map((i) => <Skeleton key={i} height={32} />)}
+              </Stack>
+            ) : scenariosError ? (
+              <Alert color="red">{scenariosError}</Alert>
+            ) : (
+              <Stack gap={2}>
+                {scenarios.length === 0 ? (
+                  <Text size="xs" c="dimmed" pl="xs">
+                    {activeProjectId ? 'No scenarios yet' : 'Select a project'}
+                  </Text>
+                ) : (
+                  scenarios.map((s) => (
+                    <NavLink
+                      key={s.id}
+                      label={s.name}
+                      active={s.id === activeId}
+                      onClick={() => setActiveId(s.id)}
+                      style={{ borderRadius: 'var(--mantine-radius-md)' }}
+                      rightSection={
+                        <Group gap={4} wrap="nowrap">
+                          {s.reusable && (
+                            <Badge size="xs" variant="light" color="teal">reusable</Badge>
+                          )}
                           <Menu position="right-start" withinPortal>
                             <Menu.Target>
                               <ActionIcon
@@ -284,29 +301,27 @@ export function App() {
                               </ActionIcon>
                             </Menu.Target>
                             <Menu.Dropdown>
-                              <Menu.Item onClick={(e) => { e.stopPropagation(); openRenameModal(s); }}>
+                              <Menu.Item onClick={(e) => { e.stopPropagation(); openRenameModal(s) }}>
                                 Rename
                               </Menu.Item>
                               <Menu.Item onClick={(e) => {
-                                e.stopPropagation();
-                                const updated = { ...s, reusable: !s.reusable };
-                                setScenarios((all) => all.map((sc) => sc.id === s.id ? updated : sc));
-                                upsertScenario(updated);
+                                e.stopPropagation()
+                                if (activeTeamId) updateScenario(activeTeamId, { ...s, reusable: !s.reusable })
                               }}>
-                                {s.reusable ? "Make a flow" : "Make reusable"}
+                                {s.reusable ? 'Make a flow' : 'Make reusable'}
                               </Menu.Item>
-                              <Menu.Item color="red" onClick={(e) => { e.stopPropagation(); openDeleteModal(s); }}>
+                              <Menu.Item color="red" onClick={(e) => { e.stopPropagation(); openDeleteModal(s) }}>
                                 Delete
                               </Menu.Item>
                             </Menu.Dropdown>
                           </Menu>
-                        )}
-                      </Group>
-                    }
-                  />
-                ))
-              )}
-            </Stack>
+                        </Group>
+                      }
+                    />
+                  ))
+                )}
+              </Stack>
+            )}
           </ScrollArea>
 
           <Button
@@ -314,22 +329,17 @@ export function App() {
             size="xs"
             leftSection={<IconPlus size={14} />}
             fullWidth
-            disabled={!!activeProject}
+            disabled={!activeProjectId || !activeTeamId}
             mt="xs"
             style={{ flexShrink: 0 }}
-            onClick={() => {
-              if (activeProject) return;
-              const newId = crypto.randomUUID();
-              const newScenario: Scenario = {
-                id: newId,
-                name: "Untitled scenario",
-                createdAt: new Date().toISOString(),
-                blocks: [],
-                reusable: false,
-              };
-              setScenarios((all) => [...all, newScenario]);
-              upsertScenario(newScenario);
-              setActiveId(newId);
+            onClick={async () => {
+              if (!activeTeamId || !activeProjectId) return
+              try {
+                const created = await createScenario(activeTeamId, activeProjectId, 'Untitled scenario')
+                setActiveId(created.id)
+              } catch (e) {
+                console.error('Failed to create scenario:', e)
+              }
             }}
           >
             New scenario
@@ -338,9 +348,7 @@ export function App() {
 
         <AppShell.Aside p="md">
           <Stack gap="xs">
-            <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-              Context
-            </Text>
+            <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Context</Text>
             <ContextPanel />
           </Stack>
         </AppShell.Aside>
@@ -350,42 +358,29 @@ export function App() {
             <SegmentedControl
               size="xs"
               value={view}
-              onChange={(v) => setView(v as "blocks" | "whatsnew" | "apis" | "schema")}
+              onChange={(v) => setView(v as 'blocks' | 'whatsnew' | 'apis' | 'schema')}
               data={[
-                { label: "Scenarios", value: "blocks" },
-                { label: "API Blocks", value: "apis" },
-                {
-                  label: `What's new${(activeVersion?.changes.length ?? 0) > 0 ? ` (${activeVersion!.changes.length})` : ""}`,
-                  value: "whatsnew",
-                },
-                { label: "Schema", value: "schema" },
+                { label: 'Scenarios', value: 'blocks' },
+                { label: 'API Blocks', value: 'apis' },
+                { label: "What's new", value: 'whatsnew' },
+                { label: 'Schema', value: 'schema' },
               ]}
             />
           </Group>
 
-          {view === "apis" && (
+          {view === 'apis' && (
             <BlockDefsPanel
               localBlocks={localBlocks}
-              onAdd={(block) => {
-                upsertLocalBlock(block);
-                setLocalBlocks(loadLocalBlocks());
-              }}
-              onUpdate={(block) => {
-                upsertLocalBlock(block);
-                setLocalBlocks(loadLocalBlocks());
-              }}
-              onDelete={(kind) => {
-                deleteLocalBlock(kind);
-                setLocalBlocks(loadLocalBlocks());
-              }}
+              onAdd={(block) => { upsertLocalBlock(block); setLocalBlocks(loadLocalBlocks()) }}
+              onUpdate={(block) => { upsertLocalBlock(block); setLocalBlocks(loadLocalBlocks()) }}
+              onDelete={(kind) => { deleteLocalBlock(kind); setLocalBlocks(loadLocalBlocks()) }}
             />
           )}
 
-          {view === "schema" && <SchemaDocsPanel />}
+          {view === 'schema' && <SchemaDocsPanel />}
+          {view === 'whatsnew' && <WhatsNewPanel />}
 
-          {view === "whatsnew" ? (
-            <WhatsNewPanel />
-          ) : view === "apis" || view === "schema" ? null : (
+          {view === 'blocks' && (
             <>
               {active && (
                 <Group mb="md">
@@ -394,27 +389,27 @@ export function App() {
                     value={activeMode}
                     onChange={(v) => {
                       if (!active) return;
-                      if (v === "graph") enableGraphMode(active);
-                      else setGraphMode((m) => ({ ...m, [active.id]: "list" }));
+                      if (v === 'graph') enableGraphMode(active);
+                      else setGraphMode((m) => ({ ...m, [active.id]: 'list' }));
                     }}
                     data={[
-                      { label: "List", value: "list" },
-                      { label: "Graph", value: "graph" },
+                      { label: 'List', value: 'list' },
+                      { label: 'Graph', value: 'graph' },
                     ]}
                   />
                 </Group>
               )}
 
-              {activeMode === "graph" && active?.graphData && (
+              {activeMode === 'graph' && active?.graphData && (
                 <GraphCanvas
                   scenario={active}
-                  allScenarios={displayScenarios}
-                  readOnly={!!activeProject}
+                  allScenarios={scenarios}
+                  readOnly={false}
                   onChange={updateActive}
                 />
               )}
 
-              {activeMode === "list" && (
+              {activeMode === 'list' && (
                 <Stack gap="md">
                   {active ? (
                     <>
@@ -422,28 +417,25 @@ export function App() {
                         <div key={b.id}>
                           <BlockCard
                             block={b}
-                            scenarios={displayScenarios}
+                            scenarios={scenarios}
                             onChange={(next) => {
-                              if (activeProject) return;
                               const updatedBlocks = [...active.blocks];
                               updatedBlocks[i] = next;
                               updateActive({ ...active, blocks: updatedBlocks });
                             }}
                             onRunFromHere={() => runFrom(i)}
-                            onDuplicate={activeProject ? undefined : () => {
+                            onDuplicate={() => {
                               const clone = { ...b, id: crypto.randomUUID() };
                               const updatedBlocks = [...active.blocks];
                               updatedBlocks.splice(i + 1, 0, clone);
                               updateActive({ ...active, blocks: updatedBlocks });
                             }}
-                            onRemove={activeProject ? undefined : () => {
+                            onRemove={() => {
                               updateActive({ ...active, blocks: active.blocks.filter((_, idx) => idx !== i) });
                             }}
-                            onInsertBelow={activeProject ? undefined : () => {
-                              setInsertAfterIdx(i);
-                            }}
+                            onInsertBelow={() => setInsertAfterIdx(i)}
                           />
-                          {insertAfterIdx === i && !activeProject && (
+                          {insertAfterIdx === i && (
                             <AddBlockMenu
                               onAdd={(instance) => {
                                 const updatedBlocks = [...active.blocks];
@@ -451,21 +443,17 @@ export function App() {
                                 updateActive({ ...active, blocks: updatedBlocks });
                                 setInsertAfterIdx(null);
                               }}
-                              scenarios={displayScenarios.filter((s) => s.id !== active.id)}
+                              scenarios={scenarios.filter((s) => s.id !== active.id)}
                               currentScenarioId={active.id}
                             />
                           )}
                         </div>
                       ))}
-                      {!activeProject && (
-                        <AddBlockMenu
-                          onAdd={(instance) => {
-                            updateActive({ ...active, blocks: [...active.blocks, instance] });
-                          }}
-                          scenarios={displayScenarios.filter((s) => s.id !== active.id)}
-                          currentScenarioId={active.id}
-                        />
-                      )}
+                      <AddBlockMenu
+                        onAdd={(instance) => updateActive({ ...active, blocks: [...active.blocks, instance] })}
+                        scenarios={scenarios.filter((s) => s.id !== active.id)}
+                        currentScenarioId={active.id}
+                      />
                     </>
                   ) : (
                     <Stack align="center" gap="xs" py="xl">
@@ -474,8 +462,9 @@ export function App() {
                       </ThemeIcon>
                       <Text fw={600}>No scenario selected</Text>
                       <Text size="sm" c="dimmed" ta="center" maw={320}>
-                        Pick a scenario from the sidebar, or create a new one to
-                        get started.
+                        {activeProjectId
+                          ? 'Pick a scenario from the sidebar, or create a new one.'
+                          : 'Select or import a project to get started.'}
                       </Text>
                     </Stack>
                   )}
@@ -485,12 +474,20 @@ export function App() {
           )}
         </AppShell.Main>
       </AppShell>
+
       <BurstDrawer
         opened={burstOpen}
         onClose={() => setBurstOpen(false)}
         scenario={active}
         deps={active ? burstDeps : null}
       />
+      <CreateTeamModal />
     </RegistryProvider>
-  );
+  )
+}
+
+export function App() {
+  const token = useAuthStore((s) => s.token)
+  if (!token) return <LoginPage />
+  return <AppContent />
 }
