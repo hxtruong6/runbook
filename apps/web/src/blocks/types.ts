@@ -1,5 +1,14 @@
 // src/blocks/types.ts
 
+export type AssertionOp = "eq" | "neq" | "gt" | "lt" | "contains" | "exists";
+
+export type Assertion = {
+  path: string;   // dot-path into result, e.g. "httpStatus" or "response.data.id"
+  op: AssertionOp;
+  value?: unknown; // not needed for "exists"
+  label?: string;  // optional display name
+};
+
 export type RuntimeContext = Record<string, unknown> & {
   socketSessionUuid: string;
 };

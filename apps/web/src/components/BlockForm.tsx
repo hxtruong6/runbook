@@ -21,6 +21,46 @@ type Props = {
   onChange: (overrides: Record<string, unknown>) => void;
 };
 
+const TEMPLATE_TOKEN_STR = "\\{\\{[^}]+\\}\\}";
+
+function isTemplateToken(seg: string) {
+  return /^\{\{[^}]+\}\}$/.test(seg);
+}
+
+function VariablePreview({
+  value,
+  context,
+}: {
+  value: string;
+  context: Record<string, unknown>;
+}) {
+  if (!new RegExp(TEMPLATE_TOKEN_STR).test(value)) return null;
+
+  const segments = value.split(new RegExp(`(${TEMPLATE_TOKEN_STR})`, "g"));
+
+  return (
+    <Text size="xs" mt={2}>
+      {segments.map((seg, i) => {
+        if (isTemplateToken(seg)) {
+          const key = seg.slice(2, -2);
+          const resolved = context[key];
+          const display = resolved !== undefined ? String(resolved) : seg;
+          return (
+            <Text key={i} component="span" c="amber" fw={600}>
+              {display}
+            </Text>
+          );
+        }
+        return (
+          <Text key={i} component="span" c="dimmed">
+            {seg}
+          </Text>
+        );
+      })}
+    </Text>
+  );
+}
+
 function Field({
   field,
   overrides,
@@ -99,12 +139,18 @@ function Field({
   }
 
   return (
-    <TextInput
-      label={label}
-      placeholder={field.placeholder}
-      value={String(effective)}
-      onChange={(e) => update(e.currentTarget.value)}
-    />
+    <>
+      <TextInput
+        label={label}
+        placeholder={field.placeholder}
+        value={String(effective)}
+        onChange={(e) => update(e.currentTarget.value)}
+      />
+      <VariablePreview
+        value={String(effective)}
+        context={context as Record<string, unknown>}
+      />
+    </>
   );
 }
 

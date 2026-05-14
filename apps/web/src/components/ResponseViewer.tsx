@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Alert,
   Badge,
   Button,
   Code,
   Group,
+  Paper,
   ScrollArea,
   SegmentedControl,
   Stack,
@@ -23,24 +24,40 @@ import {
   redactSnippet,
 } from "./snippets";
 
+function formatBytes(bytes: number): string {
+  if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${bytes} B`;
+}
+
 function ResultStatusBar({ result }: { result: BlockRunResult }) {
   const isOk = result.status === "ok";
   const code = "httpStatus" in result && result.httpStatus ? result.httpStatus : "—";
   const captured = isOk ? Object.keys(result.captured) : [];
 
+  const responseSize =
+    result.response != null
+      ? new Blob([
+          typeof result.response === "string"
+            ? result.response
+            : JSON.stringify(result.response),
+        ]).size
+      : null;
+
   return (
-    <Alert
-      color={isOk ? "teal" : "red"}
-      variant="light"
-      icon={isOk ? <IconCheck size={16} /> : <IconX size={16} />}
-      p="sm"
-    >
+    <Paper p="xs" withBorder>
       <Group gap="xs" wrap="nowrap">
-        <Text size="sm" fw={600}>
-          HTTP {code}
+        <Text size="sm" fw={600} c={isOk ? "teal" : "red"}>
+          {isOk ? <IconCheck size={14} /> : <IconX size={14} />}{" "}HTTP {code}
         </Text>
         <Text size="sm" c="dimmed">·</Text>
         <Text size="sm" c="dimmed">{result.elapsedMs}ms</Text>
+        {responseSize != null && (
+          <>
+            <Text size="sm" c="dimmed">·</Text>
+            <Text size="sm" c="dimmed">{formatBytes(responseSize)}</Text>
+          </>
+        )}
         {result.request && (
           <>
             <Text size="sm" c="dimmed">·</Text>
@@ -51,14 +68,14 @@ function ResultStatusBar({ result }: { result: BlockRunResult }) {
         )}
       </Group>
       {!isOk && result.error && (
-        <Text size="xs" mt="xs">{result.error}</Text>
+        <Text size="xs" mt="xs" c="red">{result.error}</Text>
       )}
       {isOk && captured.length > 0 && (
         <Text size="xs" mt="xs" c="dimmed">
           Captured: {captured.join(", ")}
         </Text>
       )}
-    </Alert>
+    </Paper>
   );
 }
 
@@ -160,7 +177,21 @@ export function ResponseViewer({ result }: { result: BlockRunResult | null }) {
 
   return (
     <Stack gap="xs" mt="xs">
-      <ResultStatusBar result={result} />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={result.status + result.elapsedMs}
+          initial={{
+            boxShadow: result.status === 'ok'
+              ? '0 0 0 3px var(--mantine-color-teal-4)'
+              : '0 0 0 3px var(--mantine-color-red-4)',
+          }}
+          animate={{ boxShadow: '0 0 0 0px transparent' }}
+          transition={{ duration: 0.85, ease: 'easeOut' }}
+          style={{ borderRadius: 'var(--mantine-radius-lg)' }}
+        >
+          <ResultStatusBar result={result} />
+        </motion.div>
+      </AnimatePresence>
       <Tabs defaultValue="response">
         <Group justify="space-between" align="center" wrap="nowrap">
           <Tabs.List>

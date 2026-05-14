@@ -5,6 +5,7 @@ import { authRoutes } from './routes/auth.js'
 import { teamsRoutes } from './routes/teams.js'
 import { projectsRoutes } from './routes/projects.js'
 import { scenariosRoutes } from './routes/scenarios.js'
+import { registryRoutes } from './routes/registry.js'
 
 export function buildApp(opts: FastifyServerOptions = {}) {
   const app = Fastify(opts)
@@ -21,6 +22,8 @@ export function buildApp(opts: FastifyServerOptions = {}) {
   app.register(teamsRoutes, { prefix: '/teams' })
   app.register(projectsRoutes, { prefix: '/teams' })
   app.register(scenariosRoutes, { prefix: '/teams' })
+
+  app.register(registryRoutes, { prefix: '/registry' })
 
   app.get('/health', async () => ({ status: 'ok' }))
 

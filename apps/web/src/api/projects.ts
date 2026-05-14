@@ -20,6 +20,13 @@ export type ApiProject = {
 }
 export type ImportResult = { project: ApiProject; scenarios: unknown[] }
 
+export function postProject(teamId: string, name: string): Promise<ApiProject> {
+  return apiFetch<ApiProject>(`${SERVER_BASE}/teams/${teamId}/projects`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+}
+
 export function getProjects(teamId: string): Promise<ApiProject[]> {
   return apiFetch<ApiProject[]>(`${SERVER_BASE}/teams/${teamId}/projects`)
 }

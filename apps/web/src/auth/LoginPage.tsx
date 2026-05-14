@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import {
-  Alert, Button, Center, Paper, PasswordInput, Stack,
-  Tabs, TextInput, Title,
+  Alert, Button, Paper, PasswordInput, Stack,
+  Tabs, Text, TextInput,
 } from '@mantine/core'
 import { useAuthStore } from './authStore'
+import { Logo } from '../components/Logo'
 
 export function LoginPage() {
   const { login, register, loading, error, clearError } = useAuthStore()
@@ -22,12 +24,21 @@ export function LoginPage() {
   }
 
   return (
-    <Center h="100vh">
-      <Paper w={380} p="xl">
-        <Stack gap="md">
-          <Title order={3}>Runbook</Title>
+    <div className="login-bg">
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}
+        style={{ position: 'relative', zIndex: 1 }}
+      >
+      <Paper w={400} p="xl">
+        <Stack gap="lg">
+          <Stack gap={6} align="center" pb="xs">
+            <Logo size={44} />
+            <Text size="sm" c="dimmed">API testing for your team</Text>
+          </Stack>
           <Tabs value={tab} onChange={(v) => { setTab(v); clearError() }}>
-            <Tabs.List>
+            <Tabs.List grow>
               <Tabs.Tab value="login">Sign in</Tabs.Tab>
               <Tabs.Tab value="register">Create account</Tabs.Tab>
             </Tabs.List>
@@ -63,6 +74,7 @@ export function LoginPage() {
           </form>
         </Stack>
       </Paper>
-    </Center>
+      </motion.div>
+    </div>
   )
 }

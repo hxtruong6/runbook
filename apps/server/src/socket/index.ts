@@ -3,7 +3,8 @@ import { Server } from 'socket.io'
 import { FastifyInstance } from 'fastify'
 import { joinRoom, leaveRoom, leaveAllRooms, getPresence, updateScenarioFocus } from './presence.js'
 import { handleScenarioPatch } from './scenarios.js'
-import { Operation } from 'fast-json-patch'
+import jsonpatch from 'fast-json-patch'
+type Operation = jsonpatch.Operation
 
 export function attachSocket(app: FastifyInstance, httpServer: HttpServer): Server {
   const io = new Server(httpServer, {

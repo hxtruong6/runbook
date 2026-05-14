@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { ObjectId } from 'mongodb'
-import { applyPatch, Operation } from 'fast-json-patch'
+import jsonpatch from 'fast-json-patch'
+type Operation = jsonpatch.Operation
 import { getDb } from '../db.js'
 import { authenticate } from '../plugins/authenticate.js'
 import { z } from 'zod'
@@ -73,7 +74,7 @@ export async function scenariosRoutes(app: FastifyInstance): Promise<void> {
     if (!scenario) return reply.code(404).send({ error: 'Not found' })
 
     const patch = req.body as Operation[]
-    const patched = applyPatch(scenario, patch, false, false).newDocument
+    const patched = jsonpatch.applyPatch(scenario, patch, false, false).newDocument
     // applyPatch serializes ObjectId to string — restore the original ObjectId
     // Also restore immutable fields to prevent privilege escalation via PATCH
     patched['_id'] = new ObjectId(scenarioId)

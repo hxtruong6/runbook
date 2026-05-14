@@ -1,6 +1,7 @@
 import { Socket, Server } from 'socket.io'
 import { ObjectId } from 'mongodb'
-import { applyPatch, Operation } from 'fast-json-patch'
+import jsonpatch from 'fast-json-patch'
+type Operation = jsonpatch.Operation
 import { getDb } from '../db.js'
 
 export async function handleScenarioPatch(
@@ -14,7 +15,7 @@ export async function handleScenarioPatch(
   const scenario = await db.collection('scenarios').findOne({ _id: new ObjectId(payload.scenarioId) })
   if (!scenario) return
 
-  const patched = applyPatch(scenario, payload.patch, false, false).newDocument
+  const patched = jsonpatch.applyPatch(scenario, payload.patch, false, false).newDocument
   patched['_id'] = new ObjectId(payload.scenarioId)
   patched['updatedAt'] = new Date()
   patched['updatedBy'] = user.sub

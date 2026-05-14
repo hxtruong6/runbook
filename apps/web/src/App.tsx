@@ -1,8 +1,11 @@
 // src/App.tsx
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useHotkeys } from "@mantine/hooks";
 import { useAuthStore } from "./auth/authStore";
 import { LoginPage } from "./auth/LoginPage";
 import { BurstDrawer } from "./components/BurstDrawer";
+import { SearchModal } from "./components/SearchModal";
 import { makeInitialContext } from "./context/ContextStore";
 import type { Scenario } from "./scenarios/types";
 import { AddBlockMenu } from "./components/AddBlockMenu";
@@ -20,6 +23,8 @@ import { CreateTeamModal } from "./teams/CreateTeamModal";
 import { useProjectsStore } from "./projects/projectsStore";
 import { useScenariosStore } from "./scenarios/scenariosStore";
 import { runScenarioFrom } from "./execution/runScenario";
+import { saveRunRecord } from "./execution/runHistory";
+import { RunHistoryPanel } from "./components/RunHistoryPanel";
 import { buildRegistry } from "./blocks";
 import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
@@ -31,23 +36,30 @@ import {
   AppShell,
   Badge,
   Button,
+  Code,
   Divider,
   Group,
   Menu,
+  Modal,
   NavLink,
+  Paper,
   SegmentedControl,
   ScrollArea,
   Skeleton,
   Stack,
+  Table,
   Text,
+  Textarea,
   TextInput,
   ThemeIcon,
 } from "@mantine/core";
 import { modals, openConfirmModal } from "@mantine/modals";
-import { IconPlus, IconClipboardList, IconDots } from "@tabler/icons-react";
+import { IconPlus, IconClipboardList, IconDots, IconTerminal2, IconTestPipe } from "@tabler/icons-react";
 import { GraphCanvas } from "./components/GraphCanvas";
 import { runGraph } from "./graph/runner";
 import type { GraphData } from "./graph/types";
+import { PREBUILT_SCENARIOS } from "./scenarios/prebuilt";
+import { parseCurl } from "./blocks/parseCurl";
 
 export function AppContent() {
   const { activeTeamId, fetchTeams } = useTeamStore()
@@ -62,6 +74,9 @@ export function AppContent() {
   const [insertAfterIdx, setInsertAfterIdx] = useState<number | null>(null);
   const [burstOpen, setBurstOpen] = useState(false);
   const [graphMode, setGraphMode] = useState<Record<string, 'list' | 'graph'>>({});
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [runVersion, setRunVersion] = useState(0);
 
   // Fetch teams on mount
   useEffect(() => {
@@ -122,6 +137,7 @@ export function AppContent() {
 
   async function runFrom(startIdx: number) {
     if (!active) return;
+    const startTime = Date.now();
     if (activeMode === 'graph' && active.graphData) {
       await runGraph(
         active.graphData,
@@ -136,6 +152,16 @@ export function AppContent() {
         dispatch({ type: 'MERGE', values: newCtx });
       }, activeEnv, registry);
     }
+    const elapsedMs = Date.now() - startTime;
+    saveRunRecord(active.id, {
+      id: crypto.randomUUID(),
+      runAt: new Date().toISOString(),
+      blockCount: active.blocks.length,
+      passCount: active.blocks.length,
+      failCount: 0,
+      elapsedMs,
+    });
+    setRunVersion((v) => v + 1);
   }
 
   async function importScenario(s: Scenario) {
@@ -215,6 +241,13 @@ export function AppContent() {
     setGraphMode((m) => ({ ...m, [scenario.id]: 'graph' }));
   }
 
+  useHotkeys([
+    ['mod+Enter', () => { if (active && view === 'blocks') runFrom(0); }],
+    ['mod+shift+Enter', () => { if (active && view === 'blocks') runFrom(insertAfterIdx ?? 0); }],
+    ['?', () => setShortcutsOpen(true)],
+    ['mod+k', (e) => { e.preventDefault(); setSearchOpen(true); }],
+  ]);
+
   return (
     <RegistryProvider registry={registry}>
       <AppShell
@@ -269,12 +302,17 @@ export function AppContent() {
                 {[1, 2, 3].map((i) => <Skeleton key={i} height={32} />)}
               </Stack>
             ) : scenariosError ? (
-              <Alert color="red">{scenariosError}</Alert>
+              <Stack gap={6}>
+                <Alert color="red">{scenariosError}</Alert>
+                <Button size="xs" variant="default" onClick={() => {
+                  if (activeTeamId && activeProjectId) fetchScenarios(activeTeamId, activeProjectId)
+                }}>Retry</Button>
+              </Stack>
             ) : (
               <Stack gap={2}>
                 {scenarios.length === 0 ? (
                   <Text size="xs" c="dimmed" pl="xs">
-                    {activeProjectId ? 'No scenarios yet' : 'Select a project'}
+                    {activeProjectId ? 'No scenarios yet — create one below' : 'Select a project above'}
                   </Text>
                 ) : (
                   scenarios.map((s) => (
@@ -413,59 +451,200 @@ export function AppContent() {
                 <Stack gap="md">
                   {active ? (
                     <>
-                      {active.blocks.map((b, i) => (
-                        <div key={b.id}>
-                          <BlockCard
-                            block={b}
-                            scenarios={scenarios}
-                            onChange={(next) => {
-                              const updatedBlocks = [...active.blocks];
-                              updatedBlocks[i] = next;
-                              updateActive({ ...active, blocks: updatedBlocks });
-                            }}
-                            onRunFromHere={() => runFrom(i)}
-                            onDuplicate={() => {
-                              const clone = { ...b, id: crypto.randomUUID() };
-                              const updatedBlocks = [...active.blocks];
-                              updatedBlocks.splice(i + 1, 0, clone);
-                              updateActive({ ...active, blocks: updatedBlocks });
-                            }}
-                            onRemove={() => {
-                              updateActive({ ...active, blocks: active.blocks.filter((_, idx) => idx !== i) });
-                            }}
-                            onInsertBelow={() => setInsertAfterIdx(i)}
-                          />
-                          {insertAfterIdx === i && (
-                            <AddBlockMenu
-                              onAdd={(instance) => {
+                      <AnimatePresence initial={false}>
+                        {active.blocks.map((b, i) => (
+                          <motion.div
+                            key={b.id}
+                            initial={{ opacity: 0, y: 14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                            transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
+                          >
+                            <BlockCard
+                              block={b}
+                              scenarios={scenarios}
+                              onChange={(next) => {
                                 const updatedBlocks = [...active.blocks];
-                                updatedBlocks.splice(i + 1, 0, instance);
+                                updatedBlocks[i] = next;
                                 updateActive({ ...active, blocks: updatedBlocks });
-                                setInsertAfterIdx(null);
                               }}
-                              scenarios={scenarios.filter((s) => s.id !== active.id)}
-                              currentScenarioId={active.id}
+                              onRunFromHere={() => runFrom(i)}
+                              onDuplicate={() => {
+                                const clone = { ...b, id: crypto.randomUUID() };
+                                const updatedBlocks = [...active.blocks];
+                                updatedBlocks.splice(i + 1, 0, clone);
+                                updateActive({ ...active, blocks: updatedBlocks });
+                              }}
+                              onRemove={() => {
+                                openConfirmModal({
+                                  title: 'Remove block',
+                                  children: <Text size="sm">Remove this block? This cannot be undone.</Text>,
+                                  labels: { confirm: 'Remove', cancel: 'Cancel' },
+                                  confirmProps: { color: 'red' },
+                                  onConfirm: () => updateActive({ ...active, blocks: active.blocks.filter((_, idx) => idx !== i) }),
+                                })
+                              }}
+                              onInsertBelow={() => setInsertAfterIdx(i)}
                             />
-                          )}
-                        </div>
-                      ))}
+                            {insertAfterIdx === i && (
+                              <AddBlockMenu
+                                onAdd={(instance) => {
+                                  const updatedBlocks = [...active.blocks];
+                                  updatedBlocks.splice(i + 1, 0, instance);
+                                  updateActive({ ...active, blocks: updatedBlocks });
+                                  setInsertAfterIdx(null);
+                                }}
+                                scenarios={scenarios.filter((s) => s.id !== active.id)}
+                                currentScenarioId={active.id}
+                              />
+                            )}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
                       <AddBlockMenu
                         onAdd={(instance) => updateActive({ ...active, blocks: [...active.blocks, instance] })}
                         scenarios={scenarios.filter((s) => s.id !== active.id)}
                         currentScenarioId={active.id}
                       />
+                      <RunHistoryPanel scenarioId={active.id} refreshKey={runVersion} />
                     </>
                   ) : (
-                    <Stack align="center" gap="xs" py="xl">
-                      <ThemeIcon size={56} radius="xl" variant="light" color="gray">
-                        <IconClipboardList size={28} />
-                      </ThemeIcon>
-                      <Text fw={600}>No scenario selected</Text>
-                      <Text size="sm" c="dimmed" ta="center" maw={320}>
-                        {activeProjectId
-                          ? 'Pick a scenario from the sidebar, or create a new one.'
-                          : 'Select or import a project to get started.'}
-                      </Text>
+                    <Stack align="center" gap="md" py="xl">
+                      {activeProjectId && scenarios.length === 0 ? (
+                        <>
+                          <ThemeIcon size={56} radius="xl" variant="light" color="violet">
+                            <IconClipboardList size={28} />
+                          </ThemeIcon>
+                          <Text fw={600} size="lg">Start your first scenario</Text>
+                          <Text size="sm" c="dimmed" ta="center" maw={380}>
+                            Scenarios are sequences of API calls. Pick how you want to begin.
+                          </Text>
+                          <Group gap="md" mt="xs">
+                            <Paper
+                              withBorder
+                              p="lg"
+                              style={{ width: 160, cursor: 'pointer', textAlign: 'center' }}
+                              onClick={async () => {
+                                if (!activeTeamId || !activeProjectId) return
+                                try {
+                                  const created = await createScenario(activeTeamId, activeProjectId, 'Untitled scenario')
+                                  setActiveId(created.id)
+                                } catch (e) {
+                                  console.error('Failed to create scenario:', e)
+                                }
+                              }}
+                            >
+                              <ThemeIcon size={40} radius="md" variant="light" color="violet" mb="sm">
+                                <IconPlus size={20} />
+                              </ThemeIcon>
+                              <Text fw={600} size="sm">Start blank</Text>
+                              <Text size="xs" c="dimmed" mt={4}>Empty scenario</Text>
+                            </Paper>
+                            <Paper
+                              withBorder
+                              p="lg"
+                              style={{ width: 160, cursor: 'pointer', textAlign: 'center' }}
+                              onClick={() => {
+                                if (!activeTeamId || !activeProjectId) return
+                                let curlInput = ''
+                                modals.open({
+                                  title: 'Import from cURL',
+                                  children: (
+                                    <Stack gap="sm">
+                                      <Textarea
+                                        label="Paste your cURL command"
+                                        placeholder={'curl -X POST https://api.example.com/endpoint -H \'Content-Type: application/json\' -d \'{"key":"value"}\''}
+                                        minRows={5}
+                                        autosize
+                                        onChange={(e) => { curlInput = e.currentTarget.value }}
+                                      />
+                                      <Button
+                                        onClick={async () => {
+                                          const parsed = parseCurl(curlInput)
+                                          if (!parsed) {
+                                            alert('Could not parse cURL command. Make sure it contains a URL.')
+                                            return
+                                          }
+                                          try {
+                                            const overrides: Record<string, unknown> = {
+                                              method: parsed.method,
+                                              url: parsed.url,
+                                              headers: JSON.stringify(parsed.headers),
+                                            }
+                                            if (parsed.body !== undefined) overrides.body = parsed.body
+                                            const created = await createScenario(activeTeamId!, activeProjectId!, 'Imported scenario')
+                                            const withBlock = { ...created, blocks: [{ id: `block-${Date.now()}`, kind: 'urlTemplate', overrides }] }
+                                            await updateScenario(activeTeamId!, withBlock)
+                                            setActiveId(created.id)
+                                            modals.closeAll()
+                                          } catch (e) {
+                                            console.error('Failed to create scenario from cURL:', e)
+                                          }
+                                        }}
+                                      >
+                                        Create scenario
+                                      </Button>
+                                    </Stack>
+                                  ),
+                                })
+                              }}
+                            >
+                              <ThemeIcon size={40} radius="md" variant="light" color="teal" mb="sm">
+                                <IconTerminal2 size={20} />
+                              </ThemeIcon>
+                              <Text fw={600} size="sm">Import cURL</Text>
+                              <Text size="xs" c="dimmed" mt={4}>Paste a cURL command</Text>
+                            </Paper>
+                            <Paper
+                              withBorder
+                              p="lg"
+                              style={{ width: 160, cursor: 'pointer', textAlign: 'center' }}
+                              onClick={() => importScenario(PREBUILT_SCENARIOS[0]!)}
+                            >
+                              <ThemeIcon size={40} radius="md" variant="light" color="amber" mb="sm">
+                                <IconTestPipe size={20} />
+                              </ThemeIcon>
+                              <Text fw={600} size="sm">Load example</Text>
+                              <Text size="xs" c="dimmed" mt={4}>Health check GET request</Text>
+                            </Paper>
+                          </Group>
+                        </>
+                      ) : activeProjectId ? (
+                        <>
+                          <ThemeIcon size={56} radius="xl" variant="light" color="gray">
+                            <IconClipboardList size={28} />
+                          </ThemeIcon>
+                          <Text fw={600}>No scenario selected</Text>
+                          <Text size="sm" c="dimmed" ta="center" maw={320}>
+                            Pick a scenario from the sidebar, or create a new one to get started.
+                          </Text>
+                          <Button
+                            size="sm"
+                            leftSection={<IconPlus size={14} />}
+                            onClick={async () => {
+                              if (!activeTeamId || !activeProjectId) return
+                              try {
+                                const created = await createScenario(activeTeamId, activeProjectId, 'Untitled scenario')
+                                setActiveId(created.id)
+                              } catch (e) {
+                                console.error('Failed to create scenario:', e)
+                              }
+                            }}
+                          >
+                            New scenario
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <ThemeIcon size={56} radius="xl" variant="light" color="gray">
+                            <IconClipboardList size={28} />
+                          </ThemeIcon>
+                          <Text fw={600}>No project selected</Text>
+                          <Text size="sm" c="dimmed" ta="center" maw={320}>
+                            Create a new project or import a bundle to get started.
+                          </Text>
+                        </>
+                      )}
                     </Stack>
                   )}
                 </Stack>
@@ -482,6 +661,44 @@ export function AppContent() {
         deps={active ? burstDeps : null}
       />
       <CreateTeamModal />
+
+      <SearchModal
+        opened={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        scenarios={scenarios}
+        onSelectScenario={(id) => { setActiveId(id); setView('blocks'); }}
+        registry={registry}
+        envKeys={Object.keys(activeEnv ?? {})}
+      />
+
+      <Modal
+        opened={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        title="Keyboard shortcuts"
+      >
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Shortcut</Table.Th>
+              <Table.Th>Action</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            <Table.Tr>
+              <Table.Td><Code>⌘ Enter</Code></Table.Td>
+              <Table.Td>Run scenario from start</Table.Td>
+            </Table.Tr>
+            <Table.Tr>
+              <Table.Td><Code>⌘ ⇧ Enter</Code></Table.Td>
+              <Table.Td>Run from selected block</Table.Td>
+            </Table.Tr>
+            <Table.Tr>
+              <Table.Td><Code>?</Code></Table.Td>
+              <Table.Td>Show this help</Table.Td>
+            </Table.Tr>
+          </Table.Tbody>
+        </Table>
+      </Modal>
     </RegistryProvider>
   )
 }

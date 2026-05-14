@@ -4,6 +4,7 @@ import { downloadScenario, readScenarioFile } from '../scenarios/exportImport'
 import { EnvSwitcher } from './EnvSwitcher'
 import { EnvEditorModal } from './EnvEditorModal'
 import { Logo } from './Logo'
+import { UserMenu } from './UserMenu'
 import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconBolt, IconDots } from '@tabler/icons-react'
@@ -84,6 +85,7 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+          <UserMenu />
           <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleScenarioImport} />
         </Group>
       </Group>

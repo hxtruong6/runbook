@@ -9,8 +9,10 @@ import { getOrthoReviewDef } from "./getOrthoReview";
 import { updateChairsideStatusDef } from "./updateChairsideStatus";
 import { socketConnectDef } from "./socketConnect";
 import { dataDefToBlockDef, type BlockDefData } from "./dataBlock";
+import { httpRequestDef } from "./httpRequest";
 
 export const COMPILED_BLOCKS: Record<string, BlockDef> = {
+  [httpRequestDef.kind]: httpRequestDef,
   [signinDef.kind]: signinDef,
   [profileDef.kind]: profileDef,
   [featureHighlightsGetDef.kind]: featureHighlightsGetDef,

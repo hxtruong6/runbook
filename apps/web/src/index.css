@@ -38,3 +38,76 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* === Animation keyframes === */
+
+@keyframes float-blob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-28px) scale(1.05); }
+}
+
+@keyframes slide-up-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes result-flash-ok {
+  0%   { box-shadow: 0 0 0 3px var(--mantine-color-teal-4); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+@keyframes result-flash-err {
+  0%   { box-shadow: 0 0 0 3px var(--mantine-color-red-4); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+/* Login page — gradient background with floating blobs */
+.login-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--mantine-color-body);
+}
+
+.login-bg::before,
+.login-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-bg::before {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -150px;
+  background: radial-gradient(circle, var(--mantine-color-violet-4) 0%, transparent 70%);
+  opacity: 0.22;
+  animation: float-blob 9s ease-in-out infinite;
+}
+
+.login-bg::after {
+  width: 450px;
+  height: 450px;
+  bottom: -130px;
+  left: -100px;
+  background: radial-gradient(circle, var(--mantine-color-teal-4) 0%, transparent 65%);
+  opacity: 0.18;
+  animation: float-blob 13s ease-in-out infinite reverse;
+}
+
+/* Block, event, badge, and result animations handled by Framer Motion — see component files */
