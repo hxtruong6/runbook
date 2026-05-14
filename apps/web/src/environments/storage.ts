@@ -1,19 +1,18 @@
 // src/environments/storage.ts
 import { EnvironmentsStateSchema, type Environment, type EnvironmentsState } from "./types";
+import { DEFAULT_ENVIRONMENTS_STATE } from "./defaults";
 
 const KEY = "runbook:environments";
 
-const emptyState = (): EnvironmentsState => ({ environments: [], activeId: null });
-
 export function loadState(): EnvironmentsState {
   const raw = localStorage.getItem(KEY);
-  if (!raw) return emptyState();
+  if (!raw) return DEFAULT_ENVIRONMENTS_STATE;
   try {
     const parsed = JSON.parse(raw);
     const result = EnvironmentsStateSchema.safeParse(parsed);
-    return result.success ? result.data : emptyState();
+    return result.success ? result.data : DEFAULT_ENVIRONMENTS_STATE;
   } catch {
-    return emptyState();
+    return DEFAULT_ENVIRONMENTS_STATE;
   }
 }
 

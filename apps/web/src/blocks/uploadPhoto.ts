@@ -13,6 +13,7 @@ export const uploadPhotoDef: BlockDef = {
   kind: "uploadPhoto",
   label: "§6 Upload photo",
   auth: "none",
+  hidden: true,
   inputs: [
     { name: "orthoReviewId", label: "Ortho review ID", type: "string", required: true, fromContextKey: "orthoReviewId" },
     { name: "syncToken", label: "Sync token", type: "string", required: true, fromContextKey: "syncToken" },

@@ -48,6 +48,7 @@ export type BlockDef = {
   auth: AuthMode;
   urlTemplate?: string;
   method?: string;
+  hidden?: boolean;
   build: (values: Record<string, unknown>) => HttpRequest;
 };
 

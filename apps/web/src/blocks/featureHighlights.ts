@@ -8,6 +8,7 @@ export const featureHighlightsGetDef: BlockDef = {
   kind: "featureHighlightsGet",
   label: "§2 Feature highlights — GET",
   auth: "cookie-or-jwt",
+  hidden: true,
   inputs: [],
   outputs: [
     { jsonPath: "showChairsideInstallBanner", contextKey: "showChairsideInstallBanner" },
@@ -19,6 +20,7 @@ export const featureHighlightsDismissDef: BlockDef = {
   kind: "featureHighlightsDismiss",
   label: "§3 Feature highlights — Dismiss (PUT)",
   auth: "cookie-or-jwt",
+  hidden: true,
   inputs: [],
   outputs: [],
   build: () => ({

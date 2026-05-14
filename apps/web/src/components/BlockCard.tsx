@@ -32,9 +32,10 @@ type Props = {
   onDuplicate?: () => void;
   onRemove?: () => void;
   onInsertBelow?: () => void;
+  onSaveToLibrary?: () => void;
 };
 
-export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplicate, onRemove, onInsertBelow }: Props) {
+export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplicate, onRemove, onInsertBelow, onSaveToLibrary }: Props) {
   const registry = useBlockRegistry();
   const def = registry[block.kind];
   const { context, dispatch } = useRuntimeContext();
@@ -161,6 +162,9 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           <Title order={6} style={{ margin: 0 }}>
             {def.label}
           </Title>
+          <Badge variant="outline" color="gray" size="xs" style={{ fontFamily: 'monospace' }}>
+            {block.kind}
+          </Badge>
         </Group>
         <Group gap="xs">
           {onRunFromHere && !isSocket && (
@@ -210,6 +214,9 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
               )}
               {onDuplicate && <Menu.Item onClick={onDuplicate}>Duplicate</Menu.Item>}
               {onInsertBelow && <Menu.Item onClick={onInsertBelow}>Insert below…</Menu.Item>}
+              {onSaveToLibrary && !['socketConnect', 'scenario-ref', 'start'].includes(block.kind) && (
+                <Menu.Item onClick={onSaveToLibrary}>Save to Block Library…</Menu.Item>
+              )}
               {onRemove && (
                 <>
                   <Menu.Divider />

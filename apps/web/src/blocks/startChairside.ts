@@ -6,6 +6,7 @@ export const startChairsideDef: BlockDef = {
   kind: "startChairside",
   label: "§5 Start chairside review",
   auth: "none",
+  hidden: true,
   inputs: [
     { name: "firstName", label: "First name", type: "string", required: true },
     { name: "lastName", label: "Last name", type: "string", required: true },

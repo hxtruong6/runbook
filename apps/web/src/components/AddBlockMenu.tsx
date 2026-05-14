@@ -14,6 +14,7 @@ type Props = {
   scenarios: Scenario[];
   currentScenarioId: string;
   disabled?: boolean;
+  localBlockKinds?: string[];
 };
 
 function makeInstance(kind: string): BlockInstance {
@@ -71,7 +72,7 @@ function CurlImportForm({ onAdd }: { onAdd: Props["onAdd"] }) {
   );
 }
 
-export function AddBlockMenu({ onAdd, scenarios, currentScenarioId, disabled }: Props) {
+export function AddBlockMenu({ onAdd, scenarios, currentScenarioId, disabled, localBlockKinds }: Props) {
   const registry = useBlockRegistry();
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -79,6 +80,10 @@ export function AddBlockMenu({ onAdd, scenarios, currentScenarioId, disabled }: 
   const apiBlocks = Object.values(registry).filter(
     (def) => def.kind !== "socketConnect" && def.kind !== SCENARIO_REF_KIND
   );
+
+  const localKindsSet = new Set(localBlockKinds ?? []);
+  const customBlocks = apiBlocks.filter((def) => localKindsSet.has(def.kind));
+  const builtinBlocks = apiBlocks.filter((def) => !localKindsSet.has(def.kind));
 
   const otherScenarios = scenarios.filter((s) => s.id !== currentScenarioId);
 
@@ -92,8 +97,19 @@ export function AddBlockMenu({ onAdd, scenarios, currentScenarioId, disabled }: 
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Label>API blocks</Menu.Label>
-          {apiBlocks.map((def) => (
+          {customBlocks.length > 0 && (
+            <>
+              <Menu.Label>Custom blocks</Menu.Label>
+              {customBlocks.map((def) => (
+                <Menu.Item key={def.kind} onClick={() => onAdd(makeInstance(def.kind))}>
+                  {def.label}
+                </Menu.Item>
+              ))}
+              <Menu.Divider />
+            </>
+          )}
+          <Menu.Label>Built-in</Menu.Label>
+          {builtinBlocks.map((def) => (
             <Menu.Item key={def.kind} onClick={() => onAdd(makeInstance(def.kind))}>
               {def.label}
             </Menu.Item>

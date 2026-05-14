@@ -5,6 +5,7 @@ export const signinDef: BlockDef = {
   kind: "signin",
   label: "Sign in (POST /v1/user/auth/signin)",
   auth: "none",
+  hidden: true,
   inputs: [
     { name: "email", label: "Email", type: "string", required: true, fromContextKey: "email" },
     { name: "password", label: "Password", type: "password", required: true },

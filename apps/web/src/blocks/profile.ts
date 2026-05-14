@@ -5,6 +5,7 @@ export const profileDef: BlockDef = {
   kind: "profile",
   label: "§1 Profile (GET /v1/user/auth/profile)",
   auth: "cookie-or-jwt",
+  hidden: true,
   inputs: [],
   outputs: [
     { jsonPath: "orthoReviewChairsideToken", contextKey: "orthoReviewChairsideToken" },

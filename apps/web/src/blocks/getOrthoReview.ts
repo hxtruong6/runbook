@@ -5,6 +5,7 @@ export const getOrthoReviewDef: BlockDef = {
   kind: "getOrthoReview",
   label: "§7 Get ortho review (DENTIST)",
   auth: "cookie-or-jwt",
+  hidden: true,
   inputs: [
     { name: "orthoReviewId", label: "Ortho review ID", type: "string", required: true, fromContextKey: "orthoReviewId" },
   ],

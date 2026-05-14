@@ -6,6 +6,7 @@ export const verifyDeviceTokenDef: BlockDef = {
   kind: "verifyDeviceToken",
   label: "§4 Verify device token (phone first-pair)",
   auth: "none",
+  hidden: true,
   inputs: [
     {
       name: "orthoReviewChairsideToken",

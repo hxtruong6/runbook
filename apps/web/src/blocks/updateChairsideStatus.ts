@@ -7,6 +7,7 @@ export const updateChairsideStatusDef: BlockDef = {
   kind: "updateChairsideStatus",
   label: "§8 Update chairside status",
   auth: "none",
+  hidden: true,
   inputs: [
     { name: "orthoReviewId", label: "Ortho review ID", type: "string", required: true, fromContextKey: "orthoReviewId" },
     { name: "syncToken", label: "Sync token", type: "string", required: true, fromContextKey: "syncToken" },

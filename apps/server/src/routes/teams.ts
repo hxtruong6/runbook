@@ -58,7 +58,20 @@ export async function teamsRoutes(app: FastifyInstance): Promise<void> {
     const membership = await db.collection('memberships').findOne({ userId: user.sub, teamId })
     if (!membership) return reply.code(403).send({ error: 'Forbidden' })
     const members = await db.collection('memberships').find({ teamId }).toArray()
-    return reply.send(members)
+
+    const userIds = members.map((m) => {
+      try { return new ObjectId(m['userId'] as string) } catch { return null }
+    }).filter((id): id is ObjectId => id !== null)
+
+    const users = await db.collection('users').find({ _id: { $in: userIds } }).toArray()
+    const userMap = new Map(users.map((u) => [u['_id'].toString(), { email: u['email'] as string, name: u['name'] as string | undefined }]))
+
+    const enriched = members.map((m) => {
+      const info = userMap.get(m['userId'] as string)
+      return { userId: m['userId'], teamId: m['teamId'], role: m['role'], email: info?.email ?? null, name: info?.name ?? null }
+    })
+
+    return reply.send(enriched)
   })
 
   app.post('/:teamId/members', { preHandler: [authenticate] }, async (req, reply) => {

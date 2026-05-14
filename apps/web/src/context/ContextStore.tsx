@@ -5,6 +5,7 @@ import type { RuntimeContext } from "../blocks/types";
 export type ContextAction =
   | { type: "MERGE"; values: Record<string, unknown> }
   | { type: "SET_KEY"; key: string; value: unknown }
+  | { type: "DELETE_KEY"; key: string }
   | { type: "RESET" };
 
 export function makeInitialContext(): RuntimeContext {
@@ -17,6 +18,11 @@ export function contextReducer(state: RuntimeContext, action: ContextAction): Ru
       return { ...state, ...action.values };
     case "SET_KEY":
       return { ...state, [action.key]: action.value };
+    case "DELETE_KEY": {
+      const next = { ...state };
+      delete next[action.key];
+      return next;
+    }
     case "RESET":
       return makeInitialContext();
   }

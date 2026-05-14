@@ -5,10 +5,12 @@ import { EnvSwitcher } from './EnvSwitcher'
 import { EnvEditorModal } from './EnvEditorModal'
 import { Logo } from './Logo'
 import { UserMenu } from './UserMenu'
-import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Title } from '@mantine/core'
+import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Title, Tooltip } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconBolt, IconDots } from '@tabler/icons-react'
+import { IconBell, IconBolt, IconDots, IconLayoutSidebar, IconLayoutSidebarRight, IconSettings, IconTerminal2 } from '@tabler/icons-react'
 import { useTeamStore } from '../teams/teamStore'
+import { CLIGuideModal } from './CLIGuideModal'
+import { TeamSettingsModal } from '../teams/TeamSettingsModal'
 
 type Props = {
   active: Scenario | null
@@ -17,12 +19,19 @@ type Props = {
   onDuplicate?: (s: Scenario) => void
   onToggleReusable?: () => void
   onBurst?: () => void
+  onWhatsNew?: () => void
+  onToggleNavbar?: () => void
+  onToggleAside?: () => void
+  navbarCollapsed?: boolean
+  asideCollapsed?: boolean
 }
 
-export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusable, onBurst }: Props) {
+export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusable, onBurst, onWhatsNew, onToggleNavbar, onToggleAside, navbarCollapsed, asideCollapsed }: Props) {
   const [editorOpen, setEditorOpen] = useState(false)
+  const [cliGuideOpen, setCliGuideOpen] = useState(false)
+  const [teamSettingsOpen, setTeamSettingsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { teams, activeTeamId, setActiveTeam } = useTeamStore()
+  const { teams, activeTeamId, setActiveTeam, currentUserRole } = useTeamStore()
 
   async function handleScenarioImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -40,6 +49,11 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
     <>
       <Group justify="space-between" h="100%" px="md">
         <Group gap="sm" align="center" wrap="nowrap">
+          <Tooltip label={navbarCollapsed ? 'Show sidebar' : 'Hide sidebar'} withinPortal>
+            <ActionIcon variant="subtle" size="lg" aria-label="Toggle sidebar" onClick={onToggleNavbar}>
+              <IconLayoutSidebar size={18} />
+            </ActionIcon>
+          </Tooltip>
           <Logo size={26} />
           <Divider orientation="vertical" />
           {teams.length > 1 && (
@@ -51,6 +65,18 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               w={140}
               comboboxProps={{ withinPortal: true }}
             />
+          )}
+          {activeTeamId && currentUserRole && (
+            <Badge size="xs" color={currentUserRole === 'owner' ? 'violet' : currentUserRole === 'admin' ? 'teal' : 'gray'}>
+              {currentUserRole}
+            </Badge>
+          )}
+          {activeTeamId && (
+            <Tooltip label="Team settings" withinPortal>
+              <ActionIcon variant="subtle" size="lg" aria-label="Team settings" onClick={() => setTeamSettingsOpen(true)}>
+                <IconSettings size={18} />
+              </ActionIcon>
+            </Tooltip>
           )}
           <EnvSwitcher onOpenEditor={() => setEditorOpen(true)} />
         </Group>
@@ -85,11 +111,28 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+          <Tooltip label="What's new" withinPortal>
+            <ActionIcon variant="subtle" size="lg" aria-label="What's new" onClick={onWhatsNew}>
+              <IconBell size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="CLI guide" withinPortal>
+            <ActionIcon variant="subtle" size="lg" aria-label="CLI guide" onClick={() => setCliGuideOpen(true)}>
+              <IconTerminal2 size={18} />
+            </ActionIcon>
+          </Tooltip>
           <UserMenu />
+          <Tooltip label={asideCollapsed ? 'Show panel' : 'Hide panel'} withinPortal>
+            <ActionIcon variant="subtle" size="lg" aria-label="Toggle panel" onClick={onToggleAside}>
+              <IconLayoutSidebarRight size={18} />
+            </ActionIcon>
+          </Tooltip>
           <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleScenarioImport} />
         </Group>
       </Group>
       <EnvEditorModal opened={editorOpen} onClose={() => setEditorOpen(false)} />
+      <CLIGuideModal opened={cliGuideOpen} onClose={() => setCliGuideOpen(false)} />
+      <TeamSettingsModal opened={teamSettingsOpen} onClose={() => setTeamSettingsOpen(false)} />
     </>
   )
 }

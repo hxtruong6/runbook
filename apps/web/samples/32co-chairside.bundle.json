@@ -207,9 +207,9 @@
           "name": "Chairside happy path",
           "createdAt": "2026-05-12T00:00:00Z",
           "blocks": [
-            { "id": "b1", "kind": "signin", "overrides": { "email": "truong.hoang+chairside-p001@32co.com", "password": "P@ss123456_" } },
+            { "id": "b1", "kind": "signin", "overrides": { "email": "", "password": "" } },
             { "id": "b2", "kind": "profile", "overrides": {} },
-            { "id": "b3", "kind": "startChairside", "overrides": { "firstName": "Test", "lastName": "Patient" } },
+            { "id": "b3", "kind": "startChairside", "overrides": { "firstName": "", "lastName": "" } },
             { "id": "b4", "kind": "uploadPhoto", "overrides": { "slot": "chairside-full-face", "url": "https://example.com/full-face.jpg" } },
             { "id": "b5", "kind": "uploadPhoto", "overrides": { "slot": "chairside-close-up", "url": "https://example.com/close-up.jpg" } },
             { "id": "b6", "kind": "uploadPhoto", "overrides": { "slot": "chairside-upper-arch", "url": "https://example.com/upper.jpg" } },
@@ -223,7 +223,7 @@
           "name": "Phone first-pair",
           "createdAt": "2026-05-12T00:00:00Z",
           "blocks": [
-            { "id": "b1", "kind": "verifyDeviceToken", "overrides": { "orthoReviewChairsideToken": "0e0ee405c57b90f97c7cd330380e9730" } }
+            { "id": "b1", "kind": "verifyDeviceToken", "overrides": { "orthoReviewChairsideToken": "" } }
           ]
         },
         {
@@ -231,7 +231,7 @@
           "name": "Dismiss install banner",
           "createdAt": "2026-05-12T00:00:00Z",
           "blocks": [
-            { "id": "b1", "kind": "signin", "overrides": { "email": "truong.hoang+chairside-p001@32co.com", "password": "P@ss123456_" } },
+            { "id": "b1", "kind": "signin", "overrides": { "email": "", "password": "" } },
             { "id": "b2", "kind": "featureHighlightsGet", "overrides": {} },
             { "id": "b3", "kind": "featureHighlightsDismiss", "overrides": {} }
           ]
@@ -241,7 +241,7 @@
         {
           "id": "default-32co-alpha",
           "name": "32CO alpha",
-          "baseUrl": "https://api-truong.32co.com",
+          "baseUrl": "https://api.32co.com",
           "auth": { "kind": "cookie" },
           "headers": {},
           "createdAt": "2026-05-12T00:00:00Z"

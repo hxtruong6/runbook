@@ -74,7 +74,7 @@ function makeDefaultAuth(kind: AuthKind): AuthConfig {
 function makeDraftEnv(): Environment {
   return {
     id: crypto.randomUUID(),
-    name: "New environment",
+    name: "",
     baseUrl: "",
     auth: { kind: "none" },
     headers: {},
@@ -378,8 +378,8 @@ export function EnvEditorModal({ opened, onClose }: Props) {
                     shadow={isSelected ? "sm" : "xs"}
                     style={{
                       cursor: "pointer",
-                      backgroundColor: isSelected ? "var(--mantine-color-indigo-0)" : undefined,
-                      borderColor: isSelected ? "var(--mantine-color-indigo-3)" : undefined,
+                      backgroundColor: isSelected ? "var(--mantine-color-violet-0)" : undefined,
+                      borderColor: isSelected ? "var(--mantine-color-violet-3)" : undefined,
                     }}
                     onClick={() => selectEnv(env.id)}
                   >
@@ -409,6 +409,7 @@ export function EnvEditorModal({ opened, onClose }: Props) {
                 label="Name"
                 size="xs"
                 required
+                placeholder="e.g. Production, Staging"
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.currentTarget.value })}
               />
