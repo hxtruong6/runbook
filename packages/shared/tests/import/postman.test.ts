@@ -402,4 +402,69 @@ describe('importPostman', () => {
     expect(change!.type).toBe('added')
     expect(change!.summary).toMatch(/4 blocks/)
   })
+
+  // --- tags from folder hierarchy ---
+
+  it('derives single tag from a top-level folder', () => {
+    const bundle = importPostman(twoFolderCollection)
+    const block = bundle.versions[0]!.blocks.find((b) => b.label === 'Login')!
+    expect(block.tags).toEqual(['Auth'])
+  })
+
+  it('different folders produce different tags', () => {
+    const bundle = importPostman(twoFolderCollection)
+    const login = bundle.versions[0]!.blocks.find((b) => b.label === 'Login')!
+    const listUsers = bundle.versions[0]!.blocks.find((b) => b.label === 'List Users')!
+    expect(login.tags).toEqual(['Auth'])
+    expect(listUsers.tags).toEqual(['Users'])
+  })
+
+  it('derives nested tags from nested folders', () => {
+    const nested = {
+      info: {
+        name: 'Nested',
+        schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
+      },
+      item: [
+        {
+          name: 'Admin',
+          item: [
+            {
+              name: 'Users',
+              item: [
+                {
+                  name: 'Delete User',
+                  request: {
+                    method: 'DELETE',
+                    url: { raw: 'https://api.example.com/admin/users/{{id}}' },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+    const bundle = importPostman(nested)
+    const block = bundle.versions[0]!.blocks[0]!
+    expect(block.tags).toEqual(['Admin', 'Users'])
+  })
+
+  it('top-level requests (no folder) have no tags', () => {
+    const flat = {
+      info: {
+        name: 'Flat',
+        schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
+      },
+      item: [
+        {
+          name: 'Ping',
+          request: { method: 'GET', url: { raw: 'https://api.example.com/ping' } },
+        },
+      ],
+    }
+    const bundle = importPostman(flat)
+    const block = bundle.versions[0]!.blocks[0]!
+    expect(block.tags).toBeUndefined()
+  })
 })

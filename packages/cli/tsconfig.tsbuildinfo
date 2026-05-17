@@ -1,0 +1,1 @@
+{"root":["./src/config.ts","./src/index.ts","./src/commands/diff.ts","./src/commands/init.ts","./src/commands/install.ts","./src/commands/login.ts","./src/commands/logout.ts","./src/commands/mcp.ts","./src/commands/profile.ts","./src/commands/publish.ts","./src/commands/run.ts","./src/commands/team.ts","./src/commands/validate.ts","./src/commands/whoami.ts"],"version":"5.9.3"}

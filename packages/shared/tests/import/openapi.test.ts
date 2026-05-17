@@ -397,3 +397,41 @@ describe('importOpenApi — auth inference on blocks', () => {
     expect(block.auth).toBe('none')
   })
 })
+
+describe('importOpenApi — block tags', () => {
+  it('copies operation.tags onto block.tags', async () => {
+    const bundle = await parse(minimalFixture)
+    const block = bundle.versions[0]!.blocks.find((b) => b.kind === 'list-users')!
+    expect(block.tags).toEqual(['Users'])
+  })
+
+  it('falls back to first path segment when no operation tags', async () => {
+    const bundle = await parse(minimalFixture)
+    const block = bundle.versions[0]!.blocks.find((b) => b.kind === 'get-status')!
+    // /status has no tags, so falls back to 'status'
+    expect(block.tags).toEqual(['status'])
+  })
+
+  it('fallback skips version-like segments (v1, v2, api)', async () => {
+    const fixture = {
+      openapi: '3.0.0',
+      info: { title: 'X', version: '1.0.0' },
+      servers: [{ url: 'https://api.example.com' }],
+      paths: {
+        '/v1/widgets': {
+          get: { operationId: 'listWidgets', responses: { '200': { description: 'ok' } } },
+        },
+      },
+    }
+    const bundle = await parse(fixture)
+    const block = bundle.versions[0]!.blocks[0]!
+    expect(block.tags).toEqual(['widgets'])
+  })
+
+  it('does NOT add path segment as extra tag when operation already has tags', async () => {
+    const bundle = await parse(minimalFixture)
+    const block = bundle.versions[0]!.blocks.find((b) => b.kind === 'list-users')!
+    // /v1/users — should NOT contain 'v1' or 'users' on top of 'Users'
+    expect(block.tags).toEqual(['Users'])
+  })
+})

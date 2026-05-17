@@ -376,16 +376,22 @@ function parseOperations(doc: OpenApiDoc, baseUrl: string): ParsedOperation[] {
       // Build URL template: OpenAPI {param} → keep as-is (supported by urlTemplate engine)
       const urlTemplate = `${baseUrl}${pathKey}`
 
-      // Tags: union of operation.tags + first path segment as fallback.
-      // First path segment is a cheap grouping signal when a spec ships
-      // without explicit tags. Deduplicated, original casing preserved.
+      // Tags from operation.tags. When none exist, fall back to the
+      // first non-versioned path segment so tagless specs still group
+      // meaningfully (e.g. /v1/users → 'users'). The fallback is NOT
+      // added on top of explicit tags — that would inject noise like
+      // 'v1' onto every block in a well-tagged spec.
       const opTags = Array.isArray(operation.tags)
         ? operation.tags.filter((t): t is string => typeof t === 'string' && t.length > 0)
         : []
-      const firstSegment = pathKey.split('/').filter((s) => s && !s.startsWith('{'))[0]
-      const tagSet = new Set<string>(opTags)
-      if (firstSegment) tagSet.add(firstSegment)
-      const tags = Array.from(tagSet)
+      let tags: string[] = opTags
+      if (tags.length === 0) {
+        const segments = pathKey
+          .split('/')
+          .filter((s) => s && !s.startsWith('{'))
+        const firstMeaningful = segments.find((s) => !/^v\d+$/i.test(s) && s !== 'api')
+        if (firstMeaningful) tags = [firstMeaningful]
+      }
 
       const block: BlockDefData = {
         kind,

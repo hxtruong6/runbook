@@ -292,10 +292,11 @@ function buildScenarios(items: PostmanItem[], blocks: BlockDefData[]): Scenario[
 
   for (const [folderName, groupItems] of groups) {
     const scenarioName = folderName === '__top_level__' ? 'Imported Requests' : folderName
+    const folderPath = folderName === '__top_level__' ? '' : folderName
     const blockInstances: BlockInstance[] = []
 
     for (const item of groupItems) {
-      const block = itemToBlock(item)
+      const block = itemToBlock(item, folderPath)
       if (!block) continue
 
       // Ensure the block is registered (dedup by kind)

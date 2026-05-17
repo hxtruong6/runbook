@@ -69,6 +69,18 @@ test('cworld-be: import OpenAPI doc via URL', async ({ page }) => {
   // "Buffer is not defined" regression is fixed.
   await expect(page.getByText(/operations selected/i)).toBeVisible({ timeout: 20000 })
   await page.screenshot({ path: 'e2e/_artifacts/cworld-openapi-preview.png', fullPage: true })
+
+  // The list has 127 operations across many tags — verify the LAST one is
+  // reachable (catches "scroll area doesn't actually scroll" bugs where the
+  // header renders but most items are clipped off-screen).
+  const importBtn = page.getByRole('button', { name: /Import 127 operations/i })
+  await expect(importBtn).toBeVisible()
+  // Scroll within the preview list to surface the bottom item.
+  const checkboxes = page.getByRole('checkbox')
+  const count = await checkboxes.count()
+  expect(count).toBeGreaterThan(50)
+  await checkboxes.nth(count - 1).scrollIntoViewIfNeeded()
+  await expect(checkboxes.nth(count - 1)).toBeVisible()
 })
 
 test('cworld-be: import curl, run, capture schema', async ({ page }) => {

@@ -258,6 +258,12 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
       onClose={handleClose}
       title="Import from OpenAPI"
       size="lg"
+      // Keep the modal inside the viewport — without this it grows past
+      // the bottom when the OpenAPI doc has 100+ operations and the user
+      // can't reach Cancel/Import without scrolling the page itself.
+      styles={{
+        body: { maxHeight: 'calc(85vh - 60px)', overflowY: 'auto' },
+      }}
     >
       <Stack gap="md">
         {/* URL input */}
@@ -378,7 +384,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
               </Group>
             </Group>
 
-            <ScrollArea mah={320}>
+            <ScrollArea.Autosize mah={320}>
               <Stack gap="sm">
                 {preview.groups.map((group) => {
                   const allTagSelected = group.operationKinds.every((k) =>
@@ -432,7 +438,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
                   )
                 })}
               </Stack>
-            </ScrollArea>
+            </ScrollArea.Autosize>
           </>
         )}
 
