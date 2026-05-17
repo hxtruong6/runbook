@@ -4,6 +4,7 @@ import { buildRegistry, COMPILED_BLOCKS } from "../../src/blocks/index";
 import type { BlockDefData } from "../../src/blocks/dataBlock";
 
 const EXPECTED_COMPILED_KINDS = [
+  "httpRequest",
   "signin",
   "profile",
   "featureHighlightsGet",

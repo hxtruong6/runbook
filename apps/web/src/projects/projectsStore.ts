@@ -1,4 +1,4 @@
-// apps/web/src/projects/projectsStore.ts
+// apps/web/src/projects/ProjectsStore.ts
 import { create } from 'zustand'
 import {
   getProjects, deleteProject as apiDeleteProject,
@@ -153,3 +153,9 @@ export const useProjectsStore = create<ProjectsState>()((set, get) => ({
     set({ projects: [], activeProjectId: null, importErrors: [] })
   },
 }))
+
+// ---------------------------------------------------------------------------
+// Pure reducer / state helpers — re-exported from projectsReducer.ts
+// ---------------------------------------------------------------------------
+export { makeInitialProjectsState, projectsReducer } from "./projectsReducer";
+export type { ProjectsAction } from "./projectsReducer";
