@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "32co-chairside",
+    "name": "32CO Chairside",
+    "description": "Ortho review flow: sign-in, photo upload, review status (9 API blocks, 3 scenarios).",
+    "tags": ["healthcare", "auth", "crud"],
+    "blockCount": 9,
+    "scenarioCount": 3
+  },
+  {
+    "slug": "github-rest",
+    "name": "GitHub REST API",
+    "description": "List repos, get a user, create an issue — bearer-auth starter for GitHub's v3 API.",
+    "tags": ["devtools", "auth", "rest"],
+    "blockCount": 3,
+    "scenarioCount": 2
+  },
+  {
+    "slug": "jsonplaceholder-crud",
+    "name": "JSONPlaceholder CRUD",
+    "description": "No-auth REST CRUD demo against JSONPlaceholder — perfect for learning the block format.",
+    "tags": ["demo", "crud", "rest"],
+    "blockCount": 4,
+    "scenarioCount": 2
+  }
+]
