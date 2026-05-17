@@ -33,6 +33,8 @@ import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
 import { loadLocalBlocks, upsertLocalBlock, deleteLocalBlock } from "./blocks/localBlocksStore";
 import type { BlockDefData } from "./blocks/dataBlock";
+import { RunFromUrl } from "./pages/RunFromUrl";
+import { EmbedBadgeModal } from "./features/share/EmbedBadgeModal";
 import {
   ActionIcon,
   Alert,
@@ -82,6 +84,7 @@ export function AppContent() {
   const [localBlocks, setLocalBlocks] = useState<BlockDefData[]>(() => loadLocalBlocks());
   const [asideTab, setAsideTab] = useState<'context' | 'schema'>('context')
   const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [embedBadgeOpen, setEmbedBadgeOpen] = useState(false)
   const [blockLibraryOpen, setBlockLibraryOpen] = useState(true)
   const [previewScenario, setPreviewScenario] = useState<typeof PREBUILT_SCENARIOS[number] | null>(null)
   const [navbarCollapsed, setNavbarCollapsed] = useState(false)
@@ -372,6 +375,7 @@ export function AppContent() {
             onImport={importScenario}
             onBurst={() => setBurstOpen(true)}
             onWhatsNew={() => setWhatsNewOpen(true)}
+            onEmbedBadge={() => setEmbedBadgeOpen(true)}
             onToggleNavbar={() => setNavbarCollapsed(c => !c)}
             onToggleAside={() => setAsideCollapsed(c => !c)}
             navbarCollapsed={navbarCollapsed}
@@ -888,6 +892,11 @@ export function AppContent() {
         <WhatsNewPanel />
       </Modal>
 
+      <EmbedBadgeModal
+        opened={embedBadgeOpen}
+        onClose={() => setEmbedBadgeOpen(false)}
+      />
+
       <Modal
         opened={previewScenario !== null}
         onClose={() => setPreviewScenario(null)}
@@ -927,13 +936,10 @@ export function AppContent() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Lightweight hash-based router — no external dep required
-// ---------------------------------------------------------------------------
 function useHashPath(): [string, (path: string) => void] {
   const getPath = () => {
     const hash = window.location.hash;
-    // Support both hash-based (#/gallery) and pathname-based (/gallery) routing
     if (hash.startsWith("#/")) return hash.slice(1);
     return window.location.pathname;
   };
@@ -964,6 +970,11 @@ export function App() {
 
   if (!token) return <LoginPage />
 
+  // Route: /run?bundle=... (F4 embed badge)
+  if (path.startsWith('/run')) {
+    return <RunFromUrl onNavigateHome={() => navigate('/')} />;
+  }
+
   // Route: /gallery/:slug
   const galleryDetailMatch = path.match(/^\/gallery\/([^/]+)$/);
   if (galleryDetailMatch) {
@@ -975,6 +986,5 @@ export function App() {
     return <Gallery onNavigate={navigate} />;
   }
 
-  // Default: main app
   return <AppContent />
 }

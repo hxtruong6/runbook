@@ -12,7 +12,6 @@ export function track(event: string, props: Record<string, unknown> = {}): void 
   try {
     if (localStorage.getItem("rb_no_telemetry") === "1") return;
   } catch {
-    // localStorage may be unavailable (e.g. private browsing with restrictions)
     return;
   }
 
@@ -23,4 +22,10 @@ export function track(event: string, props: Record<string, unknown> = {}): void 
     window.__rb_events__ = window.__rb_events__ ?? [];
     window.__rb_events__.push(entry);
   }
+}
+
+// Alternate name for callers that import `trackEvent` with a single object payload.
+export function trackEvent(event: Record<string, unknown>): void {
+  const { event: name, ...props } = event as { event?: string } & Record<string, unknown>;
+  track(typeof name === "string" ? name : "event", props);
 }
