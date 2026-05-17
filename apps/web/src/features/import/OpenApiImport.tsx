@@ -188,7 +188,6 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
     { label: 'Petstore (Swagger demo)', url: 'https://petstore3.swagger.io/api/v3/openapi.json' },
     { label: 'GitHub REST API', url: 'https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json' },
     { label: 'Stripe API', url: 'https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json' },
-    { label: 'cworld-be (local)', url: 'http://127.0.0.1:4000/documentation-json' },
   ]
 
   async function handleFile(file: File) {

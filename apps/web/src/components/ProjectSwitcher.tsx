@@ -134,15 +134,17 @@ export function ProjectSwitcher() {
         )}
 
         <Group gap="xs" wrap="nowrap">
+          {/* Natural-width buttons — the narrow sidebar can't fit both
+              "New project" and "Import" if they share width equally
+              (the Import label truncates to "Impc"). */}
           <Button
             size="xs"
             variant="default"
             leftSection={<IconPlus size={14} />}
             disabled={!activeTeamId}
             onClick={handleNewProject}
-            style={{ flex: 1 }}
           >
-            New project
+            New
           </Button>
 
           <Menu shadow="md" position="bottom-end" width={220}>
@@ -152,7 +154,6 @@ export function ProjectSwitcher() {
                 variant="default"
                 leftSection={<IconDownload size={14} />}
                 disabled={!activeTeamId}
-                style={{ flex: 1 }}
               >
                 Import
               </Button>
