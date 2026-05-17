@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`redactRunResult > redacts request headers, query, and body password fields (snapshot) 1`] = `
+{
+  "captured": {
+    "token": "***",
+  },
+  "elapsedMs": 123,
+  "httpStatus": 200,
+  "request": {
+    "body": {
+      "password": "***",
+      "username": "alice",
+    },
+    "headers": {
+      "Authorization": "***",
+      "Content-Type": "application/json",
+    },
+    "method": "POST",
+    "url": "https://api.example.com/login?trace=on&api_key=***",
+  },
+  "response": {
+    "data": {
+      "name": "alice",
+      "token": "***",
+    },
+    "ok": true,
+  },
+  "status": "ok",
+}
+`;

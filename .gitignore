@@ -4,3 +4,5 @@ dist
 *.log
 # Added by code-review-graph
 .code-review-graph/
+.claude/worktrees/
+.claire/

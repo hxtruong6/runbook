@@ -1,0 +1,46 @@
+{
+  "id": "test-bundle",
+  "name": "Test Bundle",
+  "createdAt": "2026-05-12T00:00:00Z",
+  "versions": [
+    {
+      "version": "0.1.0",
+      "releasedAt": "2026-05-12T00:00:00Z",
+      "releaseNotes": "Initial",
+      "changes": [{ "type": "added", "target": "ping", "summary": "GET /get" }],
+      "blocks": [
+        {
+          "kind": "ping",
+          "label": "Ping",
+          "auth": "none",
+          "inputs": [],
+          "outputs": [],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/get",
+            "headers": {}
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "smoke",
+          "name": "Smoke",
+          "createdAt": "2026-05-12T00:00:00Z",
+          "blocks": [{ "id": "b1", "kind": "ping", "overrides": {} }]
+        }
+      ],
+      "environments": [
+        {
+          "id": "e1",
+          "name": "default",
+          "baseUrl": "http://127.0.0.1:1/never",
+          "auth": { "kind": "none" },
+          "headers": {},
+          "createdAt": "2026-05-12T00:00:00Z"
+        }
+      ],
+      "docs": {}
+    }
+  ]
+}
