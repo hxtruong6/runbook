@@ -91,6 +91,7 @@ export const BlockDefDataSchema = z.object({
   outputs: z.array(OutputSpecSchema),
   request: RequestSchema,
   inference: InferenceSchema.optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export type BlockDefData = z.infer<typeof BlockDefDataSchema>;
