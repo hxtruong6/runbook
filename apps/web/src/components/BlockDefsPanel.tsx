@@ -10,10 +10,11 @@ import {
   Paper,
 } from "@mantine/core";
 import { openConfirmModal } from "@mantine/modals";
-import { IconPlus, IconPencil, IconTrash, IconCloudDownload } from "@tabler/icons-react";
+import { IconPlus, IconPencil, IconTrash, IconCloudDownload, IconTerminal2 } from "@tabler/icons-react";
 import type { BlockDefData } from "../blocks/dataBlock";
 import { BlockEditorModal } from "./BlockEditorModal";
 import { OpenApiImporterModal } from "./OpenApiImporterModal";
+import { PasteCurlModal } from "../features/paste-curl/PasteCurlModal";
 
 type Props = {
   localBlocks: BlockDefData[];
@@ -26,6 +27,7 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<BlockDefData | undefined>(undefined);
   const [importerOpen, setImporterOpen] = useState(false);
+  const [pasteCurlOpen, setPasteCurlOpen] = useState(false);
 
   const existingKinds = localBlocks.map((b) => b.kind);
 
@@ -69,6 +71,14 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
           <Group gap="xs">
             <Button
               size="xs"
+              variant="light"
+              leftSection={<IconTerminal2 size={14} />}
+              onClick={() => setPasteCurlOpen(true)}
+            >
+              Paste cURL
+            </Button>
+            <Button
+              size="xs"
               variant="default"
               leftSection={<IconCloudDownload size={14} />}
               onClick={() => setImporterOpen(true)}
@@ -89,9 +99,19 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
         <Stack gap="xs">
           <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Local</Text>
           {localBlocks.length === 0 ? (
-            <Text size="sm" c="dimmed">
-              No local API blocks yet. Click &ldquo;New API block&rdquo; to create one.
-            </Text>
+            <Stack gap="xs" align="flex-start">
+              <Text size="sm" c="dimmed">
+                No local API blocks yet. Paste a cURL command to create one instantly.
+              </Text>
+              <Button
+                size="xs"
+                variant="light"
+                leftSection={<IconTerminal2 size={14} />}
+                onClick={() => setPasteCurlOpen(true)}
+              >
+                Paste cURL
+              </Button>
+            </Stack>
           ) : (
             localBlocks.map((block) => (
               <Paper key={block.kind} withBorder p="sm">
@@ -152,6 +172,18 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
               onAdd(b);
             }
           });
+        }}
+      />
+
+      <PasteCurlModal
+        opened={pasteCurlOpen}
+        onClose={() => setPasteCurlOpen(false)}
+        onInserted={(block) => {
+          if (existingKinds.includes(block.kind)) {
+            onUpdate(block);
+          } else {
+            onAdd(block);
+          }
         }}
       />
     </>
