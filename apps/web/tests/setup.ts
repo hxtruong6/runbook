@@ -1,24 +1,27 @@
 import "@testing-library/jest-dom";
 
-// jsdom does not implement window.matchMedia — required by Mantine's color scheme logic.
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  value: (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  }),
-});
-
-// jsdom does not implement ResizeObserver — required by Mantine's ScrollArea.
-class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+// jsdom doesn't implement window.matchMedia — Mantine needs it for color-scheme
+if (typeof window !== "undefined" && !window.matchMedia) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  });
 }
-(globalThis as unknown as Record<string, unknown>).ResizeObserver = ResizeObserverStub;
+
+// jsdom doesn't implement ResizeObserver — Mantine's SegmentedControl/ScrollArea need it
+if (typeof window !== "undefined" && !window.ResizeObserver) {
+  (window as unknown as Record<string, unknown>).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
