@@ -9,6 +9,29 @@ Legend:
 
 ---
 
+## Status (2026-05-17, `main` @ `80c8b24`)
+
+**18 of 20 roadmap items shipped.** Remaining: F5 (browser extension HAR capture), F9 (AI block generation). Both deferred to Wave 4.
+
+| Wave | Items | Status |
+|---|---|---|
+| 1 — Foundation | F8 CLI runner, UX-D5 redaction layer | ✅ merged |
+| 2 — Distribution | F1 paste-curl, F2 OpenAPI import, F3 share links, F10 gallery, UX-D1 tour, UX-D2 cmd palette, UX-D8 version diff | ✅ merged |
+| 3 — Depth & integrations | F4 embed badge, F6 GitHub integration, F7 MCP server, UX-D3 run diff, UX-D4 split editor, UX-D6 Postman import, UX-D7 empty states, UX-D9 mobile | ✅ merged |
+| 4 — Roadmap completion | F5 browser extension, F9 AI block gen | ⏳ pending |
+
+**Build**: all 6 packages compile clean (`@runbook/shared`, `server`, `cli`, `mcp-server`, `web`, `marketing`).
+**Tests**: **737 / 737 passing (100%).** All deferred failures fixed:
+- `SharedRun` refactored — dual API (`{slug}` fetches, `{data, onFork}` pure-render) with responsive `useMediaQuery('(max-width: 768px)')` layout, Accordion on mobile, `data-testid` markers, 44px tap targets.
+- `mcp-server` stub fetcher updated to return `RunRequestResult` shape — scenario-ref expansion + per-block progress notifications restored.
+- `telemetry.trackEvent` now pushes the original event object flat (not nested under `props`) so callers like `RunFromUrl` work with the documented shape.
+- CLI `init` `bundle.id` is the target directory's basename (test fixture aligned).
+
+### Integration items shipped on top
+- `EmptyState` mounted in `BlockDefsPanel` (`Paste cURL` CTA, sample → `github`), `EnvEditorModal` (`New environment` CTA), and `App.tsx` scenarios sidebar (`New scenario` CTA, sample → `openai`).
+
+---
+
 # Part 1 — 10 highest-impact features
 
 ## F1. Paste-curl-to-block  (P0)
