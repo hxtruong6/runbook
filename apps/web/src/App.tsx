@@ -26,6 +26,7 @@ import { runScenarioFrom } from "./execution/runScenario";
 import { saveRunRecord } from "./execution/runHistory";
 import { RunHistoryPanel } from "./components/RunHistoryPanel";
 import { CommandPalette } from "./features/palette/CommandPalette";
+import { Tour } from "./features/onboarding/Tour";
 import { buildRegistry } from "./blocks";
 import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
@@ -778,6 +779,14 @@ export function AppContent() {
         deps={active ? burstDeps : null}
       />
       <CreateTeamModal />
+
+      <Tour
+        onBundleLoaded={async (bundle) => {
+          if (activeTeamId) {
+            await useProjectsStore.getState().importBundleObject(bundle, activeTeamId);
+          }
+        }}
+      />
 
       <CommandPalette
         scenarios={scenarios}
