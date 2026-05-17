@@ -4,15 +4,19 @@ import { DEFAULT_ENVIRONMENTS_STATE } from "./defaults";
 
 const KEY = "runbook:environments";
 
+function defaultState(): EnvironmentsState {
+  return { ...DEFAULT_ENVIRONMENTS_STATE, environments: [...DEFAULT_ENVIRONMENTS_STATE.environments] };
+}
+
 export function loadState(): EnvironmentsState {
   const raw = localStorage.getItem(KEY);
-  if (!raw) return DEFAULT_ENVIRONMENTS_STATE;
+  if (!raw) return defaultState();
   try {
     const parsed = JSON.parse(raw);
     const result = EnvironmentsStateSchema.safeParse(parsed);
-    return result.success ? result.data : DEFAULT_ENVIRONMENTS_STATE;
+    return result.success ? result.data : defaultState();
   } catch {
-    return DEFAULT_ENVIRONMENTS_STATE;
+    return defaultState();
   }
 }
 
