@@ -8,15 +8,18 @@ import { useTeamStore } from '../teams/teamStore'
 import { PublishBundleModal } from './PublishBundleModal'
 import { ImportFromRegistryModal } from './ImportFromRegistryModal'
 import { OpenApiImport } from '../features/import/OpenApiImport'
+import { PostmanImport } from '../features/import/PostmanImport'
+import type { ProjectBundle } from '../projects/types'
 
 export function ProjectSwitcher() {
-  const { projects, activeProjectId, setActiveProject, deleteProject, createProject, importBundle, loading, importing, importErrors, error } =
+  const { projects, activeProjectId, setActiveProject, deleteProject, createProject, importBundle, importBundleObject, loading, importing, importErrors, error } =
     useProjectsStore()
   const { activeTeamId } = useTeamStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [publishOpen, setPublishOpen] = useState(false)
   const [registryOpen, setRegistryOpen] = useState(false)
   const [openApiOpen, setOpenApiOpen] = useState(false)
+  const [postmanOpen, setPostmanOpen] = useState(false)
 
   const options = projects.map((p) => ({ value: p._id, label: p.name }))
 
@@ -28,6 +31,14 @@ export function ProjectSwitcher() {
       notifications.show({ color: 'green', message: 'Bundle imported' })
     }
     e.target.value = ''
+  }
+
+  async function handlePostmanImport(bundle: ProjectBundle) {
+    if (!activeTeamId) return
+    await importBundleObject(bundle, activeTeamId)
+    if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
+      notifications.show({ color: 'green', message: 'Postman collection imported' })
+    }
   }
 
   function handleDelete() {
@@ -113,6 +124,9 @@ export function ProjectSwitcher() {
           <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setOpenApiOpen(true)}>
             Import from OpenAPI
           </Button>
+          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setPostmanOpen(true)}>
+            Import from Postman
+          </Button>
           <Button size="xs" variant="light" disabled={!activeProjectId} onClick={() => setPublishOpen(true)}>
             Publish
           </Button>
@@ -127,6 +141,11 @@ export function ProjectSwitcher() {
       <PublishBundleModal opened={publishOpen} onClose={() => setPublishOpen(false)} />
       <ImportFromRegistryModal opened={registryOpen} onClose={() => setRegistryOpen(false)} />
       <OpenApiImport opened={openApiOpen} onClose={() => setOpenApiOpen(false)} />
+      <PostmanImport
+        opened={postmanOpen}
+        onClose={() => setPostmanOpen(false)}
+        onImport={(bundle) => { void handlePostmanImport(bundle) }}
+      />
     </>
   )
 }
