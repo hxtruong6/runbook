@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 32" width="180" height="32" role="img" aria-label="Run in Runbook">
+  <!-- background -->
+  <rect width="180" height="32" rx="6" fill="#1C1B1F"/>
+  <!-- play icon box -->
+  <rect x="0" y="0" width="36" height="32" rx="6" fill="#845EF7"/>
+  <!-- play triangle -->
+  <path d="M13 10 L13 22 L24 16 Z" fill="#FAFAF7"/>
+  <!-- label text -->
+  <text x="46" y="21" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="-0.01em" fill="#F3F0FF">Run in Runbook</text>
+</svg>

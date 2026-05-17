@@ -7,7 +7,7 @@ import { Logo } from './Logo'
 import { UserMenu } from './UserMenu'
 import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Title, Tooltip } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconBell, IconBolt, IconDots, IconLayoutSidebar, IconLayoutSidebarRight, IconSettings, IconTerminal2 } from '@tabler/icons-react'
+import { IconBell, IconBolt, IconCode, IconDots, IconLayoutSidebar, IconLayoutSidebarRight, IconSettings, IconTerminal2 } from '@tabler/icons-react'
 import { useTeamStore } from '../teams/teamStore'
 import { CLIGuideModal } from './CLIGuideModal'
 import { TeamSettingsModal } from '../teams/TeamSettingsModal'
@@ -20,13 +20,14 @@ type Props = {
   onToggleReusable?: () => void
   onBurst?: () => void
   onWhatsNew?: () => void
+  onEmbedBadge?: () => void
   onToggleNavbar?: () => void
   onToggleAside?: () => void
   navbarCollapsed?: boolean
   asideCollapsed?: boolean
 }
 
-export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusable, onBurst, onWhatsNew, onToggleNavbar, onToggleAside, navbarCollapsed, asideCollapsed }: Props) {
+export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusable, onBurst, onWhatsNew, onEmbedBadge, onToggleNavbar, onToggleAside, navbarCollapsed, asideCollapsed }: Props) {
   const [editorOpen, setEditorOpen] = useState(false)
   const [cliGuideOpen, setCliGuideOpen] = useState(false)
   const [teamSettingsOpen, setTeamSettingsOpen] = useState(false)
@@ -111,6 +112,11 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+          <Tooltip label="Embed badge" withinPortal>
+            <ActionIcon variant="subtle" size="lg" aria-label="Embed badge" onClick={onEmbedBadge}>
+              <IconCode size={18} />
+            </ActionIcon>
+          </Tooltip>
           <Tooltip label="What's new" withinPortal>
             <ActionIcon variant="subtle" size="lg" aria-label="What's new" onClick={onWhatsNew}>
               <IconBell size={18} />

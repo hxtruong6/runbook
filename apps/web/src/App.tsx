@@ -31,6 +31,8 @@ import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
 import { loadLocalBlocks, upsertLocalBlock, deleteLocalBlock } from "./blocks/localBlocksStore";
 import type { BlockDefData } from "./blocks/dataBlock";
+import { RunFromUrl } from "./pages/RunFromUrl";
+import { EmbedBadgeModal } from "./features/share/EmbedBadgeModal";
 import {
   ActionIcon,
   Alert,
@@ -78,6 +80,7 @@ export function AppContent() {
   const [localBlocks, setLocalBlocks] = useState<BlockDefData[]>(() => loadLocalBlocks());
   const [asideTab, setAsideTab] = useState<'context' | 'schema'>('context')
   const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [embedBadgeOpen, setEmbedBadgeOpen] = useState(false)
   const [blockLibraryOpen, setBlockLibraryOpen] = useState(true)
   const [previewScenario, setPreviewScenario] = useState<typeof PREBUILT_SCENARIOS[number] | null>(null)
   const [navbarCollapsed, setNavbarCollapsed] = useState(false)
@@ -321,6 +324,7 @@ export function AppContent() {
             onImport={importScenario}
             onBurst={() => setBurstOpen(true)}
             onWhatsNew={() => setWhatsNewOpen(true)}
+            onEmbedBadge={() => setEmbedBadgeOpen(true)}
             onToggleNavbar={() => setNavbarCollapsed(c => !c)}
             onToggleAside={() => setAsideCollapsed(c => !c)}
             navbarCollapsed={navbarCollapsed}
@@ -826,6 +830,11 @@ export function AppContent() {
         <WhatsNewPanel />
       </Modal>
 
+      <EmbedBadgeModal
+        opened={embedBadgeOpen}
+        onClose={() => setEmbedBadgeOpen(false)}
+      />
+
       <Modal
         opened={previewScenario !== null}
         onClose={() => setPreviewScenario(null)}
@@ -865,8 +874,32 @@ export function AppContent() {
   )
 }
 
+function useHashRoute(): string {
+  const [hash, setHash] = useState(() => window.location.hash)
+  useEffect(() => {
+    function onHashChange() { setHash(window.location.hash) }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
+  return hash
+}
+
 export function App() {
   const token = useAuthStore((s) => s.token)
+  const hash = useHashRoute()
+
   if (!token) return <LoginPage />
+
+  // Hash router — intercept #/run before rendering the main shell
+  if (hash.startsWith('#/run')) {
+    return (
+      <RunFromUrl
+        onNavigateHome={() => {
+          window.location.hash = ''
+        }}
+      />
+    )
+  }
+
   return <AppContent />
 }
