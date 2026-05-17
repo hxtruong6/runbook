@@ -161,9 +161,35 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
       await parseDoc(doc)
     } catch (e) {
       setLoading(false)
-      setError((e as Error).message ?? 'Failed to fetch OpenAPI spec')
+      const msg = (e as Error).message ?? ''
+      // "Failed to fetch" / "Load failed" are network-level errors. Common
+      // causes: server isn't running, CORS missing Access-Control-Allow-Origin,
+      // or — frequent gotcha — the URL uses "localhost" which resolves to IPv6
+      // ::1 while the server only listens on IPv4 0.0.0.0. The latter looks
+      // identical to a CORS failure in DevTools, so spell it out.
+      if (/failed to fetch|load failed|network/i.test(msg)) {
+        const isLocalhost = /\/\/localhost(:|\/)/.test(url)
+        setError(
+          `Couldn't reach ${url}. ` +
+          (isLocalhost
+            ? 'Try replacing "localhost" with "127.0.0.1" — many local servers listen on IPv4 only while the browser resolves localhost to IPv6 first. '
+            : '') +
+          'Also check that the server is running and sends an Access-Control-Allow-Origin header for this app.',
+        )
+      } else {
+        setError(msg || 'Failed to fetch OpenAPI spec')
+      }
     }
   }
+
+  // Common public OpenAPI specs as one-click loaders so first-time users
+  // can try the import flow without hunting for a URL.
+  const PRESET_SPECS: { label: string; url: string }[] = [
+    { label: 'Petstore (Swagger demo)', url: 'https://petstore3.swagger.io/api/v3/openapi.json' },
+    { label: 'GitHub REST API', url: 'https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json' },
+    { label: 'Stripe API', url: 'https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json' },
+    { label: 'cworld-be (local)', url: 'http://127.0.0.1:4000/documentation-json' },
+  ]
 
   async function handleFile(file: File) {
     const text = await file.text()
@@ -287,6 +313,23 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
             >
               Load
             </Button>
+          </Group>
+          {/* Quick presets so new users don't need to hunt for a URL. */}
+          <Group gap={6} wrap="wrap">
+            <Text size="xs" c="dimmed">Try:</Text>
+            {PRESET_SPECS.map((preset) => (
+              <Button
+                key={preset.url}
+                size="compact-xs"
+                variant="subtle"
+                onClick={() => {
+                  setUrlInput(preset.url)
+                  setError(null)
+                }}
+              >
+                {preset.label}
+              </Button>
+            ))}
           </Group>
         </Stack>
 

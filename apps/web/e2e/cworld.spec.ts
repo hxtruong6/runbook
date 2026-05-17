@@ -57,8 +57,10 @@ test('cworld-be: import OpenAPI doc via URL', async ({ page }) => {
     expect(v.length).toBeGreaterThan(0)
   }).toPass({ timeout: 10000 })
 
-  // Open the OpenAPI importer from the sidebar (project section).
-  await page.getByRole('button', { name: 'Import from OpenAPI' }).first().click()
+  // Open the OpenAPI importer via the sidebar's Import dropdown — the
+  // direct button was consolidated into a menu during the UX cleanup.
+  await page.getByRole('button', { name: 'Import' }).first().click()
+  await page.getByRole('menuitem', { name: /OpenAPI spec/i }).click()
   // Modal renders "Import from OpenAPI" title; the URL field has the
   // petstore placeholder.
   const urlBox = page.getByPlaceholder(/openapi\.json/i).first()

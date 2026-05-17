@@ -1,6 +1,18 @@
 // apps/web/src/components/ProjectSwitcher.tsx
 import { useRef, useState } from 'react'
-import { Alert, Button, Group, Select, Skeleton, Stack, Text, TextInput } from '@mantine/core'
+import { ActionIcon, Alert, Button, Group, Menu, Select, Skeleton, Stack, Text, TextInput } from '@mantine/core'
+import {
+  IconApi,
+  IconBrandGithub,
+  IconCloudDownload,
+  IconDots,
+  IconDownload,
+  IconFileCode,
+  IconPackage,
+  IconPlus,
+  IconTrash,
+  IconUpload,
+} from '@tabler/icons-react'
 import { openConfirmModal, modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import { useProjectsStore } from '../projects/projectsStore'
@@ -121,31 +133,94 @@ export function ProjectSwitcher() {
           </Alert>
         )}
 
-        <Group gap="xs" wrap="wrap">
-          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={handleNewProject}>
+        <Group gap="xs" wrap="nowrap">
+          <Button
+            size="xs"
+            variant="default"
+            leftSection={<IconPlus size={14} />}
+            disabled={!activeTeamId}
+            onClick={handleNewProject}
+            style={{ flex: 1 }}
+          >
             New project
           </Button>
-          <Button size="xs" variant="default" loading={importing} onClick={() => fileInputRef.current?.click()}>
-            Import bundle
-          </Button>
-          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setRegistryOpen(true)}>
-            From Registry
-          </Button>
-          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setOpenApiOpen(true)}>
-            Import from OpenAPI
-          </Button>
-          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setPostmanOpen(true)}>
-            Import from Postman
-          </Button>
-          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setGithubOpen(true)}>
-            From GitHub
-          </Button>
-          <Button size="xs" variant="light" disabled={!activeProjectId} onClick={() => setPublishOpen(true)}>
-            Publish
-          </Button>
-          <Button size="xs" variant="subtle" color="red" disabled={!activeProjectId} onClick={handleDelete}>
-            Delete
-          </Button>
+
+          <Menu shadow="md" position="bottom-end" width={220}>
+            <Menu.Target>
+              <Button
+                size="xs"
+                variant="default"
+                leftSection={<IconDownload size={14} />}
+                disabled={!activeTeamId}
+                style={{ flex: 1 }}
+              >
+                Import
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Import into this team</Menu.Label>
+              <Menu.Item
+                leftSection={<IconPackage size={14} />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importing}
+              >
+                Bundle file (.json)
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconCloudDownload size={14} />}
+                onClick={() => setRegistryOpen(true)}
+              >
+                From Registry
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconFileCode size={14} />}
+                onClick={() => setOpenApiOpen(true)}
+              >
+                OpenAPI spec
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconApi size={14} />}
+                onClick={() => setPostmanOpen(true)}
+              >
+                Postman collection
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconBrandGithub size={14} />}
+                onClick={() => setGithubOpen(true)}
+              >
+                GitHub repo
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+
+          <Menu shadow="md" position="bottom-end">
+            <Menu.Target>
+              <ActionIcon
+                size="lg"
+                variant="subtle"
+                aria-label="Project actions"
+                disabled={!activeProjectId}
+              >
+                <IconDots size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<IconUpload size={14} />}
+                onClick={() => setPublishOpen(true)}
+              >
+                Publish bundle…
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                color="red"
+                leftSection={<IconTrash size={14} />}
+                onClick={handleDelete}
+              >
+                Delete project
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
 
         <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleImport} />

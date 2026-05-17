@@ -410,28 +410,32 @@ export function AppContent() {
         </AppShell.Header>
 
         <AppShell.Navbar style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Activity bar — mode switcher */}
-          <Group gap={0} px="xs" pt="xs" pb="xs" style={{ flexShrink: 0, borderBottom: '1px solid var(--mantine-color-default-border)' }}>
+          {/* Activity bar — mode switcher. Filled variant for the active
+              mode gives a stronger visual anchor; subtle inactive state
+              kept lightweight. */}
+          <Group gap="xs" px="xs" pt="xs" pb="xs" style={{ flexShrink: 0, borderBottom: '1px solid var(--mantine-color-default-border)' }}>
             <Tooltip label="Scenarios" withinPortal>
               <ActionIcon
-                variant={sidebarMode === 'scenarios' ? 'light' : 'subtle'}
-                color={sidebarMode === 'scenarios' ? 'violet' : 'gray'}
-                size="md"
+                variant={sidebarMode === 'scenarios' ? 'filled' : 'subtle'}
+                color="violet"
+                size="lg"
                 aria-label="Scenarios view"
+                aria-pressed={sidebarMode === 'scenarios'}
                 onClick={() => setSidebarMode('scenarios')}
               >
-                <IconClipboardList size={16} />
+                <IconClipboardList size={18} />
               </ActionIcon>
             </Tooltip>
             <Tooltip label="Block Library" withinPortal>
               <ActionIcon
-                variant={sidebarMode === 'library' ? 'light' : 'subtle'}
-                color={sidebarMode === 'library' ? 'violet' : 'gray'}
-                size="md"
+                variant={sidebarMode === 'library' ? 'filled' : 'subtle'}
+                color="violet"
+                size="lg"
                 aria-label="Block library view"
+                aria-pressed={sidebarMode === 'library'}
                 onClick={() => setSidebarMode('library')}
               >
-                <IconBook2 size={16} />
+                <IconBook2 size={18} />
               </ActionIcon>
             </Tooltip>
           </Group>
