@@ -2,7 +2,8 @@
 // Imports a Postman Collection v2.1 export and produces a ProjectBundle.
 // No external dependencies — pure TypeScript.
 
-import type { ProjectBundle, Scenario, BlockDefData, BlockInstance, Environment } from '../runtime/bundle.js'
+import type { ProjectBundle, BlockDefData } from '../runtime/bundle.js'
+import type { Scenario, BlockInstance, Environment } from '../runtime/types.js'
 
 // ---------------------------------------------------------------------------
 // Postman Collection v2.1 types (minimal, only what we need)
@@ -89,13 +90,13 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10)
 }
 
-function normalizeMethod(m: string | undefined): 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' {
+function normalizeMethod(m: string | undefined): 'GET' | 'POST' | 'PUT' | 'DELETE' {
   const upper = (m ?? 'GET').toUpperCase()
   if (upper === 'GET') return 'GET'
   if (upper === 'POST') return 'POST'
   if (upper === 'PUT') return 'PUT'
   if (upper === 'DELETE') return 'DELETE'
-  if (upper === 'PATCH') return 'PATCH'
+  if (upper === 'PATCH') return 'POST'
   // Fallback non-standard methods to POST
   return 'POST'
 }
@@ -226,12 +227,12 @@ function itemToBlock(item: PostmanItem): BlockDefData | null {
     })
   }
 
-  const request: BlockDefData['request'] = {
+  const request = {
     method,
     urlTemplate,
     ...(Object.keys(headers).length > 0 ? { headers } : {}),
     ...(bodyTemplate !== undefined ? { bodyTemplate } : {}),
-  }
+  } as BlockDefData['request']
 
   return {
     kind,
@@ -403,8 +404,8 @@ export function importPostman(
           },
         ],
         blocks,
-        scenarios,
-        environments,
+        scenarios: scenarios as ProjectBundle['versions'][number]['scenarios'],
+        environments: environments as ProjectBundle['versions'][number]['environments'],
         docs: {},
       },
     ],
