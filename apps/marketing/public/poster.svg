@@ -1,0 +1,12 @@
+<svg width="1720" height="967" viewBox="0 0 1720 967" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1720" height="967" fill="#28241E"/>
+  <rect width="1720" height="967" fill="url(#posterGrad)"/>
+  <defs>
+    <linearGradient id="posterGrad" x1="0" y1="0" x2="1720" y2="967" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6741D9" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#0CA678" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+  <text x="860" y="450" font-family="Inter, -apple-system, sans-serif" font-size="72" font-weight="700" fill="white" opacity="0.15" text-anchor="middle" letter-spacing="-2">Runbook</text>
+  <text x="860" y="540" font-family="Inter, -apple-system, sans-serif" font-size="28" fill="white" opacity="0.1" text-anchor="middle">Product walkthrough coming soon</text>
+</svg>
