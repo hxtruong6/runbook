@@ -1,0 +1,69 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#F3F0FF"/>
+  <rect width="1200" height="630" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6741D9" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0CA678" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Logo mark -->
+  <rect x="80" y="200" width="56" height="56" rx="12" fill="#6741D9"/>
+  <rect x="93" y="213" width="13" height="13" rx="2.5" fill="white" opacity="0.9"/>
+  <rect x="112" y="213" width="13" height="13" rx="2.5" fill="white" opacity="0.6"/>
+  <rect x="93" y="232" width="13" height="13" rx="2.5" fill="white" opacity="0.6"/>
+  <rect x="112" y="232" width="13" height="13" rx="2.5" fill="white" opacity="0.4"/>
+
+  <!-- Wordmark -->
+  <text x="154" y="243" font-family="Inter, -apple-system, sans-serif" font-size="44" font-weight="700" fill="#15120E" letter-spacing="-1.5">Runbook</text>
+
+  <!-- Tagline -->
+  <text x="80" y="315" font-family="Inter, -apple-system, sans-serif" font-size="32" fill="#403B33" letter-spacing="-0.5">Version your APIs the way you version your code.</text>
+
+  <!-- Sub -->
+  <text x="80" y="370" font-family="Inter, -apple-system, sans-serif" font-size="22" fill="#7C766A">Build · Ship · Stay in sync</text>
+
+  <!-- Pill badges -->
+  <rect x="80" y="410" width="140" height="36" rx="18" fill="#6741D9" opacity="0.12"/>
+  <text x="150" y="433" font-family="Inter, sans-serif" font-size="16" fill="#6741D9" font-weight="600" text-anchor="middle">Open source</text>
+
+  <rect x="236" y="410" width="140" height="36" rx="18" fill="#0CA678" opacity="0.12"/>
+  <text x="306" y="433" font-family="Inter, sans-serif" font-size="16" fill="#0CA678" font-weight="600" text-anchor="middle">Free forever</text>
+
+  <rect x="392" y="410" width="160" height="36" rx="18" fill="#F08C00" opacity="0.12"/>
+  <text x="472" y="433" font-family="Inter, sans-serif" font-size="16" fill="#F08C00" font-weight="600" text-anchor="middle">No signup needed</text>
+
+  <!-- Right decoration: bundle card -->
+  <rect x="760" y="150" width="360" height="330" rx="20" fill="white" opacity="0.8" filter="url(#shadow)"/>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="24" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+  <rect x="760" y="150" width="360" height="52" rx="20" fill="#6741D9"/>
+  <rect x="760" y="182" width="360" height="20" fill="#6741D9"/>
+  <text x="784" y="183" font-family="Inter, sans-serif" font-size="16" fill="white" font-weight="600">payments-api.bundle.json</text>
+  <!-- Versions -->
+  <rect x="784" y="220" width="60" height="22" rx="6" fill="#E6FCF5"/>
+  <text x="814" y="235" font-family="Inter, sans-serif" font-size="12" fill="#099268" font-weight="700" text-anchor="middle">v2.1.0</text>
+  <rect x="852" y="220" width="60" height="22" rx="6" fill="#F3F1EA"/>
+  <text x="882" y="235" font-family="Inter, sans-serif" font-size="12" fill="#7C766A" font-weight="600" text-anchor="middle">v2.0.1</text>
+  <!-- Steps -->
+  <rect x="784" y="260" width="312" height="1" fill="#E8E4D8"/>
+  <circle cx="820" cy="295" r="18" fill="#F3F0FF" stroke="#B197FC" stroke-width="1.5"/>
+  <text x="820" y="300" font-family="Inter, sans-serif" font-size="13" fill="#6741D9" font-weight="700" text-anchor="middle">1</text>
+  <text x="848" y="300" font-family="Inter, sans-serif" font-size="14" fill="#403B33">Auth Token</text>
+  <line x1="820" y1="313" x2="820" y2="327" stroke="#B197FC" stroke-width="1.5"/>
+  <circle cx="820" cy="345" r="18" fill="#F3F0FF" stroke="#B197FC" stroke-width="1.5"/>
+  <text x="820" y="350" font-family="Inter, sans-serif" font-size="13" fill="#6741D9" font-weight="700" text-anchor="middle">2</text>
+  <text x="848" y="350" font-family="Inter, sans-serif" font-size="14" fill="#403B33">Charge Payment</text>
+  <line x1="820" y1="363" x2="820" y2="377" stroke="#B197FC" stroke-width="1.5"/>
+  <circle cx="820" cy="395" r="18" fill="#F3F0FF" stroke="#B197FC" stroke-width="1.5"/>
+  <text x="820" y="400" font-family="Inter, sans-serif" font-size="13" fill="#6741D9" font-weight="700" text-anchor="middle">3</text>
+  <text x="848" y="400" font-family="Inter, sans-serif" font-size="14" fill="#403B33">Send Receipt</text>
+  <!-- Signed badge -->
+  <rect x="784" y="432" width="80" height="24" rx="6" fill="#F3F0FF" stroke="#B197FC" stroke-width="1"/>
+  <text x="824" y="448" font-family="Inter, sans-serif" font-size="11" fill="#6741D9" font-weight="700" text-anchor="middle">Signed ✓</text>
+</svg>

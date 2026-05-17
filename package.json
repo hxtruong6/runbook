@@ -17,6 +17,7 @@
     "migrate:up": "pnpm --filter @runbook/server migrate:up",
     "migrate:down": "pnpm --filter @runbook/server migrate:down",
     "migrate:status": "pnpm --filter @runbook/server migrate:status",
-    "migrate:create": "pnpm --filter @runbook/server migrate:create"
+    "migrate:create": "pnpm --filter @runbook/server migrate:create",
+    "dev:marketing": "pnpm --filter @runbook/marketing dev"
   }
 }
