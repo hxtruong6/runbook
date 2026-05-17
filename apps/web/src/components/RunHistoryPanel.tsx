@@ -59,10 +59,14 @@ export function RunHistoryPanel({ scenarioId, refreshKey }: Props) {
     saveCompareToggle(scenarioId, checked);
   }
 
-  // Run result entries from the new diff-capable store
-  const runEntries = useRunHistoryStore((s) => s.results[scenarioId] ?? []);
-  const current = runEntries[0] ?? null;
-  const previous = runEntries[1] ?? null;
+  // Run result entries from the new diff-capable store. Selecting the array
+  // directly — the `?? []` fallback used to create a fresh array reference on
+  // every render, which made useSyncExternalStore think the snapshot changed
+  // and re-rendered forever (until React bailed out with "Maximum update
+  // depth").
+  const runEntries = useRunHistoryStore((s) => s.results[scenarioId]);
+  const current = runEntries?.[0] ?? null;
+  const previous = runEntries?.[1] ?? null;
   const canCompare = current !== null && previous !== null;
 
   return (

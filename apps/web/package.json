@@ -19,12 +19,12 @@
     ]
   },
   "dependencies": {
-    "@runbook/shared": "workspace:*",
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",
     "@mantine/modals": "^7.17.8",
     "@mantine/notifications": "^7.17.8",
     "@mantine/spotlight": "^9.2.1",
+    "@runbook/shared": "workspace:*",
     "@tabler/icons-react": "^3.44.0",
     "@xyflow/react": "^12.10.2",
     "framer-motion": "^12.38.0",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^18.3.12",

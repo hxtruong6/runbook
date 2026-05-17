@@ -6,3 +6,5 @@ dist
 .code-review-graph/
 .claude/worktrees/
 .claire/
+apps/web/test-results/
+apps/server/.env

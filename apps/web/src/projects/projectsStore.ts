@@ -74,7 +74,15 @@ export const useProjectsStore = create<ProjectsState>()((set, get) => ({
     set({ loading: true, error: null })
     try {
       const projects = await getProjects(teamId)
-      set({ projects, loading: false })
+      set((s) => ({
+        projects,
+        loading: false,
+        // Auto-select when there's exactly one project and nothing is picked
+        // yet — fresh signups land with one auto-created project and no UI cue
+        // to click the dropdown.
+        activeProjectId:
+          s.activeProjectId ?? (projects.length === 1 ? projects[0]._id : null),
+      }))
     } catch (e) {
       set({ loading: false, error: (e as Error).message })
     }

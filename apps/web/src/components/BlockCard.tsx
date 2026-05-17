@@ -124,7 +124,11 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
   }
 
   async function runHttp() {
-    if (!activeEnv) { warnNoEnv(); return; }
+    // Env is only required when the block's URL template is relative.
+    // Absolute URLs (e.g. from a curl paste) can run without one.
+    const urlTemplate = def.urlTemplate ?? '';
+    const isAbsolute = /^https?:\/\//i.test(urlTemplate);
+    if (!activeEnv && !isAbsolute) { warnNoEnv(); return; }
     setRunning(true);
     const r = await runBlock(def, block, context, activeEnv);
     setResult(r);

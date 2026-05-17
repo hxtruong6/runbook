@@ -25,9 +25,40 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       passwordHash,
       createdAt: new Date(),
     })
+    const userId = result.insertedId.toString()
+
+    // Bootstrap a personal workspace so the user can do real work immediately
+    // instead of staring at disabled buttons.
+    const workspaceName = `${body.data.name}'s workspace`
+    const slug = `${workspaceName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${userId.slice(-6)}`
+    const teamResult = await db.collection('teams').insertOne({
+      name: workspaceName,
+      slug,
+      createdAt: new Date(),
+    })
+    await db.collection('memberships').insertOne({
+      userId,
+      teamId: teamResult.insertedId.toString(),
+      role: 'owner',
+    })
+    const projectResult = await db.collection('projects').insertOne({
+      teamId: teamResult.insertedId.toString(),
+      name: 'My first project',
+      versions: [],
+      createdAt: new Date(),
+    })
+    await db.collection('scenarios').insertOne({
+      projectId: projectResult.insertedId.toString(),
+      teamId: teamResult.insertedId.toString(),
+      name: 'My first scenario',
+      blocks: [],
+      reusable: false,
+      updatedAt: new Date(),
+      updatedBy: userId,
+    })
 
     const token = app.jwt.sign(
-      { sub: result.insertedId.toString(), email: body.data.email },
+      { sub: userId, email: body.data.email },
       { expiresIn: '7d' },
     )
     return reply.code(201).send({ token })
