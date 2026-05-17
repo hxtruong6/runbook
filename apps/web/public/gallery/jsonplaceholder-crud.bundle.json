@@ -1,0 +1,107 @@
+{
+  "id": "jsonplaceholder-crud",
+  "name": "JSONPlaceholder CRUD",
+  "description": "No-auth REST CRUD demo against JSONPlaceholder.",
+  "createdAt": "2026-05-15T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-05-15T00:00:00Z",
+      "releaseNotes": "Initial bundle. Four blocks covering list, get, create, and delete.",
+      "changes": [
+        { "type": "added", "target": "listPosts", "summary": "GET /posts" },
+        { "type": "added", "target": "getPost", "summary": "GET /posts/:id" },
+        { "type": "added", "target": "createPost", "summary": "POST /posts" },
+        { "type": "added", "target": "deletePost", "summary": "DELETE /posts/:id" }
+      ],
+      "blocks": [
+        {
+          "kind": "listPosts",
+          "label": "List Posts (GET /posts)",
+          "auth": "none",
+          "inputs": [],
+          "outputs": [],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "https://jsonplaceholder.typicode.com/posts",
+            "headers": {},
+            "bodyTemplate": null
+          }
+        },
+        {
+          "kind": "getPost",
+          "label": "Get Post (GET /posts/:id)",
+          "auth": "none",
+          "inputs": [
+            { "name": "id", "label": "Post ID", "type": "number", "required": true }
+          ],
+          "outputs": [{ "jsonPath": "$.title", "contextKey": "postTitle" }],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "https://jsonplaceholder.typicode.com/posts/{{id}}",
+            "headers": {},
+            "bodyTemplate": null
+          }
+        },
+        {
+          "kind": "createPost",
+          "label": "Create Post (POST /posts)",
+          "auth": "none",
+          "inputs": [
+            { "name": "title", "label": "Title", "type": "string", "required": true },
+            { "name": "body", "label": "Body", "type": "string", "required": true },
+            { "name": "userId", "label": "User ID", "type": "number", "required": true }
+          ],
+          "outputs": [{ "jsonPath": "$.id", "contextKey": "newPostId" }],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "https://jsonplaceholder.typicode.com/posts",
+            "headers": { "Content-Type": "application/json" },
+            "bodyTemplate": "{\"title\":\"{{title}}\",\"body\":\"{{body}}\",\"userId\":{{userId}}}"
+          }
+        },
+        {
+          "kind": "deletePost",
+          "label": "Delete Post (DELETE /posts/:id)",
+          "auth": "none",
+          "inputs": [
+            { "name": "id", "label": "Post ID", "type": "number", "required": true }
+          ],
+          "outputs": [],
+          "request": {
+            "method": "DELETE",
+            "urlTemplate": "https://jsonplaceholder.typicode.com/posts/{{id}}",
+            "headers": {},
+            "bodyTemplate": null
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "jp-list-then-get",
+          "name": "List then read a post",
+          "createdAt": "2026-05-15T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "s1-b1", "kind": "listPosts", "overrides": {} },
+            { "id": "s1-b2", "kind": "getPost", "overrides": { "id": 1 } }
+          ]
+        },
+        {
+          "id": "jp-create-delete",
+          "name": "Create then delete a post",
+          "createdAt": "2026-05-15T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "s2-b1", "kind": "createPost", "overrides": { "title": "Hello", "body": "World", "userId": 1 } },
+            { "id": "s2-b2", "kind": "deletePost", "overrides": { "id": 1 } }
+          ]
+        }
+      ],
+      "environments": [],
+      "docs": {
+        "overview": "JSONPlaceholder is a free fake REST API for testing. No authentication required."
+      }
+    }
+  ]
+}
