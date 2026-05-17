@@ -1,0 +1,153 @@
+{
+  "id": "gallery-linear",
+  "name": "Linear API",
+  "description": "Create and query issues, cycles, and teams via the Linear GraphQL API.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for Linear GraphQL API.",
+      "changes": [
+        { "type": "added", "target": "list-teams", "summary": "Fetch all teams in the workspace" },
+        { "type": "added", "target": "create-issue", "summary": "Create a new issue in a team" },
+        { "type": "added", "target": "get-issue", "summary": "Fetch a single issue by ID" },
+        { "type": "added", "target": "update-issue-status", "summary": "Transition issue to a new workflow state" }
+      ],
+      "blocks": [
+        {
+          "kind": "list-teams",
+          "label": "List Teams",
+          "auth": "jwt",
+          "inputs": [],
+          "outputs": [
+            { "jsonPath": "$.data.teams.nodes[0].id", "contextKey": "firstTeamId" },
+            { "jsonPath": "$.data.teams.nodes[0].name", "contextKey": "firstTeamName" },
+            { "jsonPath": "$.data.teams.nodes[0].key", "contextKey": "firstTeamKey" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/graphql",
+            "headers": {
+              "Authorization": "{{LINEAR_API_KEY}}",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "query": "{ teams { nodes { id name key } } }"
+            }
+          }
+        },
+        {
+          "kind": "create-issue",
+          "label": "Create Issue",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "team_id", "label": "Team ID", "type": "string", "required": true, "fromContextKey": "firstTeamId" },
+            { "name": "title", "label": "Title", "type": "string", "required": true },
+            { "name": "description", "label": "Description (Markdown)", "type": "string" },
+            { "name": "priority", "label": "Priority", "type": "enum", "enumValues": ["0", "1", "2", "3", "4"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.data.issueCreate.issue.id", "contextKey": "linearIssueId" },
+            { "jsonPath": "$.data.issueCreate.issue.identifier", "contextKey": "linearIssueIdentifier" },
+            { "jsonPath": "$.data.issueCreate.issue.url", "contextKey": "linearIssueUrl" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/graphql",
+            "headers": {
+              "Authorization": "{{LINEAR_API_KEY}}",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "query": "mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { issue { id identifier url } } }",
+              "variables": {
+                "input": {
+                  "teamId": "{{team_id}}",
+                  "title": "{{title}}",
+                  "description": "{{description}}",
+                  "priority": "{{priority}}"
+                }
+              }
+            }
+          }
+        },
+        {
+          "kind": "get-issue",
+          "label": "Get Issue",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "issue_id", "label": "Issue ID", "type": "string", "required": true, "fromContextKey": "linearIssueId" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.data.issue.title", "contextKey": "issueTitle" },
+            { "jsonPath": "$.data.issue.state.name", "contextKey": "issueStateName" },
+            { "jsonPath": "$.data.issue.assignee.name", "contextKey": "issueAssigneeName" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/graphql",
+            "headers": {
+              "Authorization": "{{LINEAR_API_KEY}}",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "query": "query Issue($id: String!) { issue(id: $id) { title state { name } assignee { name } } }",
+              "variables": { "id": "{{issue_id}}" }
+            }
+          }
+        },
+        {
+          "kind": "update-issue-status",
+          "label": "Update Issue Status",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "issue_id", "label": "Issue ID", "type": "string", "required": true, "fromContextKey": "linearIssueId" },
+            { "name": "state_id", "label": "State ID", "type": "string", "required": true }
+          ],
+          "outputs": [
+            { "jsonPath": "$.data.issueUpdate.issue.state.name", "contextKey": "updatedStateName" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/graphql",
+            "headers": {
+              "Authorization": "{{LINEAR_API_KEY}}",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "query": "mutation IssueUpdate($id: String!, $input: IssueUpdateInput!) { issueUpdate(id: $id, input: $input) { issue { state { name } } } }",
+              "variables": { "id": "{{issue_id}}", "input": { "stateId": "{{state_id}}" } }
+            }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-linear-create-issue",
+          "name": "Create and inspect an issue",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-lin-1", "kind": "list-teams", "overrides": {} },
+            { "id": "bi-lin-2", "kind": "create-issue", "overrides": { "title": "Test issue from Runbook", "priority": "2" } },
+            { "id": "bi-lin-3", "kind": "get-issue", "overrides": {} }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-linear-prod",
+          "name": "Linear Workspace",
+          "baseUrl": "https://api.linear.app",
+          "auth": { "kind": "apiKey", "in": "header", "name": "Authorization", "value": "" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# Linear API\n\nLinear exposes a GraphQL API. Generate an API key at https://linear.app/settings/api.\n\n## Authentication\n\nPass your API key directly in the `Authorization` header (no `Bearer` prefix)."
+      }
+    }
+  ]
+}

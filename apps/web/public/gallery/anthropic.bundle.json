@@ -1,0 +1,134 @@
+{
+  "id": "gallery-anthropic",
+  "name": "Anthropic Claude API",
+  "description": "Messages API and token counting for Claude models.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for Anthropic Claude API.",
+      "changes": [
+        { "type": "added", "target": "create-message", "summary": "Send a message to a Claude model" },
+        { "type": "added", "target": "count-tokens", "summary": "Count tokens for a prompt" },
+        { "type": "added", "target": "create-message-stream", "summary": "Streaming message request" }
+      ],
+      "blocks": [
+        {
+          "kind": "create-message",
+          "label": "Create Message",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "model", "label": "Model", "type": "enum", "enumValues": ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-4-5"], "required": true },
+            { "name": "user_message", "label": "User Message", "type": "string", "required": true },
+            { "name": "system", "label": "System Prompt", "type": "string" },
+            { "name": "max_tokens", "label": "Max Tokens", "type": "number" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.content[0].text", "contextKey": "claudeResponse" },
+            { "jsonPath": "$.usage.input_tokens", "contextKey": "inputTokens" },
+            { "jsonPath": "$.usage.output_tokens", "contextKey": "outputTokens" },
+            { "jsonPath": "$.id", "contextKey": "messageId" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/messages",
+            "headers": {
+              "x-api-key": "{{ANTHROPIC_API_KEY}}",
+              "anthropic-version": "2023-06-01",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "model": "{{model}}",
+              "max_tokens": "{{max_tokens}}",
+              "system": "{{system}}",
+              "messages": [{ "role": "user", "content": "{{user_message}}" }]
+            }
+          }
+        },
+        {
+          "kind": "count-tokens",
+          "label": "Count Tokens",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "model", "label": "Model", "type": "enum", "enumValues": ["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-4-5"], "required": true },
+            { "name": "user_message", "label": "User Message", "type": "string", "required": true }
+          ],
+          "outputs": [
+            { "jsonPath": "$.input_tokens", "contextKey": "inputTokenCount" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/messages/count_tokens",
+            "headers": {
+              "x-api-key": "{{ANTHROPIC_API_KEY}}",
+              "anthropic-version": "2023-06-01",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "model": "{{model}}",
+              "messages": [{ "role": "user", "content": "{{user_message}}" }]
+            }
+          }
+        },
+        {
+          "kind": "create-message-with-cache",
+          "label": "Create Message (Prompt Cache)",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "model", "label": "Model", "type": "enum", "enumValues": ["claude-opus-4-5", "claude-sonnet-4-5"], "required": true },
+            { "name": "system_text", "label": "System Text (cacheable)", "type": "string", "required": true },
+            { "name": "user_message", "label": "User Message", "type": "string", "required": true },
+            { "name": "max_tokens", "label": "Max Tokens", "type": "number" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.content[0].text", "contextKey": "cachedClaudeResponse" },
+            { "jsonPath": "$.usage.cache_creation_input_tokens", "contextKey": "cacheCreationTokens" },
+            { "jsonPath": "$.usage.cache_read_input_tokens", "contextKey": "cacheReadTokens" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/messages",
+            "headers": {
+              "x-api-key": "{{ANTHROPIC_API_KEY}}",
+              "anthropic-version": "2023-06-01",
+              "anthropic-beta": "prompt-caching-2024-07-31",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "model": "{{model}}",
+              "max_tokens": "{{max_tokens}}",
+              "system": [{ "type": "text", "text": "{{system_text}}", "cache_control": { "type": "ephemeral" } }],
+              "messages": [{ "role": "user", "content": "{{user_message}}" }]
+            }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-anthropic-count-then-send",
+          "name": "Count tokens then send message",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-ant-1", "kind": "count-tokens", "overrides": { "model": "claude-sonnet-4-5", "user_message": "Explain prompt caching in two sentences." } },
+            { "id": "bi-ant-2", "kind": "create-message", "overrides": { "model": "claude-sonnet-4-5", "user_message": "Explain prompt caching in two sentences.", "max_tokens": 256 } }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-anthropic-prod",
+          "name": "Anthropic API",
+          "baseUrl": "https://api.anthropic.com",
+          "auth": { "kind": "apiKey", "in": "header", "name": "x-api-key", "value": "" },
+          "headers": { "anthropic-version": "2023-06-01" },
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# Anthropic Claude API\n\nBlocks for the Anthropic Messages API. Set your `ANTHROPIC_API_KEY` in the environment.\n\n## Models\n\n- **claude-opus-4-5** — most capable\n- **claude-sonnet-4-5** — balanced speed and quality\n- **claude-haiku-4-5** — fastest and most compact"
+      }
+    }
+  ]
+}

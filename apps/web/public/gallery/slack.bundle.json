@@ -1,0 +1,136 @@
+{
+  "id": "gallery-slack",
+  "name": "Slack API",
+  "description": "Post messages, manage channels, and look up users via the Slack Web API.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for Slack Web API.",
+      "changes": [
+        { "type": "added", "target": "post-message", "summary": "Post a message to a channel" },
+        { "type": "added", "target": "list-channels", "summary": "List public channels" },
+        { "type": "added", "target": "get-user-info", "summary": "Look up a user by ID" },
+        { "type": "added", "target": "upload-file", "summary": "Upload a file snippet to a channel" }
+      ],
+      "blocks": [
+        {
+          "kind": "post-message",
+          "label": "Post Message",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "channel", "label": "Channel ID or Name", "type": "string", "required": true },
+            { "name": "text", "label": "Message Text", "type": "string", "required": true },
+            { "name": "thread_ts", "label": "Thread Timestamp (reply)", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.ts", "contextKey": "messageTs" },
+            { "jsonPath": "$.channel", "contextKey": "postedChannelId" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/api/chat.postMessage",
+            "headers": {
+              "Authorization": "Bearer {{SLACK_BOT_TOKEN}}",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "channel": "{{channel}}",
+              "text": "{{text}}",
+              "thread_ts": "{{thread_ts}}"
+            }
+          }
+        },
+        {
+          "kind": "list-channels",
+          "label": "List Channels",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "limit", "label": "Limit", "type": "number", "placeholder": "100" },
+            { "name": "exclude_archived", "label": "Exclude Archived", "type": "enum", "enumValues": ["true", "false"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.channels[0].id", "contextKey": "firstChannelId" },
+            { "jsonPath": "$.channels[0].name", "contextKey": "firstChannelName" },
+            { "jsonPath": "$.response_metadata.next_cursor", "contextKey": "nextCursor" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/api/conversations.list",
+            "headers": { "Authorization": "Bearer {{SLACK_BOT_TOKEN}}" },
+            "query": { "limit": "{{limit}}", "exclude_archived": "{{exclude_archived}}" }
+          }
+        },
+        {
+          "kind": "get-user-info",
+          "label": "Get User Info",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "user", "label": "User ID", "type": "string", "required": true }
+          ],
+          "outputs": [
+            { "jsonPath": "$.user.real_name", "contextKey": "userRealName" },
+            { "jsonPath": "$.user.profile.email", "contextKey": "userEmail" },
+            { "jsonPath": "$.user.is_admin", "contextKey": "userIsAdmin" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/api/users.info",
+            "headers": { "Authorization": "Bearer {{SLACK_BOT_TOKEN}}" },
+            "query": { "user": "{{user}}" }
+          }
+        },
+        {
+          "kind": "add-reaction",
+          "label": "Add Reaction",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "channel", "label": "Channel ID", "type": "string", "required": true },
+            { "name": "timestamp", "label": "Message Timestamp", "type": "string", "required": true, "fromContextKey": "messageTs" },
+            { "name": "name", "label": "Emoji Name (without colons)", "type": "string", "required": true }
+          ],
+          "outputs": [],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/api/reactions.add",
+            "headers": {
+              "Authorization": "Bearer {{SLACK_BOT_TOKEN}}",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "channel": "{{channel}}",
+              "timestamp": "{{timestamp}}",
+              "name": "{{name}}"
+            }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-slack-notify",
+          "name": "Post notification and react",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-slk-1", "kind": "post-message", "overrides": { "channel": "C0000000000", "text": "Deployment complete :rocket:" } },
+            { "id": "bi-slk-2", "kind": "add-reaction", "overrides": { "channel": "C0000000000", "name": "white_check_mark" } }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-slack-workspace",
+          "name": "Slack Workspace",
+          "baseUrl": "https://slack.com",
+          "auth": { "kind": "bearer", "token": "" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# Slack Web API\n\nCreate a Slack App at https://api.slack.com/apps, add the required OAuth scopes, and install it to your workspace.\n\n## Required Scopes\n\n- `chat:write` — post messages\n- `channels:read` — list channels\n- `users:read` — look up users\n- `reactions:write` — add reactions"
+      }
+    }
+  ]
+}

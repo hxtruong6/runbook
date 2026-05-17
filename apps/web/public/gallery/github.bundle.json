@@ -1,0 +1,150 @@
+{
+  "id": "gallery-github",
+  "name": "GitHub REST API",
+  "description": "Core GitHub REST API operations — repos, issues, pull requests, and releases.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for GitHub REST API.",
+      "changes": [
+        { "type": "added", "target": "list-repos", "summary": "List authenticated user repositories" },
+        { "type": "added", "target": "get-repo", "summary": "Get a single repository by owner and name" },
+        { "type": "added", "target": "create-issue", "summary": "Create a new issue on a repository" },
+        { "type": "added", "target": "list-pull-requests", "summary": "List pull requests for a repository" },
+        { "type": "added", "target": "create-release", "summary": "Create a new release for a repository" }
+      ],
+      "blocks": [
+        {
+          "kind": "list-repos",
+          "label": "List Repositories",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "per_page", "label": "Per Page", "type": "number", "placeholder": "30" },
+            { "name": "sort", "label": "Sort", "type": "enum", "enumValues": ["created", "updated", "pushed", "full_name"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$[0].full_name", "contextKey": "firstRepoFullName" },
+            { "jsonPath": "$[0].id", "contextKey": "firstRepoId" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/user/repos",
+            "headers": { "Authorization": "Bearer {{GITHUB_TOKEN}}", "Accept": "application/vnd.github+json" },
+            "query": { "per_page": "{{per_page}}", "sort": "{{sort}}" }
+          }
+        },
+        {
+          "kind": "get-repo",
+          "label": "Get Repository",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "owner", "label": "Owner", "type": "string", "required": true },
+            { "name": "repo", "label": "Repository", "type": "string", "required": true }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "repoId" },
+            { "jsonPath": "$.default_branch", "contextKey": "defaultBranch" },
+            { "jsonPath": "$.full_name", "contextKey": "repoFullName" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/repos/{{owner}}/{{repo}}",
+            "headers": { "Authorization": "Bearer {{GITHUB_TOKEN}}", "Accept": "application/vnd.github+json" }
+          }
+        },
+        {
+          "kind": "create-issue",
+          "label": "Create Issue",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "owner", "label": "Owner", "type": "string", "required": true },
+            { "name": "repo", "label": "Repository", "type": "string", "required": true },
+            { "name": "title", "label": "Title", "type": "string", "required": true },
+            { "name": "body", "label": "Body", "type": "string" },
+            { "name": "labels", "label": "Labels (comma-separated)", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.number", "contextKey": "issueNumber" },
+            { "jsonPath": "$.html_url", "contextKey": "issueUrl" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/repos/{{owner}}/{{repo}}/issues",
+            "headers": { "Authorization": "Bearer {{GITHUB_TOKEN}}", "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
+            "bodyTemplate": { "title": "{{title}}", "body": "{{body}}" }
+          }
+        },
+        {
+          "kind": "list-pull-requests",
+          "label": "List Pull Requests",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "owner", "label": "Owner", "type": "string", "required": true },
+            { "name": "repo", "label": "Repository", "type": "string", "required": true },
+            { "name": "state", "label": "State", "type": "enum", "enumValues": ["open", "closed", "all"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$[0].number", "contextKey": "firstPrNumber" },
+            { "jsonPath": "$[0].head.sha", "contextKey": "firstPrSha" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/repos/{{owner}}/{{repo}}/pulls",
+            "headers": { "Authorization": "Bearer {{GITHUB_TOKEN}}", "Accept": "application/vnd.github+json" },
+            "query": { "state": "{{state}}" }
+          }
+        },
+        {
+          "kind": "create-release",
+          "label": "Create Release",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "owner", "label": "Owner", "type": "string", "required": true },
+            { "name": "repo", "label": "Repository", "type": "string", "required": true },
+            { "name": "tag_name", "label": "Tag Name", "type": "string", "required": true },
+            { "name": "name", "label": "Release Name", "type": "string", "required": true },
+            { "name": "body", "label": "Release Notes", "type": "string" },
+            { "name": "draft", "label": "Draft", "type": "enum", "enumValues": ["false", "true"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "releaseId" },
+            { "jsonPath": "$.html_url", "contextKey": "releaseUrl" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/repos/{{owner}}/{{repo}}/releases",
+            "headers": { "Authorization": "Bearer {{GITHUB_TOKEN}}", "Accept": "application/vnd.github+json", "Content-Type": "application/json" },
+            "bodyTemplate": { "tag_name": "{{tag_name}}", "name": "{{name}}", "body": "{{body}}", "draft": "{{draft}}" }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-github-repo-flow",
+          "name": "Inspect repo and open an issue",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-gh-1", "kind": "get-repo", "overrides": { "owner": "octocat", "repo": "Hello-World" } },
+            { "id": "bi-gh-2", "kind": "create-issue", "overrides": { "owner": "octocat", "repo": "Hello-World", "title": "Test issue from Runbook" } }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-github-prod",
+          "name": "GitHub API",
+          "baseUrl": "https://api.github.com",
+          "auth": { "kind": "bearer", "token": "" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# GitHub REST API\n\nUse these blocks to interact with GitHub's REST API. Set your `GITHUB_TOKEN` in the environment.\n\n## Authentication\n\nGenerate a Personal Access Token at https://github.com/settings/tokens and paste it into the environment's bearer token field."
+      }
+    }
+  ]
+}

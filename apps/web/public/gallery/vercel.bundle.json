@@ -1,0 +1,143 @@
+{
+  "id": "gallery-vercel",
+  "name": "Vercel API",
+  "description": "Manage deployments, projects, domains, and environment variables via the Vercel REST API.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for Vercel REST API.",
+      "changes": [
+        { "type": "added", "target": "list-deployments", "summary": "List recent deployments for a project" },
+        { "type": "added", "target": "get-deployment", "summary": "Inspect a single deployment by ID or URL" },
+        { "type": "added", "target": "list-projects", "summary": "List all projects in a team or personal account" },
+        { "type": "added", "target": "create-deployment", "summary": "Trigger a new deployment via files upload" },
+        { "type": "added", "target": "list-env-vars", "summary": "List environment variables for a project" }
+      ],
+      "blocks": [
+        {
+          "kind": "list-projects",
+          "label": "List Projects",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "limit", "label": "Limit", "type": "number", "placeholder": "20" },
+            { "name": "teamId", "label": "Team ID (optional)", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.projects[0].id", "contextKey": "firstProjectId" },
+            { "jsonPath": "$.projects[0].name", "contextKey": "firstProjectName" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v9/projects",
+            "headers": { "Authorization": "Bearer {{VERCEL_TOKEN}}" },
+            "query": { "limit": "{{limit}}", "teamId": "{{teamId}}" }
+          }
+        },
+        {
+          "kind": "list-deployments",
+          "label": "List Deployments",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "projectId", "label": "Project ID", "type": "string", "fromContextKey": "firstProjectId" },
+            { "name": "limit", "label": "Limit", "type": "number", "placeholder": "10" },
+            { "name": "target", "label": "Target", "type": "enum", "enumValues": ["production", "preview"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.deployments[0].uid", "contextKey": "latestDeploymentId" },
+            { "jsonPath": "$.deployments[0].url", "contextKey": "latestDeploymentUrl" },
+            { "jsonPath": "$.deployments[0].readyState", "contextKey": "latestDeploymentState" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v6/deployments",
+            "headers": { "Authorization": "Bearer {{VERCEL_TOKEN}}" },
+            "query": { "projectId": "{{projectId}}", "limit": "{{limit}}", "target": "{{target}}" }
+          }
+        },
+        {
+          "kind": "get-deployment",
+          "label": "Get Deployment",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "idOrUrl", "label": "Deployment ID or URL", "type": "string", "required": true, "fromContextKey": "latestDeploymentId" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.readyState", "contextKey": "deploymentReadyState" },
+            { "jsonPath": "$.url", "contextKey": "deploymentUrl" },
+            { "jsonPath": "$.meta.githubCommitSha", "contextKey": "deploymentCommitSha" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v13/deployments/{{idOrUrl}}",
+            "headers": { "Authorization": "Bearer {{VERCEL_TOKEN}}" }
+          }
+        },
+        {
+          "kind": "list-env-vars",
+          "label": "List Environment Variables",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "projectId", "label": "Project ID", "type": "string", "required": true, "fromContextKey": "firstProjectId" },
+            { "name": "teamId", "label": "Team ID (optional)", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.envs[0].key", "contextKey": "firstEnvKey" },
+            { "jsonPath": "$.envs[0].target", "contextKey": "firstEnvTarget" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v9/projects/{{projectId}}/env",
+            "headers": { "Authorization": "Bearer {{VERCEL_TOKEN}}" },
+            "query": { "teamId": "{{teamId}}" }
+          }
+        },
+        {
+          "kind": "delete-deployment",
+          "label": "Delete Deployment",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "deploymentId", "label": "Deployment ID", "type": "string", "required": true, "fromContextKey": "latestDeploymentId" },
+            { "name": "teamId", "label": "Team ID (optional)", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.state", "contextKey": "deletedDeploymentState" }
+          ],
+          "request": {
+            "method": "DELETE",
+            "urlTemplate": "/v13/deployments/{{deploymentId}}",
+            "headers": { "Authorization": "Bearer {{VERCEL_TOKEN}}" },
+            "query": { "teamId": "{{teamId}}" }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-vercel-inspect",
+          "name": "List projects and inspect latest deployment",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-vcl-1", "kind": "list-projects", "overrides": { "limit": 5 } },
+            { "id": "bi-vcl-2", "kind": "list-deployments", "overrides": { "limit": 3, "target": "production" } },
+            { "id": "bi-vcl-3", "kind": "get-deployment", "overrides": {} }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-vercel-prod",
+          "name": "Vercel API",
+          "baseUrl": "https://api.vercel.com",
+          "auth": { "kind": "bearer", "token": "" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# Vercel REST API\n\nGenerate an Access Token at https://vercel.com/account/tokens.\n\n## Team vs Personal\n\nMost endpoints accept an optional `teamId` query param. Omit it for personal account resources."
+      }
+    }
+  ]
+}
