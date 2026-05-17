@@ -94,13 +94,13 @@ const sampleBundle = {
 
 function makeFetcher(responses: Array<{ status: number; body: unknown }>): Fetcher {
   let call = 0
-  return async (_url, _init) => {
+  return async (_req, _opts) => {
     const r = responses[call++ % responses.length]
-    const text = JSON.stringify(r.body)
     return {
-      status: r.status,
-      headers: { get: (name: string) => (name === 'content-type' ? 'application/json' : null) },
-      text: async () => text,
+      httpStatus: r.status,
+      body: r.body,
+      elapsedMs: 0,
+      resolvedRequest: { method: _req.method, url: _req.url, headers: _req.headers, body: _req.body },
     }
   }
 }

@@ -78,7 +78,7 @@ describe('runbook init', () => {
       expect(existsSync(resolve(target, 'runbook.json'))).toBe(true)
       expect(existsSync(resolve(target, 'README.md'))).toBe(true)
       const bundle = JSON.parse(readFileSync(resolve(target, 'runbook.json'), 'utf-8'))
-      expect(bundle.id).toBe(target)
+      expect(bundle.id).toBe('demo')
       expect(bundle.versions[0].scenarios[0].id).toBe('smoke')
     } finally {
       rmSync(tmp, { recursive: true, force: true })

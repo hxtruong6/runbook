@@ -15,6 +15,7 @@ import type { BlockDefData } from "../blocks/dataBlock";
 import { BlockEditorModal } from "./BlockEditorModal";
 import { OpenApiImporterModal } from "./OpenApiImporterModal";
 import { PasteCurlModal } from "../features/paste-curl/PasteCurlModal";
+import { EmptyState } from "./EmptyState";
 
 type Props = {
   localBlocks: BlockDefData[];
@@ -99,19 +100,13 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
         <Stack gap="xs">
           <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Local</Text>
           {localBlocks.length === 0 ? (
-            <Stack gap="xs" align="flex-start">
-              <Text size="sm" c="dimmed">
-                No local API blocks yet. Paste a cURL command to create one instantly.
-              </Text>
-              <Button
-                size="xs"
-                variant="light"
-                leftSection={<IconTerminal2 size={14} />}
-                onClick={() => setPasteCurlOpen(true)}
-              >
-                Paste cURL
-              </Button>
-            </Stack>
+            <EmptyState
+              icon={<IconTerminal2 size={20} />}
+              title="No API blocks yet"
+              helper="Paste a cURL command or import from OpenAPI to create your first block."
+              primaryCta={{ label: "Paste cURL", onClick: () => setPasteCurlOpen(true) }}
+              samples={[{ slug: "github", name: "GitHub REST API" }]}
+            />
           ) : (
             localBlocks.map((block) => (
               <Paper key={block.kind} withBorder p="sm">

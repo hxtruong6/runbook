@@ -35,6 +35,7 @@ import { loadLocalBlocks, upsertLocalBlock, deleteLocalBlock } from "./blocks/lo
 import type { BlockDefData } from "./blocks/dataBlock";
 import { RunFromUrl } from "./pages/RunFromUrl";
 import { EmbedBadgeModal } from "./features/share/EmbedBadgeModal";
+import { EmptyState } from "./components/EmptyState";
 import {
   ActionIcon,
   Alert,
@@ -485,9 +486,29 @@ export function AppContent() {
               ) : (
                 <Stack gap={2} pb="sm">
                   {scenarios.length === 0 ? (
-                    <Text size="xs" c="dimmed" pl="xs">
-                      {activeProjectId ? 'No scenarios yet' : 'Select a project above'}
-                    </Text>
+                    activeProjectId ? (
+                      <EmptyState
+                        icon={<IconClipboardList size={20} />}
+                        title="No scenarios yet"
+                        helper="Create a scenario or load a sample bundle to get started."
+                        primaryCta={{
+                          label: 'New scenario',
+                          disabled: !activeTeamId || !activeProjectId,
+                          onClick: async () => {
+                            if (!activeTeamId || !activeProjectId) return;
+                            try {
+                              const created = await createScenario(activeTeamId, activeProjectId, 'Untitled scenario');
+                              setActiveId(created.id);
+                            } catch (e) {
+                              console.error('Failed to create scenario:', e);
+                            }
+                          },
+                        }}
+                        samples={[{ slug: 'openai', name: 'OpenAI API' }]}
+                      />
+                    ) : (
+                      <Text size="xs" c="dimmed" pl="xs">Select a project above</Text>
+                    )
                   ) : (
                     scenarios.map((s) => (
                       <NavLink

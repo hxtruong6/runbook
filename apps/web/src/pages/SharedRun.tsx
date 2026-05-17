@@ -1,7 +1,11 @@
 // apps/web/src/pages/SharedRun.tsx
 // Read-only view of a shared run result, loaded via /s/:slug
+// Supports two modes:
+//   - <SharedRun slug="abc" />  — fetches via getShare, then renders the view
+//   - <SharedRun data={...} onFork={...} />  — pure-render with provided data
 import { useEffect, useState } from 'react'
 import {
+  Accordion,
   Alert,
   Badge,
   Box,
@@ -15,17 +19,185 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconAlertTriangle, IconCheck, IconClipboardList, IconDownload, IconX } from '@tabler/icons-react'
+import { IconAlertTriangle, IconCheck, IconClipboardList, IconDownload, IconShare, IconX } from '@tabler/icons-react'
 import { getShare, type ShareRecord } from '../api/share'
 import { useProjectsStore } from '../projects/projectsStore'
 import { useTeamStore } from '../teams/teamStore'
+import type { BlockRunResult } from '../blocks/types'
 
-type Props = {
-  slug: string
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
+
+export type BlockResultEntry = {
+  label: string
+  kind: string
+  result: BlockRunResult
 }
 
-export function SharedRun({ slug }: Props) {
+export type SharedRunData = {
+  scenarioName: string
+  runAt: string
+  blockResults: BlockResultEntry[]
+}
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+type SlugProps = {
+  slug: string
+  data?: never
+  onFork?: never
+}
+
+type DataProps = {
+  data: SharedRunData
+  onFork?: () => void
+  slug?: never
+}
+
+type Props = SlugProps | DataProps
+
+// ---------------------------------------------------------------------------
+// Inner view — pure-render from SharedRunData
+// ---------------------------------------------------------------------------
+
+type ViewProps = {
+  data: SharedRunData
+  onFork?: () => void
+  forkLoading?: boolean
+}
+
+function SharedRunView({ data, onFork, forkLoading }: ViewProps) {
+  const isMobile = useMediaQuery('(max-width: 768px)') ?? false
+
+  const sidePanelContent = (
+    <>
+      {data.blockResults.map((entry, idx) => {
+        const result = entry.result
+        const isOk = result.status === 'ok'
+
+        return (
+          <Paper key={idx} withBorder>
+            <Group gap="sm" mb="xs">
+              <ThemeIcon size={24} radius="sm" variant="light" color={isOk ? 'green' : 'red'}>
+                {isOk ? <IconCheck size={14} /> : <IconX size={14} />}
+              </ThemeIcon>
+              <Badge color={isOk ? 'green' : 'red'}>
+                {isOk ? 'Success' : 'Error'}
+              </Badge>
+              <Text size="sm" fw={500}>{entry.label}</Text>
+              <Badge color="teal" variant="light">{entry.kind}</Badge>
+              {result.httpStatus !== undefined && (
+                <Badge color="blue" variant="outline">
+                  HTTP {result.httpStatus}
+                </Badge>
+              )}
+              {result.elapsedMs !== undefined && (
+                <Text size="xs" c="dimmed">{result.elapsedMs} ms</Text>
+              )}
+            </Group>
+
+            {'error' in result && result.error != null && (
+              <Alert color="red" icon={<IconAlertTriangle size={14} />} mt="xs">
+                {String(result.error)}
+              </Alert>
+            )}
+
+            {result.response !== undefined && (
+              <Box mt="sm">
+                <Text size="xs" fw={600} mb={4}>Response</Text>
+                <div data-testid="json-viewer">
+                  <Code block style={{ maxHeight: 240, overflow: 'auto', fontSize: 12 }}>
+                    {typeof result.response === 'string'
+                      ? result.response
+                      : JSON.stringify(result.response, null, 2)}
+                  </Code>
+                </div>
+              </Box>
+            )}
+          </Paper>
+        )
+      })}
+    </>
+  )
+
+  return (
+    <Stack p="xl" maw={900} mx="auto" gap="md">
+      {/* Header */}
+      <Group justify="space-between" wrap="nowrap">
+        <Group gap="sm">
+          <ThemeIcon size={40} radius="md" variant="light" color="violet">
+            <IconClipboardList size={20} />
+          </ThemeIcon>
+          <Box>
+            <Title order={3}>{data.scenarioName}</Title>
+            <Text size="xs" c="dimmed">
+              Run at {new Date(data.runAt).toLocaleString()}
+            </Text>
+          </Box>
+        </Group>
+
+        <Group gap="xs">
+          {onFork && (
+            <Button
+              data-testid="fork-button"
+              variant="light"
+              leftSection={<IconDownload size={14} />}
+              loading={forkLoading}
+              onClick={onFork}
+              style={{ minHeight: 44 }}
+            >
+              Fork into my workspace
+            </Button>
+          )}
+          <Button
+            data-testid="share-button"
+            variant="default"
+            leftSection={<IconShare size={14} />}
+            onClick={() => {
+              void navigator.clipboard?.writeText(window.location.href)
+            }}
+            style={{ minHeight: 44 }}
+          >
+            Share
+          </Button>
+        </Group>
+      </Group>
+
+      {/* Responsive side panels */}
+      {isMobile ? (
+        <Stack data-testid="mobile-layout" gap="md">
+          <Accordion data-testid="side-panels-accordion" variant="separated">
+            <Accordion.Item value="results">
+              <Accordion.Control>Block Results</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">{sidePanelContent}</Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        </Stack>
+      ) : (
+        <Stack data-testid="desktop-side-panels" gap="md">
+          {sidePanelContent}
+        </Stack>
+      )}
+
+      <Text size="xs" c="dimmed" ta="center">
+        Secrets and auth tokens have been redacted from this share.
+      </Text>
+    </Stack>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Slug-fetching wrapper — backwards-compatible with F3 usage
+// ---------------------------------------------------------------------------
+
+function SharedRunFromSlug({ slug }: { slug: string }) {
   const [share, setShare] = useState<ShareRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -104,97 +276,34 @@ export function SharedRun({ slug }: Props) {
     )
   }
 
-  const runResult = share.payload.runResult as Record<string, unknown> | null
-  const isOk = runResult?.['status'] === 'ok'
+  // Convert ShareRecord to SharedRunData for the view
+  const runResult = share.payload.runResult as BlockRunResult | null
+  const viewData: SharedRunData = {
+    scenarioName: 'Shared Run Result',
+    runAt: share.expiresAt, // best available timestamp
+    blockResults: runResult
+      ? [{ label: 'Run Result', kind: 'urlTemplate', result: runResult }]
+      : [],
+  }
 
-  // ── Data ──────────────────────────────────────────────────
+  const hasFork = Boolean(share.payload.bundle)
+
   return (
-    <Stack p="xl" maw={720} mx="auto" gap="md">
-      {/* Header */}
-      <Group justify="space-between" wrap="nowrap">
-        <Group gap="sm">
-          <ThemeIcon size={40} radius="md" variant="light" color="violet">
-            <IconClipboardList size={20} />
-          </ThemeIcon>
-          <Box>
-            <Title order={3}>Shared Run Result</Title>
-            <Text size="xs" c="dimmed">
-              {share.payload.scenarioId ? `Scenario: ${share.payload.scenarioId}` : 'Shared run'}
-              {' · '}
-              Expires {new Date(share.expiresAt).toLocaleDateString()}
-            </Text>
-          </Box>
-        </Group>
-
-        {share.payload.bundle && (
-          <Button
-            variant="light"
-            leftSection={<IconDownload size={14} />}
-            loading={forking}
-            onClick={handleFork}
-          >
-            Fork into my workspace
-          </Button>
-        )}
-      </Group>
-
-      {/* Run result summary */}
-      {runResult && (
-        <Paper withBorder>
-          <Group gap="sm" mb="xs">
-            <ThemeIcon size={24} radius="sm" variant="light" color={isOk ? 'green' : 'red'}>
-              {isOk ? <IconCheck size={14} /> : <IconX size={14} />}
-            </ThemeIcon>
-            <Badge color={isOk ? 'green' : 'red'}>
-              {isOk ? 'Success' : 'Error'}
-            </Badge>
-            {runResult['httpStatus'] !== undefined && (
-              <Badge color="blue" variant="outline">
-                HTTP {String(runResult['httpStatus'])}
-              </Badge>
-            )}
-            {runResult['elapsedMs'] !== undefined && (
-              <Text size="xs" c="dimmed">{String(runResult['elapsedMs'])} ms</Text>
-            )}
-          </Group>
-
-          {runResult['error'] != null && (
-            <Alert color="red" icon={<IconAlertTriangle size={14} />} mt="xs">
-              {String(runResult['error'])}
-            </Alert>
-          )}
-
-          {runResult['response'] !== undefined && (
-            <Box mt="sm">
-              <Text size="xs" fw={600} mb={4}>Response</Text>
-              <Code block style={{ maxHeight: 240, overflow: 'auto', fontSize: 12 }}>
-                {typeof runResult['response'] === 'string'
-                  ? runResult['response']
-                  : JSON.stringify(runResult['response'], null, 2)}
-              </Code>
-            </Box>
-          )}
-        </Paper>
-      )}
-
-      {/* Bundle info */}
-      {share.payload.bundle && (
-        <Paper withBorder>
-          <Text size="xs" fw={600} mb={4}>Bundle</Text>
-          <Group gap="xs">
-            <Badge color="teal" variant="light">
-              {(share.payload.bundle as { name?: string }).name ?? share.payload.bundleId ?? 'Bundle'}
-            </Badge>
-            {share.payload.bundleId && (
-              <Text size="xs" c="dimmed" ff="monospace">{share.payload.bundleId}</Text>
-            )}
-          </Group>
-        </Paper>
-      )}
-
-      <Text size="xs" c="dimmed" ta="center">
-        Secrets and auth tokens have been redacted from this share.
-      </Text>
-    </Stack>
+    <SharedRunView
+      data={viewData}
+      onFork={hasFork ? handleFork : undefined}
+      forkLoading={forking}
+    />
   )
+}
+
+// ---------------------------------------------------------------------------
+// Public export — routes to slug-fetch or pure-render based on props
+// ---------------------------------------------------------------------------
+
+export function SharedRun(props: Props) {
+  if ('slug' in props && props.slug != null) {
+    return <SharedRunFromSlug slug={props.slug} />
+  }
+  return <SharedRunView data={props.data} onFork={props.onFork} />
 }

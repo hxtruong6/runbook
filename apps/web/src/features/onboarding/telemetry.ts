@@ -4,7 +4,7 @@
 
 declare global {
   interface Window {
-    __rb_events__?: Array<{ event: string; props: Record<string, unknown>; ts: number }>;
+    __rb_events__?: Array<Record<string, unknown>>;
   }
 }
 
@@ -26,6 +26,15 @@ export function track(event: string, props: Record<string, unknown> = {}): void 
 
 // Alternate name for callers that import `trackEvent` with a single object payload.
 export function trackEvent(event: Record<string, unknown>): void {
-  const { event: name, ...props } = event as { event?: string } & Record<string, unknown>;
-  track(typeof name === "string" ? name : "event", props);
+  try {
+    if (localStorage.getItem("rb_no_telemetry") === "1") return;
+  } catch {
+    return;
+  }
+  console.warn("[runbook:telemetry]", event);
+  if (typeof window !== "undefined") {
+    const list = window.__rb_events__ ?? [];
+    list.push(event);
+    window.__rb_events__ = list;
+  }
 }

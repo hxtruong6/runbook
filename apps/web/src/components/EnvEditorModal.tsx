@@ -22,6 +22,8 @@ import { modals } from "@mantine/modals";
 import { useEnvironments } from "../environments/EnvironmentsStore";
 import { EnvironmentSchema, type Environment, type AuthConfig } from "../environments/types";
 import { downloadEnvironment, readEnvironmentFile } from "../environments/exportImport";
+import { EmptyState } from "./EmptyState";
+import { IconServer } from "@tabler/icons-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -393,9 +395,12 @@ export function EnvEditorModal({ opened, onClose }: Props) {
                 );
               })}
               {state.environments.length === 0 && (
-                <Text size="xs" c="dimmed" ta="center" py="sm">
-                  No environments yet
-                </Text>
+                <EmptyState
+                  icon={<IconServer size={20} />}
+                  title="No environments"
+                  helper="Create an environment to set a base URL and auth strategy for your runs."
+                  primaryCta={{ label: "New environment", onClick: handleNew }}
+                />
               )}
             </Stack>
           </ScrollArea>
