@@ -1,0 +1,160 @@
+{
+  "id": "gallery-stripe",
+  "name": "Stripe Payments API",
+  "description": "Create customers, charge cards, manage subscriptions, and inspect payment intents.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for Stripe Payments API.",
+      "changes": [
+        { "type": "added", "target": "create-customer", "summary": "Create a new Stripe customer" },
+        { "type": "added", "target": "create-payment-intent", "summary": "Create a payment intent" },
+        { "type": "added", "target": "retrieve-payment-intent", "summary": "Retrieve a payment intent by ID" },
+        { "type": "added", "target": "create-subscription", "summary": "Create a subscription for a customer" },
+        { "type": "added", "target": "list-charges", "summary": "List recent charges" }
+      ],
+      "blocks": [
+        {
+          "kind": "create-customer",
+          "label": "Create Customer",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "email", "label": "Email", "type": "string", "required": true },
+            { "name": "name", "label": "Full Name", "type": "string" },
+            { "name": "description", "label": "Description", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "stripeCustomerId" },
+            { "jsonPath": "$.email", "contextKey": "customerEmail" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/customers",
+            "headers": {
+              "Authorization": "Bearer {{STRIPE_SECRET_KEY}}",
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "bodyTemplate": { "email": "{{email}}", "name": "{{name}}", "description": "{{description}}" }
+          }
+        },
+        {
+          "kind": "create-payment-intent",
+          "label": "Create Payment Intent",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "amount", "label": "Amount (smallest currency unit)", "type": "number", "required": true },
+            { "name": "currency", "label": "Currency", "type": "enum", "enumValues": ["usd", "eur", "gbp", "aud", "cad"], "required": true },
+            { "name": "customer", "label": "Customer ID", "type": "string", "fromContextKey": "stripeCustomerId" },
+            { "name": "description", "label": "Description", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "paymentIntentId" },
+            { "jsonPath": "$.client_secret", "contextKey": "clientSecret" },
+            { "jsonPath": "$.status", "contextKey": "paymentIntentStatus" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/payment_intents",
+            "headers": {
+              "Authorization": "Bearer {{STRIPE_SECRET_KEY}}",
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "bodyTemplate": {
+              "amount": "{{amount}}",
+              "currency": "{{currency}}",
+              "customer": "{{customer}}",
+              "description": "{{description}}"
+            }
+          }
+        },
+        {
+          "kind": "retrieve-payment-intent",
+          "label": "Retrieve Payment Intent",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "payment_intent_id", "label": "Payment Intent ID", "type": "string", "required": true, "fromContextKey": "paymentIntentId" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.status", "contextKey": "retrievedStatus" },
+            { "jsonPath": "$.amount_received", "contextKey": "amountReceived" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v1/payment_intents/{{payment_intent_id}}",
+            "headers": { "Authorization": "Bearer {{STRIPE_SECRET_KEY}}" }
+          }
+        },
+        {
+          "kind": "create-subscription",
+          "label": "Create Subscription",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "customer", "label": "Customer ID", "type": "string", "required": true, "fromContextKey": "stripeCustomerId" },
+            { "name": "price", "label": "Price ID", "type": "string", "required": true }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "subscriptionId" },
+            { "jsonPath": "$.status", "contextKey": "subscriptionStatus" },
+            { "jsonPath": "$.current_period_end", "contextKey": "subscriptionPeriodEnd" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/subscriptions",
+            "headers": {
+              "Authorization": "Bearer {{STRIPE_SECRET_KEY}}",
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "bodyTemplate": { "customer": "{{customer}}", "items[0][price]": "{{price}}" }
+          }
+        },
+        {
+          "kind": "list-charges",
+          "label": "List Charges",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "limit", "label": "Limit", "type": "number", "placeholder": "10" },
+            { "name": "customer", "label": "Customer ID (optional)", "type": "string" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.data[0].id", "contextKey": "firstChargeId" },
+            { "jsonPath": "$.data[0].amount", "contextKey": "firstChargeAmount" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v1/charges",
+            "headers": { "Authorization": "Bearer {{STRIPE_SECRET_KEY}}" },
+            "query": { "limit": "{{limit}}", "customer": "{{customer}}" }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-stripe-checkout",
+          "name": "Create customer and payment intent",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-str-1", "kind": "create-customer", "overrides": { "email": "test@example.com", "name": "Test User" } },
+            { "id": "bi-str-2", "kind": "create-payment-intent", "overrides": { "amount": 2000, "currency": "usd" } },
+            { "id": "bi-str-3", "kind": "retrieve-payment-intent", "overrides": {} }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-stripe-test",
+          "name": "Stripe Test",
+          "baseUrl": "https://api.stripe.com",
+          "auth": { "kind": "bearer", "token": "" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# Stripe Payments API\n\nUse test mode keys (`sk_test_...`) during development. Never expose live keys.\n\n## Test Cards\n\n- `4242 4242 4242 4242` — succeeds\n- `4000 0000 0000 9995` — insufficient funds"
+      }
+    }
+  ]
+}

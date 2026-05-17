@@ -1,0 +1,130 @@
+{
+  "id": "gallery-openai",
+  "name": "OpenAI API",
+  "description": "Chat completions, embeddings, and image generation via the OpenAI API.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for OpenAI API.",
+      "changes": [
+        { "type": "added", "target": "chat-completion", "summary": "Create a chat completion" },
+        { "type": "added", "target": "create-embedding", "summary": "Generate text embeddings" },
+        { "type": "added", "target": "image-generation", "summary": "Generate images with DALL-E" },
+        { "type": "added", "target": "list-models", "summary": "List available models" }
+      ],
+      "blocks": [
+        {
+          "kind": "chat-completion",
+          "label": "Chat Completion",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "model", "label": "Model", "type": "enum", "enumValues": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"], "required": true },
+            { "name": "user_message", "label": "User Message", "type": "string", "required": true },
+            { "name": "system_message", "label": "System Message", "type": "string", "placeholder": "You are a helpful assistant." },
+            { "name": "temperature", "label": "Temperature", "type": "number", "placeholder": "0.7" },
+            { "name": "max_tokens", "label": "Max Tokens", "type": "number", "placeholder": "1024" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.choices[0].message.content", "contextKey": "chatResponse" },
+            { "jsonPath": "$.usage.total_tokens", "contextKey": "totalTokens" },
+            { "jsonPath": "$.id", "contextKey": "completionId" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/chat/completions",
+            "headers": { "Authorization": "Bearer {{OPENAI_API_KEY}}", "Content-Type": "application/json" },
+            "bodyTemplate": {
+              "model": "{{model}}",
+              "messages": [
+                { "role": "system", "content": "{{system_message}}" },
+                { "role": "user", "content": "{{user_message}}" }
+              ],
+              "temperature": "{{temperature}}",
+              "max_tokens": "{{max_tokens}}"
+            }
+          }
+        },
+        {
+          "kind": "create-embedding",
+          "label": "Create Embedding",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "input", "label": "Input Text", "type": "string", "required": true },
+            { "name": "model", "label": "Model", "type": "enum", "enumValues": ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.data[0].embedding", "contextKey": "embedding" },
+            { "jsonPath": "$.usage.total_tokens", "contextKey": "embeddingTokens" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/embeddings",
+            "headers": { "Authorization": "Bearer {{OPENAI_API_KEY}}", "Content-Type": "application/json" },
+            "bodyTemplate": { "input": "{{input}}", "model": "{{model}}" }
+          }
+        },
+        {
+          "kind": "image-generation",
+          "label": "Generate Image (DALL-E)",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "prompt", "label": "Prompt", "type": "string", "required": true },
+            { "name": "model", "label": "Model", "type": "enum", "enumValues": ["dall-e-3", "dall-e-2"] },
+            { "name": "size", "label": "Size", "type": "enum", "enumValues": ["1024x1024", "1792x1024", "1024x1792"] },
+            { "name": "quality", "label": "Quality", "type": "enum", "enumValues": ["standard", "hd"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.data[0].url", "contextKey": "imageUrl" },
+            { "jsonPath": "$.data[0].revised_prompt", "contextKey": "revisedPrompt" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/images/generations",
+            "headers": { "Authorization": "Bearer {{OPENAI_API_KEY}}", "Content-Type": "application/json" },
+            "bodyTemplate": { "prompt": "{{prompt}}", "model": "{{model}}", "size": "{{size}}", "quality": "{{quality}}", "n": 1 }
+          }
+        },
+        {
+          "kind": "list-models",
+          "label": "List Models",
+          "auth": "jwt",
+          "inputs": [],
+          "outputs": [
+            { "jsonPath": "$.data[0].id", "contextKey": "firstModelId" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v1/models",
+            "headers": { "Authorization": "Bearer {{OPENAI_API_KEY}}" }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-openai-chat",
+          "name": "Chat with GPT-4o",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-oai-1", "kind": "chat-completion", "overrides": { "model": "gpt-4o", "user_message": "Summarize the OpenAI API in one sentence.", "system_message": "You are a concise technical writer." } }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-openai-prod",
+          "name": "OpenAI API",
+          "baseUrl": "https://api.openai.com",
+          "auth": { "kind": "bearer", "token": "" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# OpenAI API\n\nBlocks for the OpenAI API. Set your `OPENAI_API_KEY` in the environment's bearer token field.\n\n## Pricing\n\nRequests are billed per token. See https://openai.com/pricing for current rates."
+      }
+    }
+  ]
+}

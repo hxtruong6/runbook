@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useHotkeys } from "@mantine/hooks";
 import { useAuthStore } from "./auth/authStore";
@@ -66,6 +66,8 @@ import { runGraph } from "./graph/runner";
 import type { GraphData } from "./graph/types";
 import { PREBUILT_SCENARIOS } from "./scenarios/prebuilt";
 import { parseCurl } from "./blocks/parseCurl";
+import { Gallery } from "./pages/Gallery";
+import { GalleryDetail } from "./pages/GalleryDetail";
 
 export function AppContent() {
   const { activeTeamId, fetchTeams } = useTeamStore()
@@ -865,8 +867,54 @@ export function AppContent() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// Lightweight hash-based router — no external dep required
+// ---------------------------------------------------------------------------
+function useHashPath(): [string, (path: string) => void] {
+  const getPath = () => {
+    const hash = window.location.hash;
+    // Support both hash-based (#/gallery) and pathname-based (/gallery) routing
+    if (hash.startsWith("#/")) return hash.slice(1);
+    return window.location.pathname;
+  };
+
+  const [path, setPath] = useState(getPath);
+
+  useEffect(() => {
+    const handler = () => setPath(getPath());
+    window.addEventListener("hashchange", handler);
+    window.addEventListener("popstate", handler);
+    return () => {
+      window.removeEventListener("hashchange", handler);
+      window.removeEventListener("popstate", handler);
+    };
+  }, []);
+
+  const navigate = useCallback((newPath: string) => {
+    window.location.hash = newPath;
+    setPath(newPath);
+  }, []);
+
+  return [path, navigate];
+}
+
 export function App() {
   const token = useAuthStore((s) => s.token)
+  const [path, navigate] = useHashPath();
+
   if (!token) return <LoginPage />
+
+  // Route: /gallery/:slug
+  const galleryDetailMatch = path.match(/^\/gallery\/([^/]+)$/);
+  if (galleryDetailMatch) {
+    return <GalleryDetail slug={galleryDetailMatch[1]} onNavigate={navigate} />;
+  }
+
+  // Route: /gallery
+  if (path === "/gallery") {
+    return <Gallery onNavigate={navigate} />;
+  }
+
+  // Default: main app
   return <AppContent />
 }

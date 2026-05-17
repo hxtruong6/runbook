@@ -1,0 +1,149 @@
+{
+  "id": "gallery-notion",
+  "name": "Notion API",
+  "description": "Query databases, create pages, and update blocks via the Notion API.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "## v1.0.0\n\nInitial gallery bundle for Notion API.",
+      "changes": [
+        { "type": "added", "target": "query-database", "summary": "Query a Notion database with optional filters" },
+        { "type": "added", "target": "create-page", "summary": "Create a new page inside a database or parent page" },
+        { "type": "added", "target": "get-page", "summary": "Retrieve a page by its ID" },
+        { "type": "added", "target": "search", "summary": "Search pages and databases by title" }
+      ],
+      "blocks": [
+        {
+          "kind": "query-database",
+          "label": "Query Database",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "database_id", "label": "Database ID", "type": "string", "required": true },
+            { "name": "page_size", "label": "Page Size", "type": "number", "placeholder": "10" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.results[0].id", "contextKey": "firstPageId" },
+            { "jsonPath": "$.next_cursor", "contextKey": "nextCursor" },
+            { "jsonPath": "$.has_more", "contextKey": "hasMore" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/databases/{{database_id}}/query",
+            "headers": {
+              "Authorization": "Bearer {{NOTION_API_KEY}}",
+              "Notion-Version": "2022-06-28",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "page_size": "{{page_size}}"
+            }
+          }
+        },
+        {
+          "kind": "create-page",
+          "label": "Create Page",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "parent_database_id", "label": "Parent Database ID", "type": "string", "required": true },
+            { "name": "title", "label": "Page Title", "type": "string", "required": true }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "newPageId" },
+            { "jsonPath": "$.url", "contextKey": "newPageUrl" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/pages",
+            "headers": {
+              "Authorization": "Bearer {{NOTION_API_KEY}}",
+              "Notion-Version": "2022-06-28",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "parent": { "database_id": "{{parent_database_id}}" },
+              "properties": {
+                "Name": {
+                  "title": [{ "text": { "content": "{{title}}" } }]
+                }
+              }
+            }
+          }
+        },
+        {
+          "kind": "get-page",
+          "label": "Get Page",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "page_id", "label": "Page ID", "type": "string", "required": true, "fromContextKey": "newPageId" }
+          ],
+          "outputs": [
+            { "jsonPath": "$.id", "contextKey": "retrievedPageId" },
+            { "jsonPath": "$.url", "contextKey": "retrievedPageUrl" },
+            { "jsonPath": "$.last_edited_time", "contextKey": "pageLastEditedTime" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "/v1/pages/{{page_id}}",
+            "headers": {
+              "Authorization": "Bearer {{NOTION_API_KEY}}",
+              "Notion-Version": "2022-06-28"
+            }
+          }
+        },
+        {
+          "kind": "search",
+          "label": "Search Pages",
+          "auth": "jwt",
+          "inputs": [
+            { "name": "query", "label": "Search Query", "type": "string", "required": true },
+            { "name": "filter_value", "label": "Filter Type", "type": "enum", "enumValues": ["page", "database"] }
+          ],
+          "outputs": [
+            { "jsonPath": "$.results[0].id", "contextKey": "searchFirstId" },
+            { "jsonPath": "$.results[0].url", "contextKey": "searchFirstUrl" }
+          ],
+          "request": {
+            "method": "POST",
+            "urlTemplate": "/v1/search",
+            "headers": {
+              "Authorization": "Bearer {{NOTION_API_KEY}}",
+              "Notion-Version": "2022-06-28",
+              "Content-Type": "application/json"
+            },
+            "bodyTemplate": {
+              "query": "{{query}}",
+              "filter": { "value": "{{filter_value}}", "property": "object" }
+            }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "scen-notion-create-query",
+          "name": "Create a page then query its database",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            { "id": "bi-ntn-1", "kind": "create-page", "overrides": { "parent_database_id": "REPLACE_WITH_DATABASE_ID", "title": "New entry from Runbook" } },
+            { "id": "bi-ntn-2", "kind": "get-page", "overrides": {} }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "env-notion-prod",
+          "name": "Notion API",
+          "baseUrl": "https://api.notion.com",
+          "auth": { "kind": "bearer", "token": "" },
+          "headers": { "Notion-Version": "2022-06-28" },
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "# Notion API\n\nCreate an integration at https://www.notion.so/my-integrations and share your pages/databases with it.\n\n## Getting a Database ID\n\nOpen your database in Notion → share → copy link → the 32-character hex string before `?v=` is the database ID."
+      }
+    }
+  ]
+}

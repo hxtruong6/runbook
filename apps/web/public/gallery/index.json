@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "github",
+    "name": "GitHub REST API",
+    "description": "Core GitHub REST API operations — repos, issues, pull requests, and releases.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 5,
+    "tags": ["git", "devtools", "ci-cd", "issues"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "openai",
+    "name": "OpenAI API",
+    "description": "Chat completions, embeddings, and image generation via the OpenAI API.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 4,
+    "tags": ["ai", "llm", "embeddings", "images"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "anthropic",
+    "name": "Anthropic Claude API",
+    "description": "Messages API and token counting for Claude models.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 3,
+    "tags": ["ai", "llm", "claude"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "stripe",
+    "name": "Stripe Payments API",
+    "description": "Create customers, charge cards, manage subscriptions, and inspect payment intents.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 5,
+    "tags": ["payments", "billing", "subscriptions", "finance"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "slack",
+    "name": "Slack API",
+    "description": "Post messages, manage channels, and look up users via the Slack Web API.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 4,
+    "tags": ["messaging", "notifications", "collaboration"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "linear",
+    "name": "Linear API",
+    "description": "Create and query issues, cycles, and teams via the Linear GraphQL API.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 4,
+    "tags": ["project-management", "issues", "graphql"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "notion",
+    "name": "Notion API",
+    "description": "Query databases, create pages, and update blocks via the Notion API.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 4,
+    "tags": ["productivity", "databases", "pages", "content"],
+    "ogImage": "/og-image.png"
+  },
+  {
+    "slug": "vercel",
+    "name": "Vercel API",
+    "description": "Manage deployments, projects, domains, and environment variables via the Vercel REST API.",
+    "version": "1.0.0",
+    "scenarioCount": 1,
+    "blockCount": 5,
+    "tags": ["devops", "deployments", "hosting", "ci-cd"],
+    "ogImage": "/og-image.png"
+  }
+]
