@@ -23,6 +23,7 @@ import { CreateTeamModal } from "./teams/CreateTeamModal";
 import { useProjectsStore } from "./projects/projectsStore";
 import { useScenariosStore } from "./scenarios/scenariosStore";
 import { runScenarioFrom } from "./execution/runScenario";
+import { captureRun } from "./inference/inferenceStore";
 import { saveRunRecord } from "./execution/runHistory";
 import { RunHistoryPanel } from "./components/RunHistoryPanel";
 import { CommandPalette } from "./features/palette/CommandPalette";
@@ -196,9 +197,12 @@ export function AppContent() {
         (id) => scenarios.find((s) => s.id === id) ?? null,
       );
     } else {
-      await runScenarioFrom(active.blocks, startIdx, context, (newCtx, _idx, result) => {
+      await runScenarioFrom(active.blocks, startIdx, context, (newCtx, idx, result) => {
         dispatch({ type: 'MERGE', values: newCtx });
         collectedResults.push(result);
+        // Auto-capture response schema (opt-out via settings).
+        const inst = active.blocks[idx];
+        if (inst) captureRun(inst.kind, result);
       }, activeEnv, registry);
     }
     const elapsedMs = Date.now() - startTime;

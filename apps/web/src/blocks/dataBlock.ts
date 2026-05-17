@@ -64,6 +64,25 @@ const RequestSchema = z.object({
   bodyTemplate: JsonTemplateValueSchema.optional(),
 });
 
+// Inference: captured response schema/examples per status family.
+// Optional + backward-compatible — blocks without inference omit the field.
+const InferenceFamilySchema = z.enum(["2xx", "4xx", "5xx"]);
+const InferenceSchema = z.object({
+  schemas: z.record(InferenceFamilySchema, z.unknown()).optional(),
+  examples: z.record(InferenceFamilySchema, z.unknown()).optional(),
+  runs: z.number().int().nonnegative().default(0),
+  lastDrift: z
+    .array(
+      z.object({
+        path: z.string(),
+        before: z.string(),
+        after: z.string(),
+      })
+    )
+    .optional(),
+  lastCapturedAt: z.string().optional(),
+});
+
 export const BlockDefDataSchema = z.object({
   kind: z.string(),
   label: z.string(),
@@ -71,6 +90,7 @@ export const BlockDefDataSchema = z.object({
   inputs: z.array(FieldSpecSchema),
   outputs: z.array(OutputSpecSchema),
   request: RequestSchema,
+  inference: InferenceSchema.optional(),
 });
 
 export type BlockDefData = z.infer<typeof BlockDefDataSchema>;

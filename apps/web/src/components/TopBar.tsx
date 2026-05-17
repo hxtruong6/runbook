@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { isInferenceEnabled, setInferenceEnabled } from '../inference/inferenceStore'
 import type { Scenario } from '../scenarios/types'
 import { downloadScenario, readScenarioFile } from '../scenarios/exportImport'
 import { EnvSwitcher } from './EnvSwitcher'
@@ -109,6 +110,19 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               </Menu.Item>
               <Menu.Item onClick={onToggleReusable} disabled={!active}>
                 {active?.reusable ? 'Mark as flow' : 'Mark as reusable'}
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                onClick={() => {
+                  const next = !isInferenceEnabled()
+                  setInferenceEnabled(next)
+                  notifications.show({
+                    color: next ? 'green' : 'gray',
+                    message: `Schema inference ${next ? 'enabled' : 'disabled'}`,
+                  })
+                }}
+              >
+                {isInferenceEnabled() ? 'Disable' : 'Enable'} schema inference
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

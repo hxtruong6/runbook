@@ -10,8 +10,9 @@ import {
   Paper,
 } from "@mantine/core";
 import { openConfirmModal } from "@mantine/modals";
-import { IconPlus, IconPencil, IconTrash, IconCloudDownload, IconTerminal2 } from "@tabler/icons-react";
+import { IconPlus, IconPencil, IconTrash, IconCloudDownload, IconTerminal2, IconCamera, IconAlertTriangle } from "@tabler/icons-react";
 import type { BlockDefData } from "../blocks/dataBlock";
+import { getInferenceFor } from "../inference/inferenceStore";
 import { BlockEditorModal } from "./BlockEditorModal";
 import { OpenApiImporterModal } from "./OpenApiImporterModal";
 import { PasteCurlModal } from "../features/paste-curl/PasteCurlModal";
@@ -115,6 +116,30 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
                     <Group gap="xs">
                       <Badge size="xs" color="teal">local</Badge>
                       <Text fw={500}>{block.label}</Text>
+                      {(() => {
+                        const inf = getInferenceFor(block.kind);
+                        if (!inf || inf.runs === 0) return null;
+                        const hasDrift = (inf.lastDrift?.length ?? 0) > 0;
+                        return hasDrift ? (
+                          <Badge
+                            size="xs"
+                            color="amber"
+                            variant="light"
+                            leftSection={<IconAlertTriangle size={10} />}
+                          >
+                            drift
+                          </Badge>
+                        ) : (
+                          <Badge
+                            size="xs"
+                            color="violet"
+                            variant="light"
+                            leftSection={<IconCamera size={10} />}
+                          >
+                            {inf.runs}
+                          </Badge>
+                        );
+                      })()}
                     </Group>
                     <Text size="xs" c="dimmed">
                       {block.request.method} {block.request.urlTemplate}
