@@ -1,7 +1,9 @@
 // src/components/WhatsNewPanel.tsx
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   Accordion,
+  Anchor,
   Badge,
   Group,
   Paper,
@@ -10,8 +12,10 @@ import {
   Title,
   TypographyStylesProvider,
 } from "@mantine/core";
+import { IconArrowRight } from "@tabler/icons-react";
 import { useProjectsStore } from "../projects/projectsStore";
 import type { ChangeEntry } from "../projects/types";
+import { VersionsPage } from "../pages/VersionsPage";
 
 // ---------------------------------------------------------------------------
 // Badge color map
@@ -64,6 +68,7 @@ function ChangeRow({ change }: { change: ChangeEntry }) {
 // WhatsNewPanel
 // ---------------------------------------------------------------------------
 export function WhatsNewPanel() {
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const { projects, activeProjectId } = useProjectsStore();
   const activeProject = projects.find((p) => p._id === activeProjectId) ?? null;
 
@@ -157,6 +162,24 @@ export function WhatsNewPanel() {
           </Accordion>
         </Stack>
       )}
+
+      {/* Footer: link to full version history */}
+      <Group justify="flex-end">
+        <Anchor
+          size="sm"
+          component="button"
+          onClick={() => setVersionsOpen(true)}
+          style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+        >
+          View all changes
+          <IconArrowRight size={14} />
+        </Anchor>
+      </Group>
+
+      <VersionsPage
+        opened={versionsOpen}
+        onClose={() => setVersionsOpen(false)}
+      />
     </Stack>
   );
 }
