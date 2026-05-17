@@ -330,6 +330,19 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
               </Button>
             ))}
           </Group>
+          {/* Hint for users with a local backend — not a clickable preset
+              since the path is framework-specific and the port unknown,
+              but spelling out the common conventions saves a lot of
+              "what URL do I use?" trial-and-error. */}
+          <Text size="xs" c="dimmed">
+            Local backend? Try{' '}
+            <Text component="span" ff="monospace">http://127.0.0.1:PORT/</Text>
+            {' followed by '}
+            <Text component="span" ff="monospace">openapi.json</Text>,{' '}
+            <Text component="span" ff="monospace">swagger.json</Text>, or{' '}
+            <Text component="span" ff="monospace">documentation-json</Text>
+            {' (NestJS).'}
+          </Text>
         </Stack>
 
         <Divider label="or upload a file" labelPosition="center" />

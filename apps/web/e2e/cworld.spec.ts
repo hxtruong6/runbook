@@ -77,12 +77,19 @@ test('cworld-be: import OpenAPI doc via URL', async ({ page }) => {
   // header renders but most items are clipped off-screen).
   const importBtn = page.getByRole('button', { name: /Import 127 operations/i })
   await expect(importBtn).toBeVisible()
-  // Scroll within the preview list to surface the bottom item.
   const checkboxes = page.getByRole('checkbox')
   const count = await checkboxes.count()
   expect(count).toBeGreaterThan(50)
   await checkboxes.nth(count - 1).scrollIntoViewIfNeeded()
   await expect(checkboxes.nth(count - 1)).toBeVisible()
+
+  // Actually submit the import and verify the user sees state change. A
+  // silent "Imported!" toast is NOT enough — the new project must become
+  // active so the user lands on the imported scenarios. Pre-fix, the
+  // active project never switched and the user felt the import did nothing.
+  await importBtn.click()
+  await expect(page.getByRole('textbox', { name: 'Select project' }))
+    .not.toHaveValue('My first project', { timeout: 10000 })
 })
 
 test('cworld-be: import curl, run, capture schema', async ({ page }) => {

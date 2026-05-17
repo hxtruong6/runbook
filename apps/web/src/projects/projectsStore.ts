@@ -129,8 +129,15 @@ export const useProjectsStore = create<ProjectsState>()((set, get) => ({
   async importBundleObject(bundle, teamId) {
     set({ importing: true, error: null, importErrors: [] })
     try {
+      const idsBefore = new Set(get().projects.map((p) => p._id))
       await postImportBundle(teamId, bundle)
       await get().fetchProjects(teamId)
+      // Switch to the newly created project so the user sees their import
+      // immediately. Without this they're left staring at the old project
+      // with only a toast as feedback — feels like "nothing happened".
+      const after = get().projects
+      const created = after.find((p) => !idsBefore.has(p._id)) ?? after.find((p) => p.name === bundle.name)
+      if (created) set({ activeProjectId: created._id })
       set({ importing: false })
     } catch (e) {
       if (e instanceof ApiError) {
