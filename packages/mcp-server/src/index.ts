@@ -163,8 +163,11 @@ export async function createServer(opts: {
   const activeVersion = bundle.versions.find((v) => v.version === activeVersionStr)
   if (!activeVersion) throw new Error('Bundle has no versions')
 
-  const registry = buildRegistry(activeVersion.blocks)
   const firstEnv: Environment | undefined = activeVersion.environments[0]
+  const registry = buildRegistry(activeVersion.blocks, () => firstEnv?.baseUrl ?? '')
+  const blockDataByKind: Record<string, BlockDefData> = Object.fromEntries(
+    activeVersion.blocks.map((b) => [b.kind, b]),
+  )
   const fetcher = opts.fetcher ?? (globalThis.fetch as unknown as Fetcher)
 
   // 3. Build McpServer
@@ -182,7 +185,7 @@ export async function createServer(opts: {
   // 4. Register one tool per scenario
   for (const scenario of activeVersion.scenarios) {
     const toolName = sanitizeToolName(scenario.id)
-    const aggregatedInputs = aggregateScenarioInputs(scenario, registry)
+    const aggregatedInputs = aggregateScenarioInputs(scenario, blockDataByKind)
     const zodShape = buildZodShape(aggregatedInputs)
 
     // Capture for closure
@@ -204,7 +207,7 @@ export async function createServer(opts: {
         const progressToken = extra._meta?.progressToken
 
         // Build initial context from tool inputs
-        const initialCtx: RuntimeContext = { ...inputs }
+        const initialCtx: RuntimeContext = { ...inputs, socketSessionUuid: 'mcp' }
 
         const blockResults: Array<{
           blockId: string
@@ -219,12 +222,11 @@ export async function createServer(opts: {
             currentScenario.blocks,
             0,
             initialCtx,
-            async (updatedCtx, idx, result) => {
+            async (updatedCtx: RuntimeContext, idx: number, result: BlockRunResult) => {
               finalCtx = updatedCtx
-              const inst = currentScenario.blocks[idx]
+              const inst = currentScenario.blocks[idx]!
               blockResults.push({ blockId: inst.id, kind: inst.kind, result })
 
-              // Emit progress notification if client supports it
               if (progressToken !== undefined) {
                 try {
                   await extra.sendNotification({
@@ -241,10 +243,7 @@ export async function createServer(opts: {
                 }
               }
             },
-            firstEnv ?? null,
-            registry,
-            fetcher,
-            scenarioLookup,
+            { env: firstEnv ?? null, registry, fetcher, scenarioLookup },
           )
         } catch (e) {
           return {
