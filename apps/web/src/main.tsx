@@ -7,10 +7,16 @@ import { MantineProvider, ColorSchemeScript } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { App } from "./App";
+import { SharedRun } from "./pages/SharedRun";
 import { ContextStoreProvider } from "./context/ContextStore";
 import { EnvironmentsStoreProvider } from "./environments/EnvironmentsStore";
 import { theme } from "./theme";
 import "./index.css";
+
+// Lightweight client-side routing for /s/:slug
+const SHARE_PATH_RE = /^\/s\/([A-Za-z0-9]{1,64})$/;
+const shareMatch = SHARE_PATH_RE.exec(window.location.pathname);
+const shareSlug = shareMatch ? shareMatch[1]! : null;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -20,7 +26,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Notifications />
         <EnvironmentsStoreProvider>
           <ContextStoreProvider>
-            <App />
+            {shareSlug ? <SharedRun slug={shareSlug} /> : <App />}
           </ContextStoreProvider>
         </EnvironmentsStoreProvider>
       </ModalsProvider>
