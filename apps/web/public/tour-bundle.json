@@ -1,0 +1,102 @@
+{
+  "id": "tour-bundle",
+  "name": "Tour: JSONPlaceholder Demo",
+  "description": "A guided walkthrough showing context-passing between API blocks using the free JSONPlaceholder API — no auth needed.",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "releasedAt": "2026-01-01T00:00:00Z",
+      "releaseNotes": "Initial tour bundle",
+      "changes": [
+        { "type": "added", "summary": "3-step demo scenario using JSONPlaceholder" }
+      ],
+      "blocks": [
+        {
+          "kind": "get-user",
+          "label": "Get User",
+          "auth": "none",
+          "inputs": [
+            {
+              "name": "userId",
+              "label": "User ID",
+              "type": "string",
+              "required": true,
+              "placeholder": "1"
+            }
+          ],
+          "outputs": [
+            { "jsonPath": "data.id",       "contextKey": "userId" },
+            { "jsonPath": "data.username", "contextKey": "username" },
+            { "jsonPath": "data.email",    "contextKey": "userEmail" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "https://jsonplaceholder.typicode.com/users/{{userId}}"
+          }
+        },
+        {
+          "kind": "list-posts",
+          "label": "List Posts for User",
+          "auth": "none",
+          "inputs": [
+            {
+              "name": "userId",
+              "label": "User ID",
+              "type": "string",
+              "required": true,
+              "fromContextKey": "userId",
+              "placeholder": "auto-filled from step 1"
+            }
+          ],
+          "outputs": [
+            { "jsonPath": "data[0].id",    "contextKey": "firstPostId" },
+            { "jsonPath": "data[0].title", "contextKey": "firstPostTitle" }
+          ],
+          "request": {
+            "method": "GET",
+            "urlTemplate": "https://jsonplaceholder.typicode.com/posts?userId={{userId}}"
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "tour-scenario-1",
+          "name": "User → Posts → Comments",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "reusable": false,
+          "blocks": [
+            {
+              "id": "tour-block-1",
+              "kind": "get-user",
+              "overrides": { "userId": "1" }
+            },
+            {
+              "id": "tour-block-2",
+              "kind": "list-posts",
+              "overrides": {}
+            },
+            {
+              "id": "tour-block-3",
+              "kind": "get-user",
+              "overrides": { "userId": "{{firstPostId}}" }
+            }
+          ]
+        }
+      ],
+      "environments": [
+        {
+          "id": "tour-env-1",
+          "name": "JSONPlaceholder (no auth)",
+          "baseUrl": "https://jsonplaceholder.typicode.com",
+          "auth": { "kind": "none" },
+          "headers": {},
+          "createdAt": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "docs": {
+        "overview": "This tour uses the free JSONPlaceholder API — no signup or API key required. Step 1 fetches a user, step 2 lists their posts (auto-filled user ID shows context-passing), step 3 fetches details using the first post ID."
+      }
+    }
+  ]
+}
