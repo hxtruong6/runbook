@@ -26,6 +26,7 @@ import { useScenariosStore } from "./scenarios/scenariosStore";
 import { runScenarioFrom } from "./execution/runScenario";
 import { saveRunRecord } from "./execution/runHistory";
 import { RunHistoryPanel } from "./components/RunHistoryPanel";
+import { useRunHistoryStore } from "./state/runHistory";
 import { buildRegistry } from "./blocks";
 import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
@@ -89,6 +90,7 @@ export function AppContent() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [runVersion, setRunVersion] = useState(0);
+  const pushRunResult = useRunHistoryStore((s) => s.pushResult);
 
   // Fetch teams on mount
   useEffect(() => {
@@ -144,6 +146,7 @@ export function AppContent() {
   async function runFrom(startIdx: number) {
     if (!active) return;
     const startTime = Date.now();
+    const collectedResults: import("./blocks/types").BlockRunResult[] = [];
     if (activeMode === 'graph' && active.graphData) {
       await runGraph(
         active.graphData,
@@ -154,8 +157,9 @@ export function AppContent() {
         (id) => scenarios.find((s) => s.id === id) ?? null,
       );
     } else {
-      await runScenarioFrom(active.blocks, startIdx, context, (newCtx) => {
+      await runScenarioFrom(active.blocks, startIdx, context, (newCtx, _idx, result) => {
         dispatch({ type: 'MERGE', values: newCtx });
+        collectedResults.push(result);
       }, activeEnv, registry);
     }
     const elapsedMs = Date.now() - startTime;
@@ -166,6 +170,14 @@ export function AppContent() {
       passCount: active.blocks.length,
       failCount: 0,
       elapsedMs,
+    });
+    // Push to the diff-capable run history store
+    const lastOk = [...collectedResults].reverse().find((r) => r.status === 'ok');
+    pushRunResult(active.id, {
+      id: crypto.randomUUID(),
+      runAt: new Date().toISOString(),
+      blockResults: collectedResults,
+      lastResponse: lastOk?.response ?? null,
     });
     setRunVersion((v) => v + 1);
   }
