@@ -8,6 +8,7 @@ import { logoutCommand } from './commands/logout.js'
 import { whoamiCommand } from './commands/whoami.js'
 import { profileCommand } from './commands/profile.js'
 import { teamCommand } from './commands/team.js'
+import { mcpCommand } from './commands/mcp.js'
 
 const program = new Command()
 
@@ -23,5 +24,6 @@ program.addCommand(profileCommand)
 program.addCommand(teamCommand)
 program.addCommand(publishCommand)
 program.addCommand(installCommand)
+program.addCommand(mcpCommand)
 
 program.parse()
