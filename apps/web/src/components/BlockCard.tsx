@@ -197,9 +197,14 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           <Title order={6} style={{ margin: 0 }}>
             {def.label}
           </Title>
-          <Badge variant="outline" color="gray" size="xs" style={{ fontFamily: 'monospace' }}>
-            {block.kind}
-          </Badge>
+          {/* Hide the kind badge when it's an auto-generated curl/import id
+              (looks like "get-users-1-mpa1ftnl"). Built-in kinds stay
+              visible because they're useful as context references. */}
+          {!/-[a-z0-9]{6,}$/.test(block.kind) && (
+            <Badge variant="outline" color="gray" size="xs" style={{ fontFamily: 'monospace' }}>
+              {block.kind}
+            </Badge>
+          )}
         </Group>
         <Group gap="xs">
           {onRunFromHere && !isSocket && (

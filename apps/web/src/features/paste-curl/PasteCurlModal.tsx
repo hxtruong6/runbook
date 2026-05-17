@@ -72,25 +72,16 @@ function curlToBlockDef(
 
   const requestHeaders: Record<string, string> = { ...parsed.headers };
 
+  // Curl import bakes method + URL into request.method / request.urlTemplate.
+  // Re-exposing them as inputs renders empty fields and makes the block look
+  // misconfigured (the form shows "— select —" + an empty URL textbox even
+  // though the block runs correctly). Headers + body are still inputs so the
+  // user can tweak them per-run.
   return {
     kind,
     label: urlLabel,
     auth: "none",
     inputs: [
-      {
-        name: "method",
-        label: "Method",
-        type: "enum",
-        enumValues: ["GET", "POST", "PUT", "DELETE"],
-        required: true,
-      },
-      {
-        name: "url",
-        label: "URL",
-        type: "string",
-        required: true,
-        placeholder: parsed.url,
-      },
       ...(Object.keys(requestHeaders).length > 0
         ? [
             {
