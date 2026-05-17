@@ -12,7 +12,7 @@ import {
 import { openConfirmModal } from "@mantine/modals";
 import { IconPlus, IconPencil, IconTrash, IconCloudDownload, IconTerminal2, IconCamera, IconAlertTriangle } from "@tabler/icons-react";
 import type { BlockDefData } from "../blocks/dataBlock";
-import { getInferenceFor } from "../inference/inferenceStore";
+import { getInferenceFor, useInferenceVersion } from "../inference/inferenceStore";
 import { BlockEditorModal } from "./BlockEditorModal";
 import { OpenApiImporterModal } from "./OpenApiImporterModal";
 import { PasteCurlModal } from "../features/paste-curl/PasteCurlModal";
@@ -30,6 +30,7 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
   const [editing, setEditing] = useState<BlockDefData | undefined>(undefined);
   const [importerOpen, setImporterOpen] = useState(false);
   const [pasteCurlOpen, setPasteCurlOpen] = useState(false);
+  useInferenceVersion(); // re-render badges when capture happens
 
   const existingKinds = localBlocks.map((b) => b.kind);
 

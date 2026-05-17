@@ -2,8 +2,7 @@
 // Allows clearing the captured data for this block.
 import { Badge, Button, Code, Group, Modal, Stack, Tabs, Text, ThemeIcon } from "@mantine/core";
 import { IconAlertTriangle, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
-import { clearInferenceFor, getInferenceFor } from "./inferenceStore";
+import { clearInferenceFor, getInferenceFor, useInferenceVersion } from "./inferenceStore";
 
 type Family = "2xx" | "4xx" | "5xx";
 
@@ -16,9 +15,8 @@ export function InferenceModal({
   opened: boolean;
   onClose: () => void;
 }) {
+  useInferenceVersion();
   const inf = getInferenceFor(kind);
-  const [version, setVersion] = useState(0);
-  void version;
 
   if (!inf) return null;
 
@@ -27,7 +25,6 @@ export function InferenceModal({
 
   function handleClear() {
     clearInferenceFor(kind);
-    setVersion((v) => v + 1);
     onClose();
   }
 

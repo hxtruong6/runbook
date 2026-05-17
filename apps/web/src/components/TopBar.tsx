@@ -32,6 +32,7 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
   const [editorOpen, setEditorOpen] = useState(false)
   const [cliGuideOpen, setCliGuideOpen] = useState(false)
   const [teamSettingsOpen, setTeamSettingsOpen] = useState(false)
+  const [inferenceEnabled, setInferenceEnabledState] = useState(isInferenceEnabled())
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { teams, activeTeamId, setActiveTeam, currentUserRole } = useTeamStore()
 
@@ -114,15 +115,16 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               <Menu.Divider />
               <Menu.Item
                 onClick={() => {
-                  const next = !isInferenceEnabled()
+                  const next = !inferenceEnabled
                   setInferenceEnabled(next)
+                  setInferenceEnabledState(next)
                   notifications.show({
                     color: next ? 'green' : 'gray',
                     message: `Schema inference ${next ? 'enabled' : 'disabled'}`,
                   })
                 }}
               >
-                {isInferenceEnabled() ? 'Disable' : 'Enable'} schema inference
+                {inferenceEnabled ? 'Disable' : 'Enable'} schema inference
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

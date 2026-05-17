@@ -70,7 +70,6 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
   const { context, dispatch } = useRuntimeContext();
   const { activeEnv } = useEnvironments();
   const [result, setResult] = useState<BlockRunResult | null>(null);
-  const [inferenceVersion, setInferenceVersion] = useState(0);
   const [running, setRunning] = useState(false);
   const [split, setSplit] = useState(false);
   const [splitSize, setSplitSize] = useState(() => loadSplitSize(block.kind));
@@ -130,7 +129,6 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
     const r = await runBlock(def, block, context, activeEnv);
     setResult(r);
     captureRun(block.kind, r);
-    setInferenceVersion((v) => v + 1);
     if (r.status === "ok") dispatch({ type: "MERGE", values: r.captured });
     if (assertions.length > 0) {
       setAssertionResults(evaluateAssertions(r as object, assertions));
@@ -325,9 +323,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           <Panel minSize={MIN_SPLIT_PCT} style={{ minWidth: 0 }}>
             <Box pl="sm">
               <ResponseViewer result={result} />
-              {result && !isSocket && (
-                <InferenceBanner kind={block.kind} runVersion={inferenceVersion} />
-              )}
+              {!isSocket && <InferenceBanner kind={block.kind} />}
               {assertionResults.length > 0 && (
                 <Stack gap={4} mt="xs">
                   <Text size="xs" fw={600} c="dimmed">Assertions</Text>
@@ -388,9 +384,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           {isSocket ? <SocketEventLog events={events} /> : (
             <>
               <ResponseViewer result={result} />
-              {result && !isSocket && (
-                <InferenceBanner kind={block.kind} runVersion={inferenceVersion} />
-              )}
+              {!isSocket && <InferenceBanner kind={block.kind} />}
               {assertionResults.length > 0 && (
                 <Stack gap={4} mt="xs">
                   <Text size="xs" fw={600} c="dimmed">Assertions</Text>

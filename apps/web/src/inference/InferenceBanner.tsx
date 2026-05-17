@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Alert, Badge, Button, Group, Text } from "@mantine/core";
 import { IconCamera, IconAlertTriangle } from "@tabler/icons-react";
 import { InferenceModal } from "./InferenceModal";
-import { getInferenceFor } from "./inferenceStore";
+import { getInferenceFor, useInferenceVersion } from "./inferenceStore";
 
-export function InferenceBanner({ kind, runVersion }: { kind: string; runVersion: number }) {
+export function InferenceBanner({ kind }: { kind: string }) {
   const [open, setOpen] = useState(false);
-  // runVersion forces a re-read after each run.
-  void runVersion;
+  // Re-render when the store changes for any reason.
+  useInferenceVersion();
   const inf = getInferenceFor(kind);
   if (!inf || inf.runs === 0) return null;
 

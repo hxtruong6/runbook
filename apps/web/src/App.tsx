@@ -188,10 +188,17 @@ export function AppContent() {
     const startTime = Date.now();
     const collectedResults: import("./blocks/types").BlockRunResult[] = [];
     if (activeMode === 'graph' && active.graphData) {
+      const nodeKindByNodeId = new Map(
+        active.graphData.nodes.map((n) => [n.blockInstance.id, n.blockInstance.kind])
+      );
       await runGraph(
         active.graphData,
         context,
-        (newCtx) => { dispatch({ type: 'MERGE', values: newCtx }) },
+        (newCtx, nodeId, result) => {
+          dispatch({ type: 'MERGE', values: newCtx });
+          const kind = nodeKindByNodeId.get(nodeId);
+          if (kind) captureRun(kind, result);
+        },
         activeEnv,
         registry,
         (id) => scenarios.find((s) => s.id === id) ?? null,

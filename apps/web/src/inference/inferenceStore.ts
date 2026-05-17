@@ -1,11 +1,31 @@
 // Persists inference observations keyed by block kind in localStorage.
 // Kept separate from the block defs themselves so it works for both
 // local (user-created) and built-in blocks.
+import { useEffect, useState } from "react";
 import { captureFromResult, type BlockInference } from "@runbook/shared";
 import type { BlockRunResult } from "../blocks/types";
 
 const KEY = "runbook:inference";
 const SETTINGS_KEY = "runbook:inference-settings";
+
+// Tiny pub/sub so React components can re-render when the store changes.
+type Listener = () => void;
+const listeners = new Set<Listener>();
+function notify(): void {
+  for (const l of listeners) l();
+}
+function subscribe(l: Listener): () => void {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+}
+
+export function useInferenceVersion(): number {
+  const [v, setV] = useState(0);
+  useEffect(() => subscribe(() => setV((x) => x + 1)), []);
+  return v;
+}
 
 type Store = Record<string, BlockInference>;
 
@@ -57,6 +77,7 @@ export function captureRun(kind: string, result: BlockRunResult): CaptureOutcome
     if (!cap) return null;
     store[kind] = cap.next;
     save(store);
+    notify();
     return {
       kind,
       family: cap.observation.family as "2xx" | "4xx" | "5xx",
@@ -72,6 +93,7 @@ export function clearInferenceFor(kind: string): void {
   const store = load();
   delete store[kind];
   save(store);
+  notify();
 }
 
 // ---- Settings ----------------------------------------------------------
