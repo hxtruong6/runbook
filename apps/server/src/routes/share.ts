@@ -49,8 +49,10 @@ export async function shareRoutes(app: FastifyInstance): Promise<void> {
     const { bundleId, bundle, scenarioId, runResult, ttlDays } = parsed.data
 
     // Redact sensitive data
-    const safeRunResult = runResult ? redactRunResult(runResult as Record<string, unknown>) : null
-    const safeBundle = bundle ? redactBundle(bundle) : null
+    const safeRunResult = runResult
+      ? redactRunResult(runResult as Parameters<typeof redactRunResult>[0])
+      : null
+    const safeBundle = bundle ? redactBundle(bundle as Parameters<typeof redactBundle>[0]) : null
 
     const now = new Date()
     const expiresAt = new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000)

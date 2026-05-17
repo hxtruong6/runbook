@@ -248,7 +248,9 @@ export function parseCurl(raw: string): ParsedCurl | null {
     const encoded =
       typeof btoa !== "undefined"
         ? btoa(`${auth.user}:${auth.password}`)
-        : Buffer.from(`${auth.user}:${auth.password}`).toString("base64");
+        : (globalThis as { Buffer?: { from(s: string): { toString(enc: string): string } } }).Buffer!
+            .from(`${auth.user}:${auth.password}`)
+            .toString("base64");
     headers["Authorization"] = `Basic ${encoded}`;
   }
 

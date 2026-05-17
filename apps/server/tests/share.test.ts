@@ -98,7 +98,7 @@ describe('Share routes', () => {
       const stored = JSON.parse(getRes.body) as { payload: { runResult: { request: { headers: Record<string, string> } } } }
 
       const headers = stored.payload.runResult.request.headers
-      expect(headers['Authorization']).toBe('[REDACTED]')
+      expect(headers['Authorization']).toBe('***')
       expect(headers['X-Request-Id']).toBe('abc123') // non-sensitive header preserved
 
       await app.close()
@@ -129,9 +129,9 @@ describe('Share routes', () => {
       const env = stored.payload.bundle.versions[0]!.environments[0]!
 
       // Auth token must be redacted
-      expect(env.auth.token).toBe('[REDACTED]')
+      expect(env.auth.token).toBe('***')
       // Authorization header must be redacted; non-sensitive preserved
-      expect(env.headers['Authorization']).toBe('[REDACTED]')
+      expect(env.headers['Authorization']).toBe('***')
       expect(env.headers['X-Trace-Id']).toBe('trace-123')
 
       await app.close()
