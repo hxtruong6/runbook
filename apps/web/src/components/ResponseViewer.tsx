@@ -2,11 +2,11 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Badge,
+  Box,
   Button,
   Code,
   Group,
   Paper,
-  ScrollArea,
   SegmentedControl,
   Stack,
   Tabs,
@@ -23,6 +23,15 @@ import {
   redactHeaders,
   redactSnippet,
 } from "./snippets";
+
+/** Mobile-safe monospace code block: 13px, line-wrap, no horizontal scroll. */
+const mobileCodeStyle: React.CSSProperties = {
+  fontSize: 13,
+  fontFamily: "monospace",
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-all",
+  overflowX: "hidden",
+};
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
@@ -46,7 +55,8 @@ function ResultStatusBar({ result }: { result: BlockRunResult }) {
 
   return (
     <Paper p="xs" withBorder>
-      <Group gap="xs" wrap="nowrap">
+      {/* wrap="wrap" so long URLs reflow on 360px viewports */}
+      <Group gap="xs" wrap="wrap">
         <Text size="sm" fw={600} c={isOk ? "teal" : "red"}>
           {isOk ? <IconCheck size={14} /> : <IconX size={14} />}{" "}HTTP {code}
         </Text>
@@ -61,7 +71,7 @@ function ResultStatusBar({ result }: { result: BlockRunResult }) {
         {result.request && (
           <>
             <Text size="sm" c="dimmed">·</Text>
-            <Text size="sm" c="dimmed" truncate="end">
+            <Text size="sm" c="dimmed" style={{ wordBreak: "break-all" }}>
               {result.request.method} {result.request.url}
             </Text>
           </>
@@ -94,18 +104,18 @@ function RequestTab({ request }: { request?: ResolvedRequest }) {
         <Badge variant="light" size="sm">
           {request.method}
         </Badge>
-        <Text size="xs" ff="monospace" truncate="end">
+        <Text size="xs" ff="monospace" style={{ wordBreak: "break-all" }}>
           {request.url}
         </Text>
       </Group>
       {Object.entries(displayed).map(([k, v]) => (
         <Group key={k} gap="xs">
           <Text size="xs" fw={600} ff="monospace">{k}:</Text>
-          <Text size="xs" ff="monospace">{v}</Text>
+          <Text size="xs" ff="monospace" style={{ wordBreak: "break-all" }}>{v}</Text>
         </Group>
       ))}
       {request.body !== undefined && (
-        <Code block>
+        <Code block style={mobileCodeStyle}>
           {JSON.stringify(request.body, null, 2)}
         </Code>
       )}
@@ -156,11 +166,10 @@ function CodeTab({ request }: { request?: ResolvedRequest }) {
           {clipboard.copied ? "Copied!" : "Copy"}
         </Button>
       </Group>
-      <ScrollArea>
-        <Code block>
-          {displaySnippet}
-        </Code>
-      </ScrollArea>
+      {/* No horizontal scroll — code line-wraps on mobile */}
+      <Code block style={mobileCodeStyle}>
+        {displaySnippet}
+      </Code>
     </Stack>
   );
 }
@@ -193,7 +202,7 @@ export function ResponseViewer({ result }: { result: BlockRunResult | null }) {
         </motion.div>
       </AnimatePresence>
       <Tabs defaultValue="response">
-        <Group justify="space-between" align="center" wrap="nowrap">
+        <Group justify="space-between" align="center" wrap="wrap">
           <Tabs.List>
             <Tabs.Tab value="response">Response</Tabs.Tab>
             <Tabs.Tab value="request">Request</Tabs.Tab>
@@ -212,11 +221,12 @@ export function ResponseViewer({ result }: { result: BlockRunResult | null }) {
           )}
         </Group>
         <Tabs.Panel value="response">
-          <ScrollArea mah="40vh" mt="xs">
-            <Code block>
+          {/* maxHeight scroll, but no horizontal overflow on mobile */}
+          <Box mt="xs" style={{ maxHeight: "40vh", overflowY: "auto" }}>
+            <Code block style={mobileCodeStyle}>
               {responseText}
             </Code>
-          </ScrollArea>
+          </Box>
         </Tabs.Panel>
         <Tabs.Panel value="request">
           <RequestTab request={result.request} />
