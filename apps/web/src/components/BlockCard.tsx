@@ -6,15 +6,25 @@ import { IconLayoutColumns } from "@tabler/icons-react";
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle, type Layout } from "react-resizable-panels";
 
 const SPLIT_STORAGE_KEY = "rb_block_editor_split";
+// react-resizable-panels v4 treats bare numbers as pixels (breaking change
+// from older versions where bare numbers were percentages). We want
+// percentage-based sizing, so always suffix with "%".
 const DEFAULT_SPLIT = 50;
 const MIN_SPLIT_PCT = 30;
+const pct = (n: number) => `${n}%`;
 
 function loadSplitSize(blockKind: string): number {
   try {
     const raw = localStorage.getItem(SPLIT_STORAGE_KEY);
     if (!raw) return DEFAULT_SPLIT;
     const stored = JSON.parse(raw) as Record<string, number>;
-    return stored[blockKind] ?? DEFAULT_SPLIT;
+    const val = stored[blockKind];
+    // Reject out-of-range values (older versions stored pixel sizes here,
+    // which become e.g. "250%" when fed back as a percentage).
+    if (typeof val !== "number" || val < MIN_SPLIT_PCT || val > 100) {
+      return DEFAULT_SPLIT;
+    }
+    return val;
   } catch {
     return DEFAULT_SPLIT;
   }
@@ -281,8 +291,8 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
         >
           <Panel
             id={`${block.kind}-left`}
-            defaultSize={splitSize}
-            minSize={MIN_SPLIT_PCT}
+            defaultSize={pct(splitSize)}
+            minSize={pct(MIN_SPLIT_PCT)}
             style={{ minWidth: 0 }}
           >
             <Box pr="sm">
@@ -329,7 +339,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
               margin: '0 2px',
             }}
           />
-          <Panel minSize={MIN_SPLIT_PCT} style={{ minWidth: 0 }}>
+          <Panel minSize={pct(MIN_SPLIT_PCT)} style={{ minWidth: 0 }}>
             <Box pl="sm">
               <ResponseViewer result={result} />
               {!isSocket && <InferenceBanner kind={block.kind} />}

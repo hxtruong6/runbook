@@ -703,6 +703,17 @@ export function AppContent() {
                       </motion.div>
                     ))}
                   </AnimatePresence>
+                  {active.blocks.length === 0 && (
+                    <Stack align="center" gap="xs" py="xl">
+                      <ThemeIcon size={56} radius="xl" variant="light" color="violet">
+                        <IconClipboardList size={28} />
+                      </ThemeIcon>
+                      <Text fw={600} size="lg">This scenario is empty</Text>
+                      <Text size="sm" c="dimmed" ta="center" maw={420}>
+                        Add your first block to start chaining API calls. The fastest way is to paste a cURL command — headers, body, and auth are extracted automatically.
+                      </Text>
+                    </Stack>
+                  )}
                   <AddBlockMenu
                     onAdd={(instance) => updateActive({ ...active, blocks: [...active.blocks, instance] })}
                     scenarios={scenarios.filter((s) => s.id !== active.id)}

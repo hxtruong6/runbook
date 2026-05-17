@@ -89,14 +89,29 @@ export function AddBlockMenu({ onAdd, scenarios, currentScenarioId, disabled, lo
 
   return (
     <>
-      <Menu shadow="md" width={220}>
+      <Menu
+        shadow="md"
+        width={260}
+        position="bottom-start"
+        // Anchor inside the page so the dropdown can't escape the
+        // viewport. When the registry grows past ~10 items the dropdown
+        // would otherwise flip upward and clip items above the top edge.
+        withinPortal={false}
+      >
         <Menu.Target>
           <Button variant="default" size="sm" fullWidth disabled={disabled}>
             + Add block
           </Button>
         </Menu.Target>
 
-        <Menu.Dropdown>
+        <Menu.Dropdown
+          style={{
+            // Cap height so the dropdown stays inside the viewport even
+            // when the registry has 40+ blocks. Internal scroll instead.
+            maxHeight: 360,
+            overflowY: 'auto',
+          }}
+        >
           {customBlocks.length > 0 && (
             <>
               <Menu.Label>Custom blocks</Menu.Label>

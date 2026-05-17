@@ -81,13 +81,21 @@ async function addBlockToScenario(page: Page) {
   await openScenario(page)
   // The main canvas "+ Add block" button.
   await page.getByRole('button', { name: '+ Add block' }).click()
-  // Menu dropdown: pick the imported block under "Custom blocks".
-  await page.getByRole('menuitem', { name: new RegExp(TARGET_PATH) }).first().click()
+  // Menu dropdown: pick the imported block under "Custom blocks". Scroll
+  // into view first — Mantine menus can grow taller than the viewport when
+  // built-in + imported blocks pile up.
+  const item = page.getByRole('menuitem', { name: new RegExp(TARGET_PATH) }).first()
+  await item.scrollIntoViewIfNeeded()
+  await item.click()
   await expect(page.getByText(TARGET_PATH).first()).toBeVisible({ timeout: 5000 })
 }
 
 test.beforeEach(async ({ context, page }) => {
   await context.clearCookies()
+  // Wipe localStorage so local blocks (curl/openapi imports) from prior runs
+  // don't pollute the "+ Add block" menu for a fresh-signup user.
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
   page.on('console', (msg) => {
     if (msg.type() === 'error' || msg.type() === 'warning') {
       // eslint-disable-next-line no-console
