@@ -81,6 +81,9 @@ importers:
       '@mantine/notifications':
         specifier: ^7.17.8
         version: 7.17.8(@mantine/core@7.17.8(@mantine/hooks@7.17.8(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@mantine/hooks@7.17.8(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@runbook/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tabler/icons-react':
         specifier: ^3.44.0
         version: 3.44.0(react@18.3.1)
@@ -182,6 +185,10 @@ importers:
       zod:
         specifier: ^4.4.3
         version: 4.4.3
+    devDependencies:
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.7.0)(@vitest/ui@2.1.9)(jsdom@29.1.1)
 
 packages:
 
