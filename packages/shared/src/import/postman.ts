@@ -181,7 +181,7 @@ function resolveBody(body: PostmanBody | undefined): {
 // Item → BlockDefData
 // ---------------------------------------------------------------------------
 
-function itemToBlock(item: PostmanItem): BlockDefData | null {
+function itemToBlock(item: PostmanItem, folderPath = ''): BlockDefData | null {
   const req = item.request
   if (!req) return null
 
@@ -234,6 +234,12 @@ function itemToBlock(item: PostmanItem): BlockDefData | null {
     ...(bodyTemplate !== undefined ? { bodyTemplate } : {}),
   } as BlockDefData['request']
 
+  // Tags from Postman folder hierarchy: "Auth / Login / v2" → ["Auth", "Login", "v2"]
+  const tags = folderPath
+    .split(' / ')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+
   return {
     kind,
     label: item.name,
@@ -244,6 +250,7 @@ function itemToBlock(item: PostmanItem): BlockDefData | null {
       { jsonPath: 'status', contextKey: 'lastStatus' },
     ],
     request,
+    ...(tags.length > 0 ? { tags } : {}),
   }
 }
 

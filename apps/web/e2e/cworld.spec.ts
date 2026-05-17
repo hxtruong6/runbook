@@ -40,6 +40,37 @@ test.beforeEach(async ({ context, page }) => {
   })
 })
 
+test('cworld-be: import OpenAPI doc via URL', async ({ page }) => {
+  test.setTimeout(60_000)
+
+  await page.goto('/')
+  await dismissNoise(page)
+  await page.reload()
+  await page.getByRole('tab', { name: 'Create account' }).click()
+  await page.getByRole('textbox', { name: 'Email' }).fill(`oapi-${STAMP}@runbook.local`)
+  await page.getByRole('textbox', { name: 'Name' }).fill('OpenAPI Tester')
+  await page.getByRole('textbox', { name: 'Password' }).fill(USER.password)
+  await page.getByRole('button', { name: 'Create account' }).click()
+  await expect(page.getByRole('button', { name: /run all/i })).toBeVisible({ timeout: 15000 })
+  await expect(async () => {
+    const v = await page.getByRole('textbox', { name: 'Select project' }).inputValue().catch(() => '')
+    expect(v.length).toBeGreaterThan(0)
+  }).toPass({ timeout: 10000 })
+
+  // Open the OpenAPI importer from the sidebar (project section).
+  await page.getByRole('button', { name: 'Import from OpenAPI' }).first().click()
+  // Modal renders "Import from OpenAPI" title; the URL field has the
+  // petstore placeholder.
+  const urlBox = page.getByPlaceholder(/openapi\.json/i).first()
+  await urlBox.fill('http://127.0.0.1:4000/documentation-json')
+  await page.getByRole('button', { name: 'Load' }).click()
+
+  // Preview pane must render the parsed operations — proves the
+  // "Buffer is not defined" regression is fixed.
+  await expect(page.getByText(/operations selected/i)).toBeVisible({ timeout: 20000 })
+  await page.screenshot({ path: 'e2e/_artifacts/cworld-openapi-preview.png', fullPage: true })
+})
+
 test('cworld-be: import curl, run, capture schema', async ({ page }) => {
   test.setTimeout(60_000)
 

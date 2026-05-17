@@ -75,6 +75,7 @@ export const BlockDefDataSchema = z.object({
   outputs: z.array(OutputSpecSchema),
   request: RequestSchema,
   inference: BlockInferenceSchema.optional(),
+  tags: z.array(z.string()).optional(),
 })
 
 const BlockInstanceSchema = z.object({

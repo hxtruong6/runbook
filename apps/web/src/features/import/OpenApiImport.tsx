@@ -147,7 +147,22 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
   async function handleFetchUrl() {
     const url = urlInput.trim()
     if (!url) return
-    await parseDoc(url)
+    // Fetch with the browser instead of letting swagger-parser do the
+    // download — its built-in fetcher relies on Node's Buffer global and
+    // throws "Buffer is not defined" when run in a browser.
+    setLoading(true)
+    setError(null)
+    setPreview(null)
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+      const doc: unknown = await res.json()
+      setLoading(false)
+      await parseDoc(doc)
+    } catch (e) {
+      setLoading(false)
+      setError((e as Error).message ?? 'Failed to fetch OpenAPI spec')
+    }
   }
 
   async function handleFile(file: File) {

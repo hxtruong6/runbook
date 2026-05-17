@@ -376,6 +376,17 @@ function parseOperations(doc: OpenApiDoc, baseUrl: string): ParsedOperation[] {
       // Build URL template: OpenAPI {param} → keep as-is (supported by urlTemplate engine)
       const urlTemplate = `${baseUrl}${pathKey}`
 
+      // Tags: union of operation.tags + first path segment as fallback.
+      // First path segment is a cheap grouping signal when a spec ships
+      // without explicit tags. Deduplicated, original casing preserved.
+      const opTags = Array.isArray(operation.tags)
+        ? operation.tags.filter((t): t is string => typeof t === 'string' && t.length > 0)
+        : []
+      const firstSegment = pathKey.split('/').filter((s) => s && !s.startsWith('{'))[0]
+      const tagSet = new Set<string>(opTags)
+      if (firstSegment) tagSet.add(firstSegment)
+      const tags = Array.from(tagSet)
+
       const block: BlockDefData = {
         kind,
         label,
@@ -389,9 +400,10 @@ function parseOperations(doc: OpenApiDoc, baseUrl: string): ParsedOperation[] {
           method: method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE',
           urlTemplate,
         },
+        ...(tags.length > 0 ? { tags } : {}),
       }
 
-      const tag = operation.tags?.[0] ?? 'Misc'
+      const tag = opTags[0] ?? 'Misc'
 
       results.push({ block, tag, operationKey: `${method}:${pathKey}` })
     }
