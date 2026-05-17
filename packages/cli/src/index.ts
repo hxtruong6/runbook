@@ -12,6 +12,7 @@ import { runCommand } from './commands/run.js'
 import { validateCommand } from './commands/validate.js'
 import { initCommand } from './commands/init.js'
 import { mcpCommand } from './commands/mcp.js'
+import { diffCommand } from './commands/diff.js'
 
 const program = new Command()
 
@@ -31,5 +32,6 @@ program.addCommand(runCommand)
 program.addCommand(validateCommand)
 program.addCommand(initCommand)
 program.addCommand(mcpCommand)
+program.addCommand(diffCommand)
 
 program.parse()

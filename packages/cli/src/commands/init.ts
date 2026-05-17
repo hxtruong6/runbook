@@ -1,19 +1,20 @@
 // packages/cli/src/commands/init.ts
+// Scaffolds a GitHub-ready Runbook repo: runbook.json + README with badge + validate workflow.
 import { Command } from 'commander'
 import { mkdir, writeFile, access } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import pc from 'picocolors'
 
 const SAMPLE_BUNDLE = {
-  id: 'sample-bundle',
-  name: 'Sample Bundle',
-  description: 'A starter bundle with one block and one scenario.',
+  id: 'my-runbook',
+  name: 'My Runbook',
+  description: 'A Runbook bundle. Edit this file to add your API workflows.',
   createdAt: new Date().toISOString(),
   versions: [
     {
       version: '0.1.0',
-      releasedAt: new Date().toISOString(),
-      releaseNotes: 'Initial bundle.',
+      releasedAt: new Date().toISOString().slice(0, 10),
+      releaseNotes: 'Initial release',
       changes: [{ type: 'added', target: 'ping', summary: 'GET /' }],
       blocks: [
         {
@@ -37,63 +38,89 @@ const SAMPLE_BUNDLE = {
           blocks: [{ id: 'b1', kind: 'ping', overrides: {} }],
         },
       ],
-      environments: [
-        {
-          id: 'default',
-          name: 'default',
-          baseUrl: 'https://httpbin.org',
-          auth: { kind: 'none' },
-          headers: {},
-          createdAt: new Date().toISOString(),
-        },
-      ],
+      environments: [],
       docs: {},
     },
   ],
 }
 
-const README = `# {{name}}
+function validateWorkflow(): string {
+  return `name: Validate Runbook Bundle
 
-A Runbook bundle scaffolded with \`runbook init\`.
+on:
+  push:
+    paths: ['runbook.json']
+  pull_request:
+    paths: ['runbook.json']
 
-## Run it
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g @runbook/cli
+      - run: runbook validate runbook.json
+`
+}
+
+function readmeContent(name: string, rawUrl: string): string {
+  return `# ${name}
+
+[![Run in Runbook](https://runbook.app/badge.svg)](https://runbook.app/run?bundle=${encodeURIComponent(rawUrl)})
+
+This repository contains a [Runbook](https://runbook.app) bundle — a versioned,
+executable API workflow definition.
+
+## Quick start
 
 \`\`\`bash
 runbook validate runbook.json
 runbook run runbook.json smoke
 \`\`\`
 
-## Edit
-
-\`runbook.json\` is the source of truth. See https://github.com/runbook for schema docs.
+\`runbook.json\` is the source of truth.
 `
+}
 
 export const initCommand = new Command('init')
-  .description('Scaffold a new Runbook bundle in <name>/')
-  .argument('<name>', 'Folder name to create')
-  .action(async (name: string) => {
-    const dir = resolve(name)
-    try {
-      await access(dir)
-      console.error(pc.red(`Error: "${dir}" already exists`))
-      process.exit(1)
-      return
-    } catch {
-      /* not present — good */
+  .description('Scaffold a GitHub-ready Runbook repo (runbook.json + README + CI workflow)')
+  .argument('[dir]', 'Target directory (default: current directory)', '.')
+  .option('--raw-url <url>', 'Raw URL of runbook.json for the README badge')
+  .action(async (dir: string, opts: { rawUrl?: string }) => {
+    const target = resolve(dir)
+    const name = target.split('/').pop() ?? 'my-runbook'
+    const rawUrl =
+      opts.rawUrl ?? `https://raw.githubusercontent.com/<owner>/<repo>/main/runbook.json`
+
+    await mkdir(target, { recursive: true })
+    await mkdir(join(target, '.github', 'workflows'), { recursive: true })
+
+    const bundlePath = join(target, 'runbook.json')
+    const bundleExists = await access(bundlePath).then(() => true).catch(() => false)
+    if (bundleExists) {
+      console.log(`  skip   runbook.json (already exists)`)
+    } else {
+      const bundle = { ...SAMPLE_BUNDLE, id: name, name }
+      await writeFile(bundlePath, JSON.stringify(bundle, null, 2) + '\n', 'utf-8')
+      console.log(`  create runbook.json`)
     }
 
-    await mkdir(dir, { recursive: true })
-    const bundle = { ...SAMPLE_BUNDLE, id: name, name }
+    await writeFile(join(target, 'README.md'), readmeContent(name, rawUrl), 'utf-8')
+    console.log(`  create README.md`)
+
     await writeFile(
-      resolve(dir, 'runbook.json'),
-      JSON.stringify(bundle, null, 2) + '\n',
+      join(target, '.github', 'workflows', 'validate-bundle.yml'),
+      validateWorkflow(),
       'utf-8'
     )
-    await writeFile(resolve(dir, 'README.md'), README.replace('{{name}}', name), 'utf-8')
+    console.log(`  create .github/workflows/validate-bundle.yml`)
 
-    console.log(pc.green(`✓ Scaffolded ${name}/`))
-    console.log(`  ${pc.dim('runbook.json')}`)
-    console.log(`  ${pc.dim('README.md')}`)
-    console.log()
-    console.log(`Next: ${pc.bold(`cd ${name} && runbook run runbook.json smoke`)}`)
+    console.log('')
+    console.log(pc.green(`✓ Runbook repo scaffolded at ${target}`))
+    console.log('')
+    console.log('Next:')
+    console.log(`  ${pc.bold(`cd ${dir} && runbook run runbook.json smoke`)}`)
   })

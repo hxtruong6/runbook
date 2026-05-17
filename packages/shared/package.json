@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./runtime": "./src/runtime/index.ts"
+    "./runtime": "./src/runtime/index.ts",
+    "./diff/markdown": "./src/diff/markdown.ts"
   },
   "scripts": {
     "test": "vitest run",

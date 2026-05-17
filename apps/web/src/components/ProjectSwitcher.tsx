@@ -9,6 +9,7 @@ import { PublishBundleModal } from './PublishBundleModal'
 import { ImportFromRegistryModal } from './ImportFromRegistryModal'
 import { OpenApiImport } from '../features/import/OpenApiImport'
 import { PostmanImport } from '../features/import/PostmanImport'
+import { GithubImportModal } from '../features/import/GithubImport'
 import type { ProjectBundle } from '../projects/types'
 
 export function ProjectSwitcher() {
@@ -20,6 +21,7 @@ export function ProjectSwitcher() {
   const [registryOpen, setRegistryOpen] = useState(false)
   const [openApiOpen, setOpenApiOpen] = useState(false)
   const [postmanOpen, setPostmanOpen] = useState(false)
+  const [githubOpen, setGithubOpen] = useState(false)
 
   const options = projects.map((p) => ({ value: p._id, label: p.name }))
 
@@ -38,6 +40,14 @@ export function ProjectSwitcher() {
     await importBundleObject(bundle, activeTeamId)
     if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
       notifications.show({ color: 'green', message: 'Postman collection imported' })
+    }
+  }
+
+  async function handleGithubImport(bundle: ProjectBundle) {
+    if (!activeTeamId) return
+    await importBundleObject(bundle, activeTeamId)
+    if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
+      notifications.show({ color: 'green', message: 'Bundle imported from GitHub' })
     }
   }
 
@@ -127,6 +137,9 @@ export function ProjectSwitcher() {
           <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setPostmanOpen(true)}>
             Import from Postman
           </Button>
+          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setGithubOpen(true)}>
+            From GitHub
+          </Button>
           <Button size="xs" variant="light" disabled={!activeProjectId} onClick={() => setPublishOpen(true)}>
             Publish
           </Button>
@@ -146,6 +159,7 @@ export function ProjectSwitcher() {
         onClose={() => setPostmanOpen(false)}
         onImport={(bundle) => { void handlePostmanImport(bundle) }}
       />
+      <GithubImportModal opened={githubOpen} onClose={() => setGithubOpen(false)} onImport={(b) => void handleGithubImport(b)} />
     </>
   )
 }
