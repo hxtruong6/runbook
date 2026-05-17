@@ -47,6 +47,26 @@ const RequestSchema = z.object({
   bodyTemplate: JsonTemplateValueSchema.optional(),
 })
 
+// Inference data captured from real runs. All fields optional —
+// blocks pre-dating schema inference simply omit `inference`.
+const InferredSchemaSchema: z.ZodType<unknown> = z.lazy(() => z.unknown())
+
+const BlockInferenceSchema = z.object({
+  schemas: z.record(z.enum(['2xx', '4xx', '5xx']), InferredSchemaSchema).optional(),
+  examples: z.record(z.enum(['2xx', '4xx', '5xx']), z.unknown()).optional(),
+  runs: z.number().int().nonnegative().default(0),
+  lastDrift: z
+    .array(
+      z.object({
+        path: z.string(),
+        before: z.string(),
+        after: z.string(),
+      })
+    )
+    .optional(),
+  lastCapturedAt: z.string().optional(),
+})
+
 export const BlockDefDataSchema = z.object({
   kind: z.string(),
   label: z.string(),
@@ -54,6 +74,7 @@ export const BlockDefDataSchema = z.object({
   inputs: z.array(FieldSpecSchema),
   outputs: z.array(OutputSpecSchema),
   request: RequestSchema,
+  inference: BlockInferenceSchema.optional(),
 })
 
 const BlockInstanceSchema = z.object({
