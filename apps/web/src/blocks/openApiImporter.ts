@@ -260,6 +260,27 @@ export function parseOpenApi(doc: unknown): ImportedBlock[] {
         headers['Content-Type'] = 'application/json'
       }
 
+      // Tags: prefer explicit operation.tags. Fall back to the first
+      // non-versioned path segment so tagless specs still group
+      // meaningfully (e.g. /v1/users → 'users'). Matches the rule used
+      // by the shared OpenAPI importer for bundle imports — keeping
+      // both code paths consistent matters for the tree+filter UI.
+      const opTags = Array.isArray(operation.tags)
+        ? (operation.tags as unknown[]).filter(
+            (t): t is string => typeof t === 'string' && t.length > 0,
+          )
+        : []
+      let tags: string[] = opTags
+      if (tags.length === 0) {
+        const segments = pathKey
+          .split('/')
+          .filter((s) => s && !s.startsWith('{'))
+        const firstMeaningful = segments.find(
+          (s) => !/^v\d+$/i.test(s) && s !== 'api',
+        )
+        if (firstMeaningful) tags = [firstMeaningful]
+      }
+
       const block: ImportedBlock = {
         kind,
         label,
@@ -274,6 +295,7 @@ export function parseOpenApi(doc: unknown): ImportedBlock[] {
           urlTemplate,
           ...(Object.keys(headers).length > 0 ? { headers } : {}),
         },
+        ...(tags.length > 0 ? { tags } : {}),
         _selected: true,
       }
 

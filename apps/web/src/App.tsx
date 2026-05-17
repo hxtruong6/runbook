@@ -78,6 +78,19 @@ import { GalleryDetail } from "./pages/GalleryDetail";
 export function AppContent() {
   const { activeTeamId, fetchTeams } = useTeamStore()
   const { activeProjectId, fetchProjects } = useProjectsStore()
+  const activeProject = useProjectsStore((s) =>
+    s.projects.find((p) => p._id === s.activeProjectId) ?? null,
+  )
+  // Bundle blocks live in the project's latest version. The sidebar OpenAPI
+  // import dumps them there; scenarios reference them by `kind`. They MUST
+  // be in the registry or scenario rendering fails with "Unknown block
+  // kind: …".
+  const bundleBlocks = useMemo<BlockDefData[]>(() => {
+    const versions = activeProject?.versions ?? []
+    if (versions.length === 0) return []
+    const latest = versions[versions.length - 1]
+    return (latest?.blocks ?? []) as BlockDefData[]
+  }, [activeProject])
   const { scenarios, loading: scenariosLoading, error: scenariosError, fetchScenarios, createScenario, updateScenario, deleteScenario } = useScenariosStore()
 
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -152,9 +165,11 @@ export function AppContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenarios])
 
+  // Merge bundle blocks first, then localBlocks — so a user-edited local
+  // block overrides a same-`kind` block coming from the imported bundle.
   const registry = useMemo(
-    () => buildRegistry(localBlocks, getBaseUrl),
-    [localBlocks]
+    () => buildRegistry([...bundleBlocks, ...localBlocks], getBaseUrl),
+    [bundleBlocks, localBlocks]
   );
 
   const burstDeps = useMemo(() => ({
@@ -452,6 +467,7 @@ export function AppContent() {
             <ScrollArea style={{ flex: 1, minHeight: 0 }} px="md" py="md">
               <BlockDefsPanel
                 localBlocks={localBlocks}
+                bundleBlocks={bundleBlocks}
                 onAdd={(block) => { upsertLocalBlock(block); setLocalBlocks(loadLocalBlocks()) }}
                 onUpdate={(block) => { upsertLocalBlock(block); setLocalBlocks(loadLocalBlocks()) }}
                 onDelete={(kind) => { deleteLocalBlock(kind); setLocalBlocks(loadLocalBlocks()) }}

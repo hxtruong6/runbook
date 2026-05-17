@@ -1,5 +1,5 @@
 // src/components/BlockDefsPanel.tsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Stack,
   Group,
@@ -24,31 +24,54 @@ import { useBlockFilter } from "../features/blocks/useBlockFilter";
 
 type Props = {
   localBlocks: BlockDefData[];
+  /**
+   * Blocks coming from the active project's bundle (e.g. a sidebar OpenAPI
+   * import). Rendered read-only — edit/delete only mutate `localBlocks`.
+   * They share the same registry so scenarios can reference their `kind`.
+   */
+  bundleBlocks?: BlockDefData[];
   onAdd: (block: BlockDefData) => void;
   onUpdate: (block: BlockDefData) => void;
   onDelete: (kind: string) => void;
 };
 
-export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props) {
+export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate, onDelete }: Props) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<BlockDefData | undefined>(undefined);
   const [importerOpen, setImporterOpen] = useState(false);
   const [pasteCurlOpen, setPasteCurlOpen] = useState(false);
   useInferenceVersion(); // re-render badges when capture happens
 
-  const filter = useBlockFilter(localBlocks);
+  // Show bundle + local blocks together. A local block with the same kind
+  // takes precedence (the user overrode an imported block).
+  const localKinds = new Set(localBlocks.map((b) => b.kind));
+  const combinedBlocks = useMemo(
+    () => [
+      ...localBlocks,
+      ...bundleBlocks.filter((b) => !localKinds.has(b.kind)),
+    ],
+    // localKinds derives from localBlocks; safe to omit
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [localBlocks, bundleBlocks],
+  );
+
+  const filter = useBlockFilter(combinedBlocks);
   const existingKinds = localBlocks.map((b) => b.kind);
+  const bundleKinds = new Set(bundleBlocks.map((b) => b.kind));
 
   function renderBlockLeaf(block: BlockDefData) {
     const inf = getInferenceFor(block.kind);
     const hasInference = inf && inf.runs > 0;
     const hasDrift = (inf?.lastDrift?.length ?? 0) > 0;
+    const isBundle = bundleKinds.has(block.kind) && !localKinds.has(block.kind);
     return (
       <Paper key={block.kind} withBorder p="sm">
         <Group justify="space-between" wrap="nowrap">
           <Stack gap={2}>
             <Group gap="xs" wrap="wrap">
-              <Badge size="xs" color="teal">local</Badge>
+              <Badge size="xs" color={isBundle ? "violet" : "teal"}>
+                {isBundle ? "bundle" : "local"}
+              </Badge>
               <Text fw={500}>{block.label}</Text>
               {hasInference && (hasDrift ? (
                 <Badge
@@ -96,14 +119,16 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
             >
               <IconPencil size={16} />
             </ActionIcon>
-            <ActionIcon
-              aria-label={`Delete ${block.label}`}
-              variant="subtle"
-              color="red"
-              onClick={() => handleDelete(block.kind, block.label)}
-            >
-              <IconTrash size={16} />
-            </ActionIcon>
+            {!isBundle && (
+              <ActionIcon
+                aria-label={`Delete ${block.label}`}
+                variant="subtle"
+                color="red"
+                onClick={() => handleDelete(block.kind, block.label)}
+              >
+                <IconTrash size={16} />
+              </ActionIcon>
+            )}
           </Group>
         </Group>
       </Paper>
@@ -183,10 +208,26 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
           </Menu>
         </Group>
 
-        {/* Local blocks */}
+        {/* Local + bundle blocks combined */}
         <Stack gap="xs">
-          <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Local</Text>
-          {localBlocks.length === 0 ? (
+          <Group gap="xs" justify="space-between">
+            <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
+              Blocks
+            </Text>
+            <Group gap={6}>
+              {localBlocks.length > 0 && (
+                <Badge size="xs" variant="light" color="teal">
+                  {localBlocks.length} local
+                </Badge>
+              )}
+              {bundleBlocks.length > 0 && (
+                <Badge size="xs" variant="light" color="violet">
+                  {bundleBlocks.length} bundle
+                </Badge>
+              )}
+            </Group>
+          </Group>
+          {combinedBlocks.length === 0 ? (
             <EmptyState
               icon={<IconTerminal2 size={20} />}
               title="No API blocks yet"
@@ -206,7 +247,7 @@ export function BlockDefsPanel({ localBlocks, onAdd, onUpdate, onDelete }: Props
                 hasActiveFilter={filter.hasActiveFilter}
                 onClear={filter.clearFilters}
                 matchCount={filter.matchCount}
-                totalCount={localBlocks.length}
+                totalCount={combinedBlocks.length}
               />
               {filter.matchCount === 0 ? (
                 <EmptyState
