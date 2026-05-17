@@ -3,6 +3,33 @@ import { motion } from "framer-motion";
 import { Alert, ActionIcon, Badge, Box, Button, Collapse, Group, Menu, Paper, Stack, Text, Textarea, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconLayoutColumns } from "@tabler/icons-react";
+import { Group as PanelGroup, Panel, Separator as PanelResizeHandle, type Layout } from "react-resizable-panels";
+
+const SPLIT_STORAGE_KEY = "rb_block_editor_split";
+const DEFAULT_SPLIT = 50;
+const MIN_SPLIT_PCT = 30;
+
+function loadSplitSize(blockKind: string): number {
+  try {
+    const raw = localStorage.getItem(SPLIT_STORAGE_KEY);
+    if (!raw) return DEFAULT_SPLIT;
+    const stored = JSON.parse(raw) as Record<string, number>;
+    return stored[blockKind] ?? DEFAULT_SPLIT;
+  } catch {
+    return DEFAULT_SPLIT;
+  }
+}
+
+function saveSplitSize(blockKind: string, size: number) {
+  try {
+    const raw = localStorage.getItem(SPLIT_STORAGE_KEY);
+    const stored = raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    stored[blockKind] = size;
+    localStorage.setItem(SPLIT_STORAGE_KEY, JSON.stringify(stored));
+  } catch {
+    // ignore storage errors
+  }
+}
 import { useBlockRegistry } from "../blocks/RegistryContext";
 import { runBlock, resolveInputs } from "../execution/runScenario";
 import type { Assertion, BlockInstance, BlockRunResult } from "../blocks/types";
@@ -43,6 +70,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
   const [result, setResult] = useState<BlockRunResult | null>(null);
   const [running, setRunning] = useState(false);
   const [split, setSplit] = useState(false);
+  const [splitSize, setSplitSize] = useState(() => loadSplitSize(block.kind));
   const sessionRef = useRef<SocketSession | null>(null);
   const [events, setEvents] = useState<SocketEvent[]>([]);
   const [connected, setConnected] = useState(false);
@@ -228,65 +256,93 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
         </Group>
       </Group>
       {split ? (
-        <Group align="flex-start" gap="md" wrap="nowrap" mt="sm">
-          <Box style={{ flex: 1, minWidth: 0 }}>
-            <BlockForm
-              def={def}
-              overrides={block.overrides}
-              context={context}
-              onChange={(o) => onChange({ ...block, overrides: o })}
-            />
-            {!isSocket && (
-              <>
-                <Group mt="xs">
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => setAssertionsOpen(o => !o)}
-                    color={assertions.length > 0 ? "violet" : undefined}
-                  >
-                    Assertions {assertions.length > 0 ? `(${assertions.length})` : ""}
-                  </Button>
-                </Group>
-                <Collapse in={assertionsOpen}>
-                  <Textarea
-                    size="xs"
-                    mt="xs"
-                    placeholder='[{"path":"httpStatus","op":"eq","value":200}]'
-                    value={typeof block.overrides._assertions === "string" ? block.overrides._assertions : ""}
-                    onChange={(e) => onChange({ ...block, overrides: { ...block.overrides, _assertions: e.currentTarget.value } })}
-                    autosize
-                    minRows={2}
-                    label="Assertions (JSON array)"
-                  />
-                </Collapse>
-              </>
-            )}
-          </Box>
-          <Box style={{ flex: 1, minWidth: 0 }}>
-            <ResponseViewer result={result} />
-            {assertionResults.length > 0 && (
-              <Stack gap={4} mt="xs">
-                <Text size="xs" fw={600} c="dimmed">Assertions</Text>
-                {assertionResults.map((ar, i) => (
-                  <Group key={i} gap="xs">
-                    <Badge
+        <PanelGroup
+          orientation="horizontal"
+          style={{ marginTop: 'var(--mantine-spacing-sm)' }}
+          onLayoutChanged={(layout: Layout) => {
+            const leftSize = layout[`${block.kind}-left`];
+            if (leftSize !== undefined) {
+              setSplitSize(leftSize);
+              saveSplitSize(block.kind, leftSize);
+            }
+          }}
+        >
+          <Panel
+            id={`${block.kind}-left`}
+            defaultSize={splitSize}
+            minSize={MIN_SPLIT_PCT}
+            style={{ minWidth: 0 }}
+          >
+            <Box pr="sm">
+              <BlockForm
+                def={def}
+                overrides={block.overrides}
+                context={context}
+                onChange={(o) => onChange({ ...block, overrides: o })}
+              />
+              {!isSocket && (
+                <>
+                  <Group mt="xs">
+                    <Button
+                      variant="subtle"
                       size="xs"
-                      color={ar.passed ? "teal" : "red"}
-                      variant="light"
+                      onClick={() => setAssertionsOpen(o => !o)}
+                      color={assertions.length > 0 ? "violet" : undefined}
                     >
-                      {ar.passed ? "pass" : "fail"}
-                    </Badge>
-                    <Text size="xs">{ar.assertion.label ?? ar.assertion.path} {ar.assertion.op} {String(ar.assertion.value ?? "")}</Text>
-                    {!ar.passed && (
-                      <Text size="xs" c="dimmed">got: {String(ar.actual)}</Text>
-                    )}
+                      Assertions {assertions.length > 0 ? `(${assertions.length})` : ""}
+                    </Button>
                   </Group>
-                ))}
-              </Stack>
-            )}
-          </Box>
-        </Group>
+                  <Collapse in={assertionsOpen}>
+                    <Textarea
+                      size="xs"
+                      mt="xs"
+                      placeholder='[{"path":"httpStatus","op":"eq","value":200}]'
+                      value={typeof block.overrides._assertions === "string" ? block.overrides._assertions : ""}
+                      onChange={(e) => onChange({ ...block, overrides: { ...block.overrides, _assertions: e.currentTarget.value } })}
+                      autosize
+                      minRows={2}
+                      label="Assertions (JSON array)"
+                    />
+                  </Collapse>
+                </>
+              )}
+            </Box>
+          </Panel>
+          <PanelResizeHandle
+            style={{
+              width: 6,
+              cursor: 'col-resize',
+              background: 'var(--mantine-color-default-border)',
+              borderRadius: 3,
+              margin: '0 2px',
+            }}
+          />
+          <Panel minSize={MIN_SPLIT_PCT} style={{ minWidth: 0 }}>
+            <Box pl="sm">
+              <ResponseViewer result={result} />
+              {assertionResults.length > 0 && (
+                <Stack gap={4} mt="xs">
+                  <Text size="xs" fw={600} c="dimmed">Assertions</Text>
+                  {assertionResults.map((ar, i) => (
+                    <Group key={i} gap="xs">
+                      <Badge
+                        size="xs"
+                        color={ar.passed ? "teal" : "red"}
+                        variant="light"
+                      >
+                        {ar.passed ? "pass" : "fail"}
+                      </Badge>
+                      <Text size="xs">{ar.assertion.label ?? ar.assertion.path} {ar.assertion.op} {String(ar.assertion.value ?? "")}</Text>
+                      {!ar.passed && (
+                        <Text size="xs" c="dimmed">got: {String(ar.actual)}</Text>
+                      )}
+                    </Group>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          </Panel>
+        </PanelGroup>
       ) : (
         <>
           <BlockForm
