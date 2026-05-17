@@ -5,7 +5,6 @@ import { useHotkeys } from "@mantine/hooks";
 import { useAuthStore } from "./auth/authStore";
 import { LoginPage } from "./auth/LoginPage";
 import { BurstDrawer } from "./components/BurstDrawer";
-import { SearchModal } from "./components/SearchModal";
 import { makeInitialContext } from "./context/ContextStore";
 import type { Scenario } from "./scenarios/types";
 import type { BlockInstance } from "./scenarios/types";
@@ -26,6 +25,7 @@ import { useScenariosStore } from "./scenarios/scenariosStore";
 import { runScenarioFrom } from "./execution/runScenario";
 import { saveRunRecord } from "./execution/runHistory";
 import { RunHistoryPanel } from "./components/RunHistoryPanel";
+import { CommandPalette } from "./features/palette/CommandPalette";
 import { buildRegistry } from "./blocks";
 import { getBaseUrl } from "./api/config";
 import { RegistryProvider } from "./blocks/RegistryContext";
@@ -89,7 +89,6 @@ export function AppContent() {
   const [burstOpen, setBurstOpen] = useState(false);
   const [graphMode, setGraphMode] = useState<Record<string, 'list' | 'graph'>>({});
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [runVersion, setRunVersion] = useState(0);
 
   // Fetch teams on mount
@@ -305,7 +304,6 @@ export function AppContent() {
     ['mod+Enter', () => { if (active) runFrom(0); }],
     ['mod+shift+Enter', () => { if (active) runFrom(insertAfterIdx ?? 0); }],
     ['?', () => setShortcutsOpen(true)],
-    ['mod+k', (e) => { e.preventDefault(); setSearchOpen(true); }],
   ]);
 
   return (
@@ -781,13 +779,16 @@ export function AppContent() {
       />
       <CreateTeamModal />
 
-      <SearchModal
-        opened={searchOpen}
-        onClose={() => setSearchOpen(false)}
+      <CommandPalette
         scenarios={scenarios}
-        onSelectScenario={(id) => { setActiveId(id); }}
-        registry={registry}
+        activeScenarioId={activeId}
         envKeys={Object.keys(activeEnv ?? {})}
+        onSelectScenario={(id) => { setActiveId(id); }}
+        onRunScenario={(id) => {
+          setActiveId(id);
+          runFrom(0);
+        }}
+        onNavigateToBlocks={() => { setSidebarMode('scenarios'); }}
       />
 
       <Modal
