@@ -11,6 +11,7 @@ import { teamCommand } from './commands/team.js'
 import { runCommand } from './commands/run.js'
 import { validateCommand } from './commands/validate.js'
 import { initCommand } from './commands/init.js'
+import { mcpCommand } from './commands/mcp.js'
 
 const program = new Command()
 
@@ -29,5 +30,6 @@ program.addCommand(installCommand)
 program.addCommand(runCommand)
 program.addCommand(validateCommand)
 program.addCommand(initCommand)
+program.addCommand(mcpCommand)
 
 program.parse()
