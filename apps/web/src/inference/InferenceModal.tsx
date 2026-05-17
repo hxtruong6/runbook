@@ -29,7 +29,21 @@ export function InferenceModal({
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} title={`Inferred schema · ${kind}`} size="lg">
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={
+        <Group gap="xs">
+          <Text fw={600}>Inferred schema</Text>
+          {/* Strip the auto-generated random suffix (e.g. "-mpa20x6x") so
+              the title reads naturally; full kind is still in the badge below. */}
+          <Text size="sm" c="dimmed" ff="monospace">
+            {kind.replace(/-[a-z0-9]{6,}$/, "")}
+          </Text>
+        </Group>
+      }
+      size="lg"
+    >
       <Stack gap="md">
         <Group gap="xs">
           <Badge variant="light">{inf.runs} runs</Badge>
