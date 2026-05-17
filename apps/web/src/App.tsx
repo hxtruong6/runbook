@@ -89,6 +89,28 @@ export function AppContent() {
   const [insertAfterIdx, setInsertAfterIdx] = useState<number | null>(null);
   const [burstOpen, setBurstOpen] = useState(false);
   const [graphMode, setGraphMode] = useState<Record<string, 'list' | 'graph'>>({});
+
+  function loadScenarioMode(scenarioId: string): 'list' | 'graph' | null {
+    try {
+      const v = localStorage.getItem(`rb_scenario_mode:${scenarioId}`);
+      return v === 'graph' ? 'graph' : v === 'list' ? 'list' : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveScenarioMode(scenarioId: string, mode: 'list' | 'graph') {
+    try {
+      localStorage.setItem(`rb_scenario_mode:${scenarioId}`, mode);
+    } catch {
+      // ignore
+    }
+  }
+
+  function setScenarioMode(scenarioId: string, mode: 'list' | 'graph') {
+    setGraphMode((m) => ({ ...m, [scenarioId]: mode }));
+    saveScenarioMode(scenarioId, mode);
+  }
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [runVersion, setRunVersion] = useState(0);
 
@@ -136,6 +158,17 @@ export function AppContent() {
   }), [scenarios, registry, activeEnv]);
 
   const active = scenarios.find((s) => s.id === activeId) ?? null;
+
+  // Load persisted scenario mode when active scenario changes
+  useEffect(() => {
+    if (!active) return;
+    if (graphMode[active.id] !== undefined) return; // already set in memory
+    const persisted = loadScenarioMode(active.id);
+    const fallback = active.graphData ? 'graph' : 'list';
+    setGraphMode((m) => ({ ...m, [active.id]: persisted ?? fallback }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active?.id]);
+
   const activeMode = active ? (graphMode[active.id] ?? (active.graphData ? 'graph' : 'list')) : 'list';
 
   function updateActive(next: Scenario) {
@@ -228,7 +261,7 @@ export function AppContent() {
 
   function enableGraphMode(scenario: Scenario) {
     if (scenario.graphData) {
-      setGraphMode((m) => ({ ...m, [scenario.id]: 'graph' }));
+      setScenarioMode(scenario.id, 'graph');
       return;
     }
     const startId = crypto.randomUUID();
@@ -246,7 +279,7 @@ export function AppContent() {
       edges: [],
     };
     updateActive({ ...scenario, graphData: initialGraphData });
-    setGraphMode((m) => ({ ...m, [scenario.id]: 'graph' }));
+    setScenarioMode(scenario.id, 'graph');
   }
 
   function handleSaveToLibrary(block: BlockInstance) {
@@ -305,6 +338,11 @@ export function AppContent() {
     ['mod+Enter', () => { if (active) runFrom(0); }],
     ['mod+shift+Enter', () => { if (active) runFrom(insertAfterIdx ?? 0); }],
     ['?', () => setShortcutsOpen(true)],
+    ['g', () => {
+      if (!active) return;
+      const next = activeMode === 'graph' ? 'list' : 'graph';
+      setScenarioMode(active.id, next);
+    }],
   ]);
 
   return (
@@ -542,7 +580,7 @@ export function AppContent() {
                 onChange={(v) => {
                   if (!active) return;
                   if (v === 'graph') enableGraphMode(active);
-                  else setGraphMode((m) => ({ ...m, [active.id]: 'list' }));
+                  else setScenarioMode(active.id, 'list');
                 }}
                 data={[
                   { label: 'List', value: 'list' },
