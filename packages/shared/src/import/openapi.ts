@@ -22,93 +22,17 @@
  */
 
 // ---------------------------------------------------------------------------
-// Bundle shape (mirrors apps/web/src/projects/types.ts — kept in sync manually)
+// Bundle shape — imported from runtime package
 // ---------------------------------------------------------------------------
 
-export type FieldSpec = {
-  name: string
-  label: string
-  type: 'string' | 'password' | 'number' | 'enum' | 'json'
-  required?: boolean
-  enumValues?: string[]
-  location?: 'path' | 'query' | 'body' | 'header'
-}
-
-export type OutputSpec = {
-  jsonPath: string
-  contextKey: string
-}
-
-export type BlockDefData = {
-  kind: string
-  label: string
-  auth: 'none' | 'jwt' | 'cookie-or-jwt'
-  inputs: FieldSpec[]
-  outputs: OutputSpec[]
-  request: {
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE'
-    urlTemplate: string
-    headers?: Record<string, string>
-    query?: Record<string, string>
-    bodyTemplate?: unknown
-  }
-}
-
-export type BlockInstance = {
-  id: string
-  kind: string
-  overrides: Record<string, unknown>
-}
-
-export type Scenario = {
-  id: string
-  name: string
-  createdAt: string
-  reusable: boolean
-  blocks: BlockInstance[]
-}
-
-export type AuthConfig =
-  | { kind: 'bearer'; token: string }
-  | { kind: 'cookie'; token?: string }
-  | { kind: 'apiKey'; in: 'header' | 'query'; name: string; value: string }
-  | { kind: 'basic'; username: string; password: string }
-  | { kind: 'none' }
-
-export type Environment = {
-  id: string
-  name: string
-  baseUrl: string
-  auth: AuthConfig
-  headers: Record<string, string>
-  createdAt: string
-}
-
-export type ChangeEntry = {
-  type: 'added' | 'modified' | 'deprecated' | 'removed' | 'fixed' | 'note'
-  summary: string
-  target?: string
-  breaking?: boolean
-}
-
-export type ProjectVersion = {
-  version: string
-  releasedAt: string
-  releaseNotes: string
-  changes: ChangeEntry[]
-  blocks: BlockDefData[]
-  scenarios: Scenario[]
-  environments: Environment[]
-  docs: Record<string, string>
-}
-
-export type ProjectBundle = {
-  id: string
-  name: string
-  description?: string
-  createdAt: string
-  versions: ProjectVersion[]
-}
+import type {
+  ProjectBundle,
+  BlockDefData,
+  BlockInstance,
+  BundleVersion,
+  FieldSpec,
+  Environment,
+} from '../runtime/index.js'
 
 // ---------------------------------------------------------------------------
 // Minimal OpenAPI 3.x structural types (subset we need)
@@ -250,7 +174,7 @@ function paramToFieldSpec(param: OaParameter): FieldSpec | null {
   }
 
   if (type === 'enum' && param.schema?.enum) {
-    fs.enumValues = param.schema.enum
+    fs.enumValues = [...param.schema.enum]
   }
 
   return fs
@@ -289,7 +213,7 @@ function requestBodyToFields(
         location: 'body',
       }
       if (propType === 'enum' && propSchema.enum) {
-        field.enumValues = propSchema.enum
+        field.enumValues = [...propSchema.enum]
       }
       fields.push(field)
     }
@@ -456,7 +380,7 @@ function parseOperations(doc: OpenApiDoc, baseUrl: string): ParsedOperation[] {
         kind,
         label,
         auth,
-        inputs,
+        inputs: inputs as BlockDefData['inputs'],
         outputs: [
           { jsonPath: 'data', contextKey: 'lastResponse' },
           { jsonPath: 'status', contextKey: 'lastStatus' },
@@ -528,7 +452,7 @@ export async function importOpenApi(
   }
 
   const allBlocks: BlockDefData[] = []
-  const scenarios: Scenario[] = []
+  const scenarios: BundleVersion['scenarios'] = []
 
   for (const tag of tagOrder) {
     const ops = byTag.get(tag)!
@@ -563,7 +487,7 @@ export async function importOpenApi(
   const apiVersion = doc.info?.version ?? '1.0.0'
   const projectId = slugify(title) + '-imported'
 
-  const version: ProjectVersion = {
+  const version: BundleVersion = {
     version: apiVersion,
     releasedAt: now,
     releaseNotes: `# ${title} v${apiVersion}\n\nImported from OpenAPI specification.`,
