@@ -1,0 +1,74 @@
+# .github/workflow-templates/runbook-pr-diff.yml
+# Posts a human-readable Markdown diff as a PR comment whenever runbook.json changes.
+#
+# Usage: copy this file to .github/workflows/runbook-pr-diff.yml in your repo
+# and set the GITHUB_TOKEN permission below.
+name: Runbook Bundle PR Diff
+
+on:
+  pull_request:
+    paths:
+      - 'runbook.json'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Runbook CLI
+        run: npm install -g @runbook/cli
+
+      - name: Export base runbook.json
+        run: |
+          git show origin/${{ github.base_ref }}:runbook.json > /tmp/runbook-base.json \
+            || echo '{"id":"(none)","name":"(none)","versions":[]}' > /tmp/runbook-base.json
+
+      - name: Generate diff
+        id: diff
+        run: |
+          DIFF=$(runbook diff /tmp/runbook-base.json runbook.json)
+          echo "body<<DIFF_EOF" >> "$GITHUB_OUTPUT"
+          echo "$DIFF" >> "$GITHUB_OUTPUT"
+          echo "DIFF_EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Post PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `${{ steps.diff.outputs.body }}`;
+            const marker = '<!-- runbook-bundle-diff -->';
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.data.find(c => c.body.includes(marker));
+            const fullBody = `${marker}\n${body}`;
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+            }

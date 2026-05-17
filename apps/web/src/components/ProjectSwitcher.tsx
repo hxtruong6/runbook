@@ -7,6 +7,8 @@ import { useProjectsStore } from '../projects/projectsStore'
 import { useTeamStore } from '../teams/teamStore'
 import { PublishBundleModal } from './PublishBundleModal'
 import { ImportFromRegistryModal } from './ImportFromRegistryModal'
+import { GithubImportModal } from '../features/import/GithubImport'
+import type { ProjectBundle } from '../projects/types'
 
 export function ProjectSwitcher() {
   const { projects, activeProjectId, setActiveProject, deleteProject, createProject, importBundle, loading, importing, importErrors, error } =
@@ -15,6 +17,7 @@ export function ProjectSwitcher() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [publishOpen, setPublishOpen] = useState(false)
   const [registryOpen, setRegistryOpen] = useState(false)
+  const [githubOpen, setGithubOpen] = useState(false)
 
   const options = projects.map((p) => ({ value: p._id, label: p.name }))
 
@@ -26,6 +29,14 @@ export function ProjectSwitcher() {
       notifications.show({ color: 'green', message: 'Bundle imported' })
     }
     e.target.value = ''
+  }
+
+  async function handleGithubImport(bundle: ProjectBundle) {
+    if (!activeTeamId) return
+    await importBundleObject(bundle, activeTeamId)
+    if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
+      notifications.show({ color: 'green', message: 'Bundle imported from GitHub' })
+    }
   }
 
   function handleDelete() {
@@ -108,6 +119,9 @@ export function ProjectSwitcher() {
           <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setRegistryOpen(true)}>
             From Registry
           </Button>
+          <Button size="xs" variant="default" disabled={!activeTeamId} onClick={() => setGithubOpen(true)}>
+            From GitHub
+          </Button>
           <Button size="xs" variant="light" disabled={!activeProjectId} onClick={() => setPublishOpen(true)}>
             Publish
           </Button>
@@ -121,6 +135,7 @@ export function ProjectSwitcher() {
 
       <PublishBundleModal opened={publishOpen} onClose={() => setPublishOpen(false)} />
       <ImportFromRegistryModal opened={registryOpen} onClose={() => setRegistryOpen(false)} />
+      <GithubImportModal opened={githubOpen} onClose={() => setGithubOpen(false)} onImport={(b) => void handleGithubImport(b)} />
     </>
   )
 }
