@@ -264,7 +264,7 @@ export function BlockEditorModal({
 
   function handleMethodChange(v: string) {
     setMethod(v);
-    if (v !== "POST" && v !== "PUT") {
+    if (v !== "POST" && v !== "PUT" && v !== "PATCH") {
       setInputs((prev) => prev.filter((i) => i.location !== "body"));
     }
   }
@@ -359,7 +359,7 @@ export function BlockEditorModal({
     setOutputs((prev) => prev.filter((item) => item.id !== id));
   }
 
-  const showBody = method === "POST" || method === "PUT";
+  const showBody = method === "POST" || method === "PUT" || method === "PATCH";
   const pathInputs = inputs.filter((i) => i.location === "path");
   const queryInputs = inputs.filter((i) => i.location === "query");
   const bodyInputs = inputs.filter((i) => i.location === "body");
@@ -414,7 +414,7 @@ export function BlockEditorModal({
               <SegmentedControl
                 value={method}
                 onChange={handleMethodChange}
-                data={["GET", "POST", "PUT", "DELETE"]}
+                data={["GET", "POST", "PUT", "PATCH", "DELETE"]}
                 size="xs"
               />
             </div>

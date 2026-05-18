@@ -57,7 +57,7 @@ const JsonTemplateValueSchema: z.ZodType<JsonTemplateValue> = z.lazy(() =>
 // ---------------------------------------------------------------------------
 
 const RequestSchema = z.object({
-  method: z.enum(["GET", "POST", "PUT", "DELETE"]),
+  method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
   urlTemplate: z.string(),
   headers: z.record(z.string(), z.string()).optional(),
   query: z.record(z.string(), z.string()).optional(),

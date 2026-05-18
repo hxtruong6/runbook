@@ -34,14 +34,24 @@ type Props = {
 // Helper: convert parsed curl to a BlockDefData
 // ---------------------------------------------------------------------------
 
+const SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
+type SupportedMethod = (typeof SUPPORTED_METHODS)[number];
+
+function coerceMethod(raw: string): { method: SupportedMethod; coercedFrom?: string } {
+  const upper = raw.toUpperCase();
+  if ((SUPPORTED_METHODS as readonly string[]).includes(upper)) {
+    return { method: upper as SupportedMethod };
+  }
+  // HEAD/OPTIONS/TRACE etc. aren't supported by the runtime — surface that
+  // explicitly via the return value so the caller can warn the user instead
+  // of silently saving a GET block that contradicts the pasted curl.
+  return { method: "GET", coercedFrom: upper };
+}
+
 function curlToBlockDef(
   parsed: ParsedCurlResult
-): BlockDefData {
-  const method = (
-    ["GET", "POST", "PUT", "DELETE"].includes(parsed.method.toUpperCase())
-      ? parsed.method.toUpperCase()
-      : "GET"
-  ) as "GET" | "POST" | "PUT" | "DELETE";
+): { block: BlockDefData; coercedFrom?: string } {
+  const { method, coercedFrom } = coerceMethod(parsed.method);
 
   // Derive a readable label from the URL
   let urlLabel: string;
@@ -77,7 +87,7 @@ function curlToBlockDef(
   // misconfigured (the form shows "— select —" + an empty URL textbox even
   // though the block runs correctly). Headers + body are still inputs so the
   // user can tweak them per-run.
-  return {
+  const block: BlockDefData = {
     kind,
     label: urlLabel,
     auth: "none",
@@ -116,6 +126,7 @@ function curlToBlockDef(
       ...(bodyTemplate !== undefined ? { bodyTemplate } : {}),
     },
   };
+  return { block, coercedFrom };
 }
 
 // ---------------------------------------------------------------------------
@@ -197,12 +208,23 @@ export function PasteCurlModal({ opened, onClose, onInserted }: Props) {
     }
     setError(null);
 
-    const block = curlToBlockDef(parsed);
+    const { block, coercedFrom } = curlToBlockDef(parsed);
     upsertLocalBlock(block);
     notifications.show({
       color: "green",
       message: `Block "${block.label}" added to your library`,
     });
+    if (coercedFrom) {
+      // Surface the silent fallback so the user knows their curl's method
+      // didn't survive the round-trip — previously this defaulted to GET
+      // with no warning and produced blocks whose label contradicted their
+      // saved method.
+      notifications.show({
+        color: "amber",
+        title: "Method not supported",
+        message: `"${coercedFrom}" was saved as GET. Edit the block to change it.`,
+      });
+    }
     onInserted(block);
     setCurlInput("");
     onClose();

@@ -168,7 +168,7 @@ export function parseOpenApi(doc: unknown): ImportedBlock[] {
       ? (pathItem.parameters as unknown[]).filter(isRecord)
       : []
 
-    const methods = ['get', 'post', 'put', 'delete'] as const
+    const methods = ['get', 'post', 'put', 'patch', 'delete'] as const
 
     for (const method of methods) {
       const operation = pathItem[method]
@@ -291,7 +291,7 @@ export function parseOpenApi(doc: unknown): ImportedBlock[] {
           { jsonPath: 'status', contextKey: 'lastStatus' },
         ],
         request: {
-          method: method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE',
+          method: method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
           urlTemplate,
           ...(Object.keys(headers).length > 0 ? { headers } : {}),
         },

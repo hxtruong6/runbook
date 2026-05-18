@@ -81,7 +81,7 @@ interface OaOperation {
   security?: Array<Record<string, string[]>>
 }
 
-type OaMethod = 'get' | 'post' | 'put' | 'delete'
+type OaMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 
 interface OaPathItem {
   parameters?: OaParameter[]
@@ -323,7 +323,7 @@ type ParsedOperation = {
   operationKey: string
 }
 
-const SUPPORTED_METHODS: OaMethod[] = ['get', 'post', 'put', 'delete']
+const SUPPORTED_METHODS: OaMethod[] = ['get', 'post', 'put', 'patch', 'delete']
 
 function parseOperations(doc: OpenApiDoc, baseUrl: string): ParsedOperation[] {
   const paths = doc.paths ?? {}
@@ -403,7 +403,7 @@ function parseOperations(doc: OpenApiDoc, baseUrl: string): ParsedOperation[] {
           { jsonPath: 'status', contextKey: 'lastStatus' },
         ],
         request: {
-          method: method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE',
+          method: method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
           urlTemplate,
         },
         ...(tags.length > 0 ? { tags } : {}),

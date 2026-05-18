@@ -273,10 +273,18 @@ describe("BlockDefDataSchema", () => {
     expect(() => BlockDefDataSchema.parse(bad)).toThrow();
   });
 
-  it("rejects an unknown method like PATCH", () => {
-    const bad = {
+  it("accepts PATCH as a valid method", () => {
+    const ok = {
       ...validDef,
       request: { method: "PATCH", urlTemplate: "/v1/test" },
+    };
+    expect(() => BlockDefDataSchema.parse(ok)).not.toThrow();
+  });
+
+  it("rejects a truly unknown method like HEAD", () => {
+    const bad = {
+      ...validDef,
+      request: { method: "HEAD", urlTemplate: "/v1/test" },
     };
     expect(() => BlockDefDataSchema.parse(bad)).toThrow();
   });

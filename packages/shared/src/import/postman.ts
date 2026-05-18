@@ -90,14 +90,14 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10)
 }
 
-function normalizeMethod(m: string | undefined): 'GET' | 'POST' | 'PUT' | 'DELETE' {
+function normalizeMethod(m: string | undefined): 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' {
   const upper = (m ?? 'GET').toUpperCase()
   if (upper === 'GET') return 'GET'
   if (upper === 'POST') return 'POST'
   if (upper === 'PUT') return 'PUT'
+  if (upper === 'PATCH') return 'PATCH'
   if (upper === 'DELETE') return 'DELETE'
-  if (upper === 'PATCH') return 'POST'
-  // Fallback non-standard methods to POST
+  // Fallback non-standard methods (HEAD/OPTIONS/TRACE) to POST
   return 'POST'
 }
 

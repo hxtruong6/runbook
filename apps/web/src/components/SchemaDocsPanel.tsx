@@ -207,7 +207,7 @@ export function SchemaDocsPanel() {
 
               <Section title="RequestDef (request)">
                 <FieldTable rows={[
-                  { field: "method",       type: '"GET" | "POST" | "PUT" | "DELETE"', required: true,  description: "HTTP method" },
+                  { field: "method",       type: '"GET" | "POST" | "PUT" | "PATCH" | "DELETE"', required: true,  description: "HTTP method" },
                   { field: "urlTemplate",  type: "string",                            required: true,  description: 'Path appended to baseUrl, supports {{tokens}}, e.g. "/users/{{userId}}"' },
                   { field: "headers",      type: "Record<string, string>",            required: false, description: "Static or templated request headers" },
                   { field: "query",        type: "Record<string, string>",            required: false, description: "Query parameters; undefined/empty values are omitted" },

@@ -1,6 +1,6 @@
 import type { BlockDef, HttpRequest } from "./types";
 
-const METHODS = ["GET", "POST", "PUT", "DELETE"] as const;
+const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 
 export const httpRequestDef: BlockDef = {
   kind: "httpRequest",
