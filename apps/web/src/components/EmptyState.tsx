@@ -118,7 +118,7 @@ export function EmptyState({
         <Text fw={600} size="lg">
           {title}
         </Text>
-        <Text size="sm" c="dimmed" ta="center" maw={360}>
+        <Text size="sm" c="dimmed" ta="center" maw={360} style={{ wordBreak: 'break-word' }}>
           {helper}
         </Text>
       </Stack>
