@@ -90,6 +90,29 @@ test('cworld-be: import OpenAPI doc via URL', async ({ page }) => {
   await importBtn.click()
   await expect(page.getByRole('textbox', { name: 'Select project' }))
     .not.toHaveValue('My first project', { timeout: 10000 })
+
+  // Re-import the same OpenAPI doc — duplicate-name detection should kick
+  // in and offer "Add as new version" instead of silently creating a clone.
+  await page.getByRole('button', { name: 'Import' }).first().click()
+  await page.getByRole('menuitem', { name: /OpenAPI spec/i }).click()
+  const urlBox2 = page.getByPlaceholder(/openapi\.json/i).first()
+  await urlBox2.fill('http://127.0.0.1:4000/documentation-json')
+  await page.getByRole('button', { name: 'Load' }).click()
+  await expect(page.getByText(/operations selected/i)).toBeVisible({ timeout: 20000 })
+
+  const importBtn2 = page.getByRole('button', { name: /Import 127 operations/i })
+  await importBtn2.click()
+
+  // Duplicate panel should open with the version-bump suggestion.
+  await expect(page.getByRole('heading', { name: /already exists/i })).toBeVisible({ timeout: 5000 })
+  await expect(page.getByText(/Changes vs current version/i)).toBeVisible()
+  const appendBtn = page.getByRole('button', { name: /Add as new version/i })
+  await expect(appendBtn).toBeVisible()
+  await page.screenshot({ path: 'e2e/_artifacts/cworld-openapi-duplicate.png', fullPage: true })
+  await appendBtn.click()
+
+  // Success notification + project stays selected.
+  await expect(page.getByText(/Added version/i)).toBeVisible({ timeout: 10000 })
 })
 
 test('cworld-be: import curl, run, capture schema', async ({ page }) => {

@@ -2,7 +2,8 @@
 import { create } from 'zustand'
 import {
   getProjects, deleteProject as apiDeleteProject,
-  postImportBundle, postProject, type ApiProject, type ApiProjectVersion,
+  postImportBundle, postProject, postAppendVersion,
+  type ApiProject, type ApiProjectVersion,
 } from '../api/projects'
 import { publishBundle as apiPublishBundle, type PublishResult } from '../api/registry'
 import { ApiError } from '../api/client'
@@ -57,6 +58,7 @@ type ProjectsState = {
   setActiveProject: (id: string | null) => void
   importBundle: (file: File, teamId: string) => Promise<void>
   importBundleObject: (bundle: ProjectBundle, teamId: string) => Promise<void>
+  appendVersionFromBundle: (projectId: string, bundle: ProjectBundle, teamId: string, versionString: string) => Promise<void>
   publishBundle: (teamId: string, scenarios: Scenario[]) => Promise<PublishResult>
   reset: () => void
 }
@@ -145,6 +147,35 @@ export const useProjectsStore = create<ProjectsState>()((set, get) => ({
       } else {
         set({ importing: false, error: (e as Error).message })
       }
+    }
+  },
+
+  async appendVersionFromBundle(projectId, bundle, teamId, versionString) {
+    set({ importing: true, error: null, importErrors: [] })
+    try {
+      const newVersion = bundle.versions[0]
+      if (!newVersion) throw new Error('Bundle has no version to append')
+      await postAppendVersion(teamId, projectId, {
+        version: versionString,
+        releasedAt: newVersion.releasedAt,
+        releaseNotes: newVersion.releaseNotes,
+        changes: newVersion.changes,
+        blocks: newVersion.blocks,
+        environments: newVersion.environments,
+        docs: newVersion.docs,
+      })
+      // Refetch so the UI picks up the new version. Active project stays the
+      // same (we just added a version to it). App.tsx reads versions[last]
+      // which is now the newly appended one — user sees the new block defs.
+      await get().fetchProjects(teamId)
+      set({ importing: false, activeProjectId: projectId })
+    } catch (e) {
+      if (e instanceof ApiError) {
+        set({ importing: false, importErrors: e.details ?? [e.message] })
+      } else {
+        set({ importing: false, error: (e as Error).message })
+      }
+      throw e
     }
   },
 

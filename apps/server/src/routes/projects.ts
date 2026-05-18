@@ -131,6 +131,59 @@ export async function projectsRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(201).send({ project, scenarios: insertedScenarios })
   })
 
+  // Append a new version to an existing project. Scenarios stay project-level
+  // (not duplicated per version), so user data — run history, overrides,
+  // inference — is preserved automatically. Only the blocks/envs/docs snapshot
+  // gets a new entry in versions[].
+  const AppendVersionSchema = z.object({
+    version: z.string().min(1),
+    releasedAt: z.string().optional(),
+    releaseNotes: z.string().optional().default(''),
+    changes: z.array(z.unknown()).default([]),
+    blocks: z.array(z.unknown()).default([]),
+    environments: z.array(z.unknown()).default([]),
+    docs: z.record(z.string(), z.string()).optional().default({}),
+  })
+
+  app.post('/:teamId/projects/:projectId/versions', { preHandler: [authenticate] }, async (req, reply) => {
+    const { teamId, projectId } = req.params as { teamId: string; projectId: string }
+    const user = req.user as { sub: string }
+    const db = getDb()
+    if (!(await assertMember(db, user.sub, teamId))) return reply.code(403).send({ error: 'Forbidden' })
+
+    const parsed = AppendVersionSchema.safeParse(req.body)
+    if (!parsed.success) {
+      const details = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`)
+      return reply.code(400).send({ error: 'Invalid version', details })
+    }
+
+    const project = await db.collection('projects').findOne({ _id: new ObjectId(projectId), teamId })
+    if (!project) return reply.code(404).send({ error: 'Not found' })
+
+    const existingVersions = (project.versions ?? []) as Array<{ version: string }>
+    if (existingVersions.some((v) => v.version === parsed.data.version)) {
+      return reply.code(409).send({ error: `Version "${parsed.data.version}" already exists` })
+    }
+
+    const newVersion = {
+      version: parsed.data.version,
+      releasedAt: parsed.data.releasedAt ?? new Date().toISOString(),
+      releaseNotes: parsed.data.releaseNotes,
+      changes: parsed.data.changes,
+      blocks: parsed.data.blocks,
+      environments: parsed.data.environments,
+      docs: parsed.data.docs,
+    }
+
+    await db.collection('projects').updateOne(
+      { _id: new ObjectId(projectId), teamId },
+      { $push: { versions: newVersion } as never },
+    )
+
+    const updated = await db.collection('projects').findOne({ _id: new ObjectId(projectId), teamId })
+    return reply.code(201).send(updated)
+  })
+
   app.get('/:teamId/projects/:projectId', { preHandler: [authenticate] }, async (req, reply) => {
     const { teamId, projectId } = req.params as { teamId: string; projectId: string }
     const user = req.user as { sub: string }

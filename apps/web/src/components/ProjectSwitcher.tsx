@@ -9,7 +9,6 @@ import {
   IconDownload,
   IconFileCode,
   IconPackage,
-  IconPlus,
   IconTrash,
   IconUpload,
 } from '@tabler/icons-react'
@@ -133,27 +132,29 @@ export function ProjectSwitcher() {
           </Alert>
         )}
 
-        <Group gap="xs" wrap="nowrap">
-          {/* Natural-width buttons — the narrow sidebar can't fit both
-              "New project" and "Import" if they share width equally
-              (the Import label truncates to "Impc"). */}
+        <Group gap={6} wrap="nowrap">
+          {/* Compact buttons — the 240px navbar can't fit two labels +
+              icons + overflow menu without truncating to "Nev" / "Impor".
+              Use compact size and drop leftSection icons; the labels are
+              short enough to stand on their own. */}
           <Button
-            size="xs"
+            size="compact-sm"
             variant="default"
-            leftSection={<IconPlus size={14} />}
             disabled={!activeTeamId}
             onClick={handleNewProject}
+            px="sm"
           >
-            New
+            + New
           </Button>
 
           <Menu shadow="md" position="bottom-end" width={220}>
             <Menu.Target>
               <Button
-                size="xs"
+                size="compact-sm"
                 variant="default"
-                leftSection={<IconDownload size={14} />}
                 disabled={!activeTeamId}
+                px="sm"
+                rightSection={<IconDownload size={12} />}
               >
                 Import
               </Button>

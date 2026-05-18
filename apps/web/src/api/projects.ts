@@ -42,4 +42,25 @@ export async function postImportBundle(teamId: string, bundle: ProjectBundle): P
   })
 }
 
+export type AppendVersionPayload = {
+  version: string
+  releasedAt?: string
+  releaseNotes?: string
+  changes?: unknown[]
+  blocks?: unknown[]
+  environments?: unknown[]
+  docs?: Record<string, string>
+}
+
+export function postAppendVersion(
+  teamId: string,
+  projectId: string,
+  payload: AppendVersionPayload,
+): Promise<ApiProject> {
+  return apiFetch<ApiProject>(
+    `${SERVER_BASE}/teams/${teamId}/projects/${projectId}/versions`,
+    { method: 'POST', body: JSON.stringify(payload) },
+  )
+}
+
 export { ApiError }

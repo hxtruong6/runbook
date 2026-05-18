@@ -18,6 +18,7 @@ import {
   Divider,
   Group,
   Modal,
+  Paper,
   ScrollArea,
   Skeleton,
   Stack,
@@ -25,11 +26,17 @@ import {
   TextInput,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconUpload, IconWorld, IconAlertTriangle } from '@tabler/icons-react'
+import { IconUpload, IconWorld, IconAlertTriangle, IconPlus, IconMinus, IconEdit, IconGitBranch, IconCopy } from '@tabler/icons-react'
 import { importOpenApi } from '@runbook/shared'
 import type { ProjectBundle } from '../../projects/types'
+import type { BlockDefData } from '../../blocks/dataBlock'
 import { useProjectsStore } from '../../projects/projectsStore'
+import { useScenariosStore } from '../../scenarios/scenariosStore'
 import { useTeamStore } from '../../teams/teamStore'
+import {
+  computeBlockDiff, affectedScenarios, suggestNextVersion,
+  type BlockDiff, type AffectedScenario,
+} from '../../projects/versionDiff'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -104,7 +111,8 @@ function filterBundle(bundle: ProjectBundle, selectedKinds: Set<string>): Projec
 // ---------------------------------------------------------------------------
 
 export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
-  const { importBundleObject, importing } = useProjectsStore()
+  const { importBundleObject, appendVersionFromBundle, importing, projects } = useProjectsStore()
+  const { scenarios } = useScenariosStore()
   const { activeTeamId } = useTeamStore()
 
   const [urlInput, setUrlInput] = useState('')
@@ -114,6 +122,20 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Duplicate-name resolution sub-flow. When the user clicks Import and a
+  // project with the same name already exists, we surface a choice instead
+  // of silently creating a duplicate or overwriting.
+  interface DuplicateState {
+    existingProjectId: string
+    existingProjectName: string
+    existingVersions: string[]
+    diff: BlockDiff
+    affected: AffectedScenario[]
+    suggestedVersion: string
+    finalBundle: ProjectBundle
+  }
+  const [duplicate, setDuplicate] = useState<DuplicateState | null>(null)
+
   // ── Reset state on close ──────────────────────────────────────────────────
 
   function handleClose() {
@@ -121,6 +143,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
     setLoading(false)
     setError(null)
     setPreview(null)
+    setDuplicate(null)
     onClose()
   }
 
@@ -241,16 +264,98 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
 
     const finalBundle = filterBundle(preview.bundle, preview.selected)
 
+    // Check for an existing project with the same name on this team. If yes,
+    // open the duplicate-resolution panel so the user picks a strategy.
+    const existing = projects.find((p) => p.name === finalBundle.name)
+    if (existing) {
+      const existingBlocks =
+        ((existing.versions ?? [])[existing.versions!.length - 1]?.blocks ?? []) as BlockDefData[]
+      const nextBlocks = (finalBundle.versions[0]?.blocks ?? []) as BlockDefData[]
+      const diff = computeBlockDiff(existingBlocks, nextBlocks)
+      const removedKinds = new Set(diff.removed.map((b) => b.kind))
+      // The scenarios store only holds the active project's scenarios. So we
+      // can only surface the impact preview when the existing project is the
+      // currently active one. For other projects the post-import notification
+      // would still fire — but the user wouldn't see the diff up-front.
+      const activeProjectId = useProjectsStore.getState().activeProjectId
+      const projectScenarios =
+        activeProjectId === existing._id ? scenarios : []
+      const affected = affectedScenarios(projectScenarios, removedKinds)
+      const existingVersions = (existing.versions ?? []).map((v) => v.version)
+      setDuplicate({
+        existingProjectId: existing._id,
+        existingProjectName: existing.name,
+        existingVersions,
+        diff,
+        affected,
+        suggestedVersion: suggestNextVersion(existingVersions),
+        finalBundle,
+      })
+      return
+    }
+
+    await doFreshImport(finalBundle)
+  }
+
+  async function doFreshImport(finalBundle: ProjectBundle) {
+    if (!activeTeamId) return
     try {
       await importBundleObject(finalBundle, activeTeamId)
       notifications.show({
         color: 'green',
-        message: `Imported "${finalBundle.name}" (${preview.selected.size} operations)`,
+        title: 'Imported',
+        message: `"${finalBundle.name}" — ${finalBundle.versions[0]?.blocks.length ?? 0} operations`,
       })
       handleClose()
     } catch (e) {
       setError((e as Error).message ?? 'Failed to import bundle')
     }
+  }
+
+  async function handleAppendAsVersion() {
+    if (!duplicate || !activeTeamId) return
+    try {
+      await appendVersionFromBundle(
+        duplicate.existingProjectId,
+        duplicate.finalBundle,
+        activeTeamId,
+        duplicate.suggestedVersion,
+      )
+      // Primary success toast.
+      notifications.show({
+        color: 'green',
+        title: `Added version ${duplicate.suggestedVersion}`,
+        message: `${duplicate.diff.added.length} added, ${duplicate.diff.changed.length} changed, ${duplicate.diff.removed.length} removed`,
+      })
+      // Orphaned-reference warning if any scenarios still point at removed
+      // kinds. Their blocks won't render until you remove them or the API
+      // comes back — make sure the user knows before they hit "Run".
+      if (duplicate.affected.length > 0) {
+        const names = duplicate.affected.slice(0, 3).map((s) => `"${s.name}"`).join(', ')
+        const more = duplicate.affected.length > 3 ? ` +${duplicate.affected.length - 3} more` : ''
+        notifications.show({
+          color: 'amber',
+          autoClose: 12000,
+          title: `${duplicate.affected.length} scenario${duplicate.affected.length === 1 ? '' : 's'} reference removed APIs`,
+          message: `${names}${more} — blocks for removed operations will not run.`,
+        })
+      }
+      handleClose()
+    } catch (e) {
+      setError((e as Error).message ?? 'Failed to append version')
+    }
+  }
+
+  async function handleCreateSeparate() {
+    if (!duplicate) return
+    // Suffix the name so the user can tell them apart in the project switcher.
+    const base = duplicate.existingProjectName
+    const existingNames = new Set(projects.map((p) => p.name))
+    let suffix = 2
+    while (existingNames.has(`${base} (${suffix})`)) suffix++
+    const renamed: ProjectBundle = { ...duplicate.finalBundle, name: `${base} (${suffix})` }
+    setDuplicate(null)
+    await doFreshImport(renamed)
   }
 
   // ── Drag-and-drop ─────────────────────────────────────────────────────────
@@ -276,6 +381,26 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
 
   const totalOps = preview?.bundle.versions[0]?.blocks.length ?? 0
   const selectedCount = preview?.selected.size ?? 0
+
+  if (duplicate) {
+    return (
+      <Modal
+        opened={opened}
+        onClose={handleClose}
+        title={`"${duplicate.existingProjectName}" already exists`}
+        size="lg"
+        styles={{ body: { maxHeight: 'calc(85vh - 60px)', overflowY: 'auto' } }}
+      >
+        <DuplicateResolution
+          state={duplicate}
+          importing={importing}
+          onAppend={handleAppendAsVersion}
+          onSeparate={handleCreateSeparate}
+          onBack={() => setDuplicate(null)}
+        />
+      </Modal>
+    )
+  }
 
   return (
     <Modal
@@ -330,18 +455,33 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
               </Button>
             ))}
           </Group>
-          {/* Hint for users with a local backend — not a clickable preset
-              since the path is framework-specific and the port unknown,
-              but spelling out the common conventions saves a lot of
-              "what URL do I use?" trial-and-error. */}
+          {/* Hint for users with a local backend. Each path keyword is a
+              one-click template — populates http://127.0.0.1:PORT/<path>
+              into the URL field so the user only has to edit the port. */}
           <Text size="xs" c="dimmed">
             Local backend? Try{' '}
             <Text component="span" ff="monospace">http://127.0.0.1:PORT/</Text>
             {' followed by '}
-            <Text component="span" ff="monospace">openapi.json</Text>,{' '}
-            <Text component="span" ff="monospace">swagger.json</Text>, or{' '}
-            <Text component="span" ff="monospace">documentation-json</Text>
-            {' (NestJS).'}
+            {(['openapi.json', 'swagger.json', 'documentation-json'] as const).map((path, i, arr) => (
+              <span key={path}>
+                <Text
+                  component="span"
+                  ff="monospace"
+                  c="violet"
+                  style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                  onClick={() => {
+                    setUrlInput(`http://127.0.0.1:PORT/${path}`)
+                    setError(null)
+                  }}
+                  role="button"
+                  aria-label={`Use ${path} template`}
+                >
+                  {path}
+                </Text>
+                {i < arr.length - 2 ? ', ' : i === arr.length - 2 ? ', or ' : ''}
+              </span>
+            ))}
+            {' (last one is NestJS default).'}
           </Text>
         </Stack>
 
@@ -512,5 +652,171 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
         </Group>
       </Stack>
     </Modal>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate-resolution panel
+// ---------------------------------------------------------------------------
+
+interface DuplicateResolutionProps {
+  state: {
+    existingProjectName: string
+    existingVersions: string[]
+    diff: BlockDiff
+    affected: AffectedScenario[]
+    suggestedVersion: string
+    finalBundle: ProjectBundle
+  }
+  importing: boolean
+  onAppend: () => void
+  onSeparate: () => void
+  onBack: () => void
+}
+
+function DiffSummaryRow({
+  icon, color, count, label,
+}: { icon: React.ReactNode; color: string; count: number; label: string }) {
+  return (
+    <Group gap="xs" wrap="nowrap">
+      <Badge color={color} variant="light" leftSection={icon} size="lg" radius="sm">
+        {count}
+      </Badge>
+      <Text size="sm" c="dimmed">{label}</Text>
+    </Group>
+  )
+}
+
+function DuplicateResolution({
+  state, importing, onAppend, onSeparate, onBack,
+}: DuplicateResolutionProps) {
+  const { diff, affected, suggestedVersion, existingVersions } = state
+  const latestExisting = existingVersions[existingVersions.length - 1] ?? '—'
+
+  return (
+    <Stack gap="md">
+      <Alert
+        color="violet"
+        icon={<IconGitBranch size={18} />}
+        title={`A project named "${state.existingProjectName}" already exists`}
+      >
+        <Text size="sm">
+          You can add this import as a <strong>new version</strong> (recommended — your
+          scenarios, run history, and edits stay intact) or create it as a separate project.
+        </Text>
+      </Alert>
+
+      {/* Diff summary */}
+      <Paper p="md" radius="md" withBorder>
+        <Stack gap="xs">
+          <Group justify="space-between">
+            <Text size="sm" fw={600}>
+              Changes vs current version{' '}
+              <Text component="span" ff="monospace" c="dimmed">{latestExisting}</Text>
+            </Text>
+            <Text size="xs" c="dimmed">{diff.unchanged} unchanged</Text>
+          </Group>
+          <Group gap="lg" wrap="wrap">
+            <DiffSummaryRow icon={<IconPlus size={12} />} color="green"
+              count={diff.added.length} label="new" />
+            <DiffSummaryRow icon={<IconEdit size={12} />} color="amber"
+              count={diff.changed.length} label="changed" />
+            <DiffSummaryRow icon={<IconMinus size={12} />} color="red"
+              count={diff.removed.length} label="removed" />
+          </Group>
+
+          {(diff.added.length > 0 || diff.changed.length > 0 || diff.removed.length > 0) && (
+            <ScrollArea.Autosize mah={200} mt="xs">
+              <Stack gap={6}>
+                {diff.removed.slice(0, 20).map((b) => (
+                  <Group key={`r-${b.kind}`} gap={6} wrap="nowrap">
+                    <IconMinus size={12} color="var(--mantine-color-red-6)" />
+                    <Badge size="xs" color="red" variant="light" ff="monospace">{b.request.method}</Badge>
+                    <Text size="xs" ff="monospace" c="dimmed" truncate>{b.request.urlTemplate}</Text>
+                  </Group>
+                ))}
+                {diff.changed.slice(0, 20).map((c) => (
+                  <Group key={`c-${c.kind}`} gap={6} wrap="nowrap">
+                    <IconEdit size={12} color="var(--mantine-color-amber-7)" />
+                    <Badge size="xs" color="amber" variant="light" ff="monospace">{c.next.request.method}</Badge>
+                    <Text size="xs" ff="monospace" truncate>{c.next.request.urlTemplate}</Text>
+                    <Text size="xs" c="dimmed" truncate>({c.reasons.join(', ')})</Text>
+                  </Group>
+                ))}
+                {diff.added.slice(0, 20).map((b) => (
+                  <Group key={`a-${b.kind}`} gap={6} wrap="nowrap">
+                    <IconPlus size={12} color="var(--mantine-color-green-7)" />
+                    <Badge size="xs" color="green" variant="light" ff="monospace">{b.request.method}</Badge>
+                    <Text size="xs" ff="monospace" truncate>{b.request.urlTemplate}</Text>
+                  </Group>
+                ))}
+                {diff.added.length + diff.changed.length + diff.removed.length > 60 && (
+                  <Text size="xs" c="dimmed" fs="italic">… and more (truncated)</Text>
+                )}
+              </Stack>
+            </ScrollArea.Autosize>
+          )}
+        </Stack>
+      </Paper>
+
+      {/* Affected scenarios warning */}
+      {affected.length > 0 && (
+        <Alert color="amber" icon={<IconAlertTriangle size={16} />}
+          title={`${affected.length} scenario${affected.length === 1 ? '' : 's'} reference removed APIs`}>
+          <Stack gap={2}>
+            {affected.slice(0, 5).map((s) => (
+              <Text key={s.id} size="xs">
+                <strong>{s.name}</strong> — {s.orphanedKinds.length} orphaned block{s.orphanedKinds.length === 1 ? '' : 's'}
+              </Text>
+            ))}
+            {affected.length > 5 && (
+              <Text size="xs" c="dimmed">… and {affected.length - 5} more</Text>
+            )}
+            <Text size="xs" c="dimmed" mt={4}>
+              Their existing edits and run history are preserved, but blocks for removed
+              operations will not run. Remove them from the scenario or pick "Create as
+              separate project" to keep both APIs side-by-side.
+            </Text>
+          </Stack>
+        </Alert>
+      )}
+
+      <Divider />
+
+      {/* Choice buttons */}
+      <Stack gap="xs">
+        <Button
+          size="md"
+          leftSection={<IconGitBranch size={18} />}
+          onClick={onAppend}
+          loading={importing}
+        >
+          Add as new version {suggestedVersion}
+        </Button>
+        <Text size="xs" c="dimmed" pl={4}>
+          Appends to "{state.existingProjectName}". Scenarios, run history, edits, and inference data are preserved.
+        </Text>
+
+        <Button
+          size="md"
+          variant="default"
+          leftSection={<IconCopy size={18} />}
+          onClick={onSeparate}
+          loading={importing}
+          mt="xs"
+        >
+          Create as separate project
+        </Button>
+        <Text size="xs" c="dimmed" pl={4}>
+          New project with an auto-suffixed name. Useful when you want to compare two APIs side-by-side.
+        </Text>
+      </Stack>
+
+      <Group justify="flex-end" pt="xs">
+        <Button variant="subtle" onClick={onBack} disabled={importing}>
+          Back
+        </Button>
+      </Group>
+    </Stack>
   )
 }
