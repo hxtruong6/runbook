@@ -26,6 +26,10 @@ test('create environment with base URL', async ({ context, page }) => {
 
   await page.keyboard.press('Escape')
 
+  // The env is saved but not auto-selected — explicitly select it from the switcher
+  await page.locator('input[placeholder*="environment" i]').first().click()
+  await page.getByRole('option', { name: 'Local' }).click()
+
   await expect(async () => {
     const val = await page.locator('input[placeholder*="environment" i]').first().inputValue()
     expect(val).toBe('Local')

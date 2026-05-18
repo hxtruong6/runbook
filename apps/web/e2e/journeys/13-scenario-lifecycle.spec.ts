@@ -22,10 +22,8 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
     })
 
     await test.step('rename the scenario', async () => {
-      // Open ⋯ menu on the new scenario
-      const scenarioItem = page.getByText(/Untitled scenario/i).first()
-      await scenarioItem.hover()
-      await page.getByRole('button', { name: /options|⋯|more/i }).first().click()
+      // Open ⋯ menu on the new scenario — use the scenario-specific aria-label set by B2 fix
+      await page.getByRole('button', { name: /Untitled scenario options/i }).click()
       await page.getByRole('menuitem', { name: /rename/i }).click()
       await page.getByRole('textbox').last().clear()
       await page.getByRole('textbox').last().fill('My Renamed Scenario')
@@ -43,9 +41,7 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
     })
 
     await test.step('delete the duplicate scenario', async () => {
-      const copyItem = page.getByText(/copy/i).first()
-      await copyItem.hover()
-      await page.getByRole('button', { name: /options|⋯|more/i }).first().click()
+      await page.getByRole('button', { name: /copy.*options|My Renamed Scenario.*copy.*options/i }).click()
       await page.getByRole('menuitem', { name: /delete/i }).click()
       await page.getByRole('button', { name: /confirm|yes|delete/i }).first().click()
       await expect(page.getByText(/copy/i)).toHaveCount(0, { timeout: 5000 })
@@ -58,9 +54,7 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
     await signup(page, `scenario-ref-${makeStamp()}`)
 
     await page.getByRole('button', { name: 'Scenarios view' }).click()
-    const scenarioItem = page.getByText('My first scenario', { exact: true }).first()
-    await scenarioItem.hover()
-    await page.getByRole('button', { name: /options|⋯|more/i }).first().click()
+    await page.getByRole('button', { name: /My first scenario options/i }).click()
     await page.getByRole('menuitem', { name: /reusable/i }).click()
 
     // ref badge should appear — exact match avoids collisions with "reference", "preferences", etc.
@@ -72,9 +66,7 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
 
     await signup(page, `scenario-empty-${makeStamp()}`)
     await page.getByRole('button', { name: 'Scenarios view' }).click()
-    const scenarioItem = page.getByText('My first scenario', { exact: true }).first()
-    await scenarioItem.hover()
-    await page.getByRole('button', { name: /options|⋯|more/i }).first().click()
+    await page.getByRole('button', { name: /My first scenario options/i }).click()
     await page.getByRole('menuitem', { name: /rename/i }).click()
     await page.getByRole('textbox').last().clear()
     // Save must be disabled when name is empty

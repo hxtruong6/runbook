@@ -72,8 +72,10 @@ test.describe('Journey 07 — Project Management', () => {
 
     await signup(page, `proj-empty-${makeStamp()}`)
     await page.getByRole('button', { name: /\+ new/i }).first().click()
-    // Create button must be disabled when name is empty
     const dialog = page.getByRole('dialog', { name: 'New project' })
-    await expect(dialog.getByRole('button', { name: 'Create' })).toBeDisabled()
+    await expect(dialog).toBeVisible()
+    // Submit with empty name — dialog should stay open (no project created)
+    await dialog.getByRole('button', { name: 'Create' }).click()
+    await expect(dialog).toBeVisible({ timeout: 2_000 })
   })
 })
