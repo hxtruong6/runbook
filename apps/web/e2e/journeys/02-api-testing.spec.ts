@@ -75,10 +75,8 @@ test.describe('Journey 02 — API Testing via cURL Paste', () => {
     await item.click()
 
     await page.getByRole('button', { name: /^Run$/ }).first().click()
-    await page.waitForTimeout(5000)
-    // Block card should show an error state (red badge or error text)
     await expect(
       page.getByText(/error|failed|ERR_CONNECTION/i).first()
-    ).toBeVisible({ timeout: 10000 })
+    ).toBeVisible({ timeout: 15000 })
   })
 })

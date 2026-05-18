@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test'
 import { makeStamp, signup } from '../fixtures/helpers'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 
 
 test.describe('Journey 07 — Project Management', () => {
@@ -35,7 +33,7 @@ test.describe('Journey 07 — Project Management', () => {
 
     await test.step('switch back to original project', async () => {
       await page.getByRole('textbox', { name: 'Select project' }).click()
-      await page.getByRole('option').first().click()
+      await page.getByRole('option', { name: /My first project/i }).click()
       await expect(page.getByText(/My first scenario/i).first()).toBeVisible({ timeout: 5000 })
     })
   })
@@ -74,15 +72,8 @@ test.describe('Journey 07 — Project Management', () => {
 
     await signup(page, `proj-empty-${makeStamp()}`)
     await page.getByRole('button', { name: /\+ new/i }).first().click()
-    // Leave name blank and submit
+    // Create button must be disabled when name is empty
     const dialog = page.getByRole('dialog', { name: 'New project' })
-    const createBtn = dialog.getByRole('button', { name: 'Create' })
-    const isDisabled = await createBtn.isDisabled()
-    if (!isDisabled) {
-      await createBtn.click()
-      await expect(dialog).toBeVisible({ timeout: 3000 })
-    } else {
-      expect(isDisabled).toBe(true)
-    }
+    await expect(dialog.getByRole('button', { name: 'Create' })).toBeDisabled()
   })
 })

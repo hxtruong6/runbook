@@ -63,8 +63,8 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
     await page.getByRole('button', { name: /options|⋯|more/i }).first().click()
     await page.getByRole('menuitem', { name: /reusable/i }).click()
 
-    // ref badge should appear
-    await expect(page.getByText(/ref/i).first()).toBeVisible({ timeout: 5000 })
+    // ref badge should appear — exact match avoids collisions with "reference", "preferences", etc.
+    await expect(page.getByText('ref', { exact: true }).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('edge case: renaming to empty string is blocked', async ({ page }) => {
@@ -77,13 +77,7 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
     await page.getByRole('button', { name: /options|⋯|more/i }).first().click()
     await page.getByRole('menuitem', { name: /rename/i }).click()
     await page.getByRole('textbox').last().clear()
-    const saveBtn = page.getByRole('button', { name: /save|confirm/i }).last()
-    const isDisabled = await saveBtn.isDisabled()
-    if (!isDisabled) {
-      await saveBtn.click()
-      await expect(page.getByText(/required|name cannot/i)).toBeVisible({ timeout: 3000 })
-    } else {
-      expect(isDisabled).toBe(true)
-    }
+    // Save must be disabled when name is empty
+    await expect(page.getByRole('button', { name: /save|confirm/i }).last()).toBeDisabled()
   })
 })
