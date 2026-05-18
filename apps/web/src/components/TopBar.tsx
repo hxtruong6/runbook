@@ -6,7 +6,7 @@ import { EnvSwitcher } from './EnvSwitcher'
 import { EnvEditorModal } from './EnvEditorModal'
 import { Logo } from './Logo'
 import { UserMenu } from './UserMenu'
-import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Title, Tooltip } from '@mantine/core'
+import { ActionIcon, Badge, Button, Divider, Group, Menu, Select, Stack, Text, Title, Tooltip } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconBell, IconBolt, IconCode, IconDots, IconLayoutSidebar, IconLayoutSidebarRight, IconSettings, IconTerminal2 } from '@tabler/icons-react'
 import { useTeamStore } from '../teams/teamStore'
@@ -100,7 +100,12 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
               <ActionIcon variant="subtle" size="lg" aria-label="More actions"><IconDots size={18} /></ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item leftSection={<IconBolt size={14} />} disabled={!active} onClick={onBurst}>Burst…</Menu.Item>
+              <Menu.Item leftSection={<IconBolt size={14} />} disabled={!active} onClick={onBurst}>
+                <Stack gap={0}>
+                  <Text size="sm">Burst…</Text>
+                  <Text size="xs" c="dimmed">Run this scenario N times concurrently</Text>
+                </Stack>
+              </Menu.Item>
               <Menu.Item onClick={() => fileInputRef.current?.click()}>Import scenario</Menu.Item>
               <Menu.Item onClick={() => active && downloadScenario(active)} disabled={!active}>Export scenario</Menu.Item>
               <Menu.Item
