@@ -99,7 +99,7 @@ export function InferenceModal({
                   </div>
                   <div>
                     <Text size="xs" fw={600} mb={4}>
-                      Last example (redacted)
+                      Last captured response
                     </Text>
                     <Code block style={{ maxHeight: 240, overflow: "auto", fontSize: 12 }}>
                       {JSON.stringify(example, null, 2)}
