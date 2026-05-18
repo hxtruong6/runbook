@@ -20,7 +20,7 @@ test.describe('Journey 05 — Environment & Auth Configuration', () => {
     })
 
     await test.step('add a new Bearer environment', async () => {
-      await page.getByRole('button', { name: 'New environment' }).click()
+      await page.getByRole('button', { name: 'New environment' }).first().click()
       await page.getByRole('textbox', { name: 'Name' }).fill('Production')
       await page.getByRole('textbox', { name: 'Base URL' }).fill('https://api.example.com')
       
@@ -41,9 +41,9 @@ test.describe('Journey 05 — Environment & Auth Configuration', () => {
       // Since it's automatically active after creation, or if not we select it
       // Actually it may not be automatically active!
       // Let's explicitly select it
-      await page.getByRole('combobox', { name: 'No environment' }).click()
+      await page.getByPlaceholder('Set environment…').click()
       await page.getByRole('option', { name: 'Production' }).click()
-      await expect(page.getByRole('combobox', { name: 'Production' })).toBeVisible({ timeout: 3000 })
+      await expect(page.getByPlaceholder('Set environment…')).toHaveValue('Production', { timeout: 3000 })
     })
   })
 
@@ -55,18 +55,18 @@ test.describe('Journey 05 — Environment & Auth Configuration', () => {
     
     // Create first env
     await page.getByRole('button', { name: 'Manage environments' }).click()
-    await page.getByRole('button', { name: 'New environment' }).click()
+    await page.getByRole('button', { name: 'New environment' }).first().click()
     await page.getByRole('textbox', { name: 'Name' }).fill('Staging')
     await page.getByRole('textbox', { name: 'Base URL' }).fill('https://api.staging.com')
     await page.getByRole('button', { name: 'Save' }).click()
     await expect(page.getByText('Staging').first()).toBeVisible({ timeout: 5000 })
 
     // Try to create second env with same name
-    await page.getByRole('button', { name: 'New environment' }).click()
+    await page.getByRole('button', { name: 'New environment' }).first().click()
     await page.getByRole('textbox', { name: 'Name' }).fill('Staging')
     await page.getByRole('textbox', { name: 'Base URL' }).fill('https://api.staging2.com')
     await page.getByRole('button', { name: 'Save' }).click()
     
-    await expect(page.getByText(/must be unique/i)).toBeVisible({ timeout: 3000 })
+    await expect(page.getByText(/must be unique/i).first()).toBeVisible({ timeout: 3000 })
   })
 })

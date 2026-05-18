@@ -295,6 +295,13 @@ export function EnvEditorModal({ opened, onClose }: Props) {
       notifications.show({ color: "red", title: "Validation error", message: msg });
       return;
     }
+
+    const isDuplicateName = state.environments.some((e) => e.name === draft.name && e.id !== draft.id);
+    if (isDuplicateName) {
+      notifications.show({ color: "red", title: "Validation error", message: "Environment name must be unique." });
+      return;
+    }
+
     dispatch({ type: "UPSERT", env: result.data });
     notifications.show({ color: "green", title: "Saved", message: `"${draft.name}" saved.` });
   }
@@ -417,6 +424,7 @@ export function EnvEditorModal({ opened, onClose }: Props) {
                 placeholder="e.g. Production, Staging"
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.currentTarget.value })}
+                error={state.environments.some((e) => e.name === draft.name && e.id !== draft.id) ? "Environment name must be unique." : undefined}
               />
               <TextInput
                 label="Base URL"
