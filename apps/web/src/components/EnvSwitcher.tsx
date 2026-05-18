@@ -73,10 +73,15 @@ export function EnvSwitcher({ onOpenEditor }: Props) {
         data={selectData}
         value={state.activeId ?? null}
         onChange={handleChange}
-        placeholder="No environment"
+        placeholder="Set environment…"
         w={160}
         comboboxProps={{ withinPortal: true }}
-        styles={{ input: { fontWeight: 500 } }}
+        styles={{
+          input: {
+            fontWeight: 500,
+            color: state.activeId ? undefined : 'var(--mantine-color-violet-6)',
+          }
+        }}
       />
       {badgeProps && (
         <Badge size="xs" color={badgeProps.color} variant="light" radius="sm">
