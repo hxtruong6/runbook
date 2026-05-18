@@ -139,9 +139,9 @@ export function AppContent() {
 
   // Fetch teams on mount
   useEffect(() => {
-    fetchTeams()
+    if (!isGuest) fetchTeams()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isGuest])
 
   // Fetch projects when active team changes
   useEffect(() => {

@@ -21,7 +21,8 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const res = await fetch(path, { ...init, headers })
 
   if (res.status === 401) {
-    useAuthStore.getState().logout()
+    const state = useAuthStore.getState()
+    if (state.token) state.logout()
     throw new ApiError(401, 'Session expired')
   }
 
