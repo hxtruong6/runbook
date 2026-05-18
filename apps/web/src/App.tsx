@@ -314,7 +314,7 @@ export function AppContent() {
       startNodeId: startId,
       nodes: scenario.blocks.map((b, i) => ({
         blockInstance: b,
-        name: b.kind,
+        name: registry[b.kind]?.label ?? b.kind,
         position: { x: 200, y: 80 + i * 120 },
       })).concat([{
         blockInstance: { id: startId, kind: 'start', overrides: {} },
@@ -562,7 +562,7 @@ export function AppContent() {
                                 <ActionIcon
                                   size="xs"
                                   variant="subtle"
-                                  aria-label="Scenario options"
+                                  aria-label={`${s.name || 'Scenario'} options`}
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <IconDots size={12} />
