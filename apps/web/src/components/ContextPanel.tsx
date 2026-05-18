@@ -174,7 +174,11 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
           )}
         </Group>
       </Group>
-      <ValueCell contextKey={contextKey} value={v} onEdit={onEdit} />
+      {isSystemKey ? (
+        <Text size="xs" c="dimmed" ff="monospace">{String(v)}</Text>
+      ) : (
+        <ValueCell contextKey={contextKey} value={v} onEdit={onEdit} />
+      )}
     </Stack>
   );
 }

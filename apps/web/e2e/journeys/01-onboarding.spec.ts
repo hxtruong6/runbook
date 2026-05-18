@@ -73,7 +73,7 @@ test.describe('Journey 01 — New User Onboarding', () => {
   test('edge case: wrong password shows error on sign in', async ({ page }) => {
     test.setTimeout(45_000)
     const STAMP = makeStamp()
-    const EMAIL = `onboard-wp-${STAMP}@runbook.local`
+    const EMAIL = `e2e-wp-${STAMP}@runbook.local`
 
     // Register the account first so we can test a wrong password against a real user
     await signup(page, `wp-${STAMP}`)
