@@ -124,19 +124,28 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
       ? ""
       : String(v);
 
+  const isSystemKey = contextKey === "socketSessionUuid";
+
   return (
     <Stack gap={2} style={{ borderBottom: "1px solid var(--mantine-color-gray-2)", paddingBottom: 8 }}>
       <Group gap={4} justify="space-between" wrap="nowrap">
-        <Text
-          size="xs"
-          ff="monospace"
-          c="dimmed"
-          fw={500}
-          style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-          title={contextKey}
-        >
-          {contextKey}
-        </Text>
+        <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+          <Text
+            size="xs"
+            ff="monospace"
+            c="dimmed"
+            fw={500}
+            style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            title={contextKey}
+          >
+            {contextKey}
+          </Text>
+          {isSystemKey && (
+            <Text size="10px" c="dimmed" component="span">
+              (system)
+            </Text>
+          )}
+        </Group>
         <Group gap={2} wrap="nowrap" style={{ flexShrink: 0 }}>
           {!REDACTED_KEYS.has(contextKey) && (
             <Tooltip label="Copy value" withArrow>
@@ -150,17 +159,19 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
               </ActionIcon>
             </Tooltip>
           )}
-          <Tooltip label="Delete key" withArrow>
-            <ActionIcon
-              size="xs"
-              variant="subtle"
-              color="red"
-              aria-label={`Delete ${contextKey}`}
-              onClick={onDelete}
-            >
-              <IconTrash size={12} />
-            </ActionIcon>
-          </Tooltip>
+          {!isSystemKey && (
+            <Tooltip label="Delete key" withArrow>
+              <ActionIcon
+                size="xs"
+                variant="subtle"
+                color="red"
+                aria-label={`Delete ${contextKey}`}
+                onClick={onDelete}
+              >
+                <IconTrash size={12} />
+              </ActionIcon>
+            </Tooltip>
+          )}
         </Group>
       </Group>
       <ValueCell contextKey={contextKey} value={v} onEdit={onEdit} />
