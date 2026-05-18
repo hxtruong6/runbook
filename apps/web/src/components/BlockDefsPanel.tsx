@@ -186,9 +186,9 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
               </Button>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Label>Create a block</Menu.Label>
+              <Menu.Label>Add a single block</Menu.Label>
               <Menu.Item leftSection={<IconPlus size={14} />} onClick={handleAddNew}>
-                New API block
+                New API block (blank form)
               </Menu.Item>
               <Menu.Item
                 leftSection={<IconTerminal2 size={14} />}
