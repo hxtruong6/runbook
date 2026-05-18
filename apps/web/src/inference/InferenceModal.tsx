@@ -1,6 +1,6 @@
 // Read-only viewer for the inferred schema + last example, per status family.
 // Allows clearing the captured data for this block.
-import { Badge, Button, Code, Group, Modal, Stack, Tabs, Text, ThemeIcon } from "@mantine/core";
+import { Badge, Button, Code, Group, Modal, Stack, Tabs, Text, ThemeIcon, Tooltip } from "@mantine/core";
 import { IconAlertTriangle, IconTrash } from "@tabler/icons-react";
 import { clearInferenceFor, getInferenceFor, useInferenceVersion } from "./inferenceStore";
 
@@ -46,7 +46,9 @@ export function InferenceModal({
     >
       <Stack gap="md">
         <Group gap="xs">
-          <Badge variant="light">{inf.runs} runs</Badge>
+          <Tooltip label="Total runs of this block that contributed to schema inference" withArrow position="top">
+            <Badge variant="light">{inf.runs} runs</Badge>
+          </Tooltip>
           {inf.lastCapturedAt && (
             <Text size="xs" c="dimmed">
               last capture: {new Date(inf.lastCapturedAt).toLocaleString()}
