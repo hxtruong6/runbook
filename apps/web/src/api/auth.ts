@@ -1,8 +1,9 @@
 const BASE = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3001'
 
 type AuthResponse = { token: string }
+type OkResponse = { ok: boolean }
 
-async function authPost(url: string, body: unknown): Promise<AuthResponse> {
+async function authPost<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -12,13 +13,21 @@ async function authPost(url: string, body: unknown): Promise<AuthResponse> {
     const data = await res.json().catch(() => ({})) as { error?: string }
     throw new Error(data.error ?? 'Request failed')
   }
-  return res.json() as Promise<AuthResponse>
+  return res.json() as Promise<T>
 }
 
 export function postLogin(email: string, password: string) {
-  return authPost(`${BASE}/auth/login`, { email, password })
+  return authPost<AuthResponse>(`${BASE}/auth/login`, { email, password })
 }
 
 export function postRegister(email: string, name: string, password: string) {
-  return authPost(`${BASE}/auth/register`, { email, name, password })
+  return authPost<AuthResponse>(`${BASE}/auth/register`, { email, name, password })
+}
+
+export function postForgotPassword(email: string) {
+  return authPost<OkResponse>(`${BASE}/auth/forgot-password`, { email })
+}
+
+export function postResetPassword(token: string, password: string) {
+  return authPost<OkResponse>(`${BASE}/auth/reset-password`, { token, password })
 }

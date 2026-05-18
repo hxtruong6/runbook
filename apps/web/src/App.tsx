@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useHotkeys } from "@mantine/hooks";
 import { useAuthStore } from "./auth/authStore";
 import { LoginPage } from "./auth/LoginPage";
+import { ResetPasswordPage } from "./auth/ResetPasswordPage";
+import { GuestBanner } from "./auth/GuestBanner";
 import { BurstDrawer } from "./components/BurstDrawer";
 import { makeInitialContext } from "./context/ContextStore";
 import type { Scenario } from "./scenarios/types";
@@ -76,6 +78,7 @@ import { Gallery } from "./pages/Gallery";
 import { GalleryDetail } from "./pages/GalleryDetail";
 
 export function AppContent() {
+  const isGuest = useAuthStore((s) => s.isGuest)
   const { activeTeamId, fetchTeams } = useTeamStore()
   const { activeProjectId, fetchProjects } = useProjectsStore()
   const activeProject = useProjectsStore((s) =>
@@ -350,7 +353,7 @@ export function AppContent() {
               label: finalName,
               auth: 'none',
               inputs: [
-                { name: 'method', label: 'Method', type: 'enum', enumValues: ['GET', 'POST', 'PUT', 'DELETE'], required: true },
+                { name: 'method', label: 'Method', type: 'enum', enumValues: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], required: true },
                 { name: 'url', label: 'URL', type: 'string', required: true },
                 { name: 'headers', label: 'Headers (JSON)', type: 'json' },
                 { name: 'body', label: 'Body (JSON)', type: 'json' },
@@ -360,7 +363,7 @@ export function AppContent() {
                 { jsonPath: 'status', contextKey: 'lastStatus' },
               ],
               request: {
-                method: (method === 'GET' || method === 'POST' || method === 'PUT' || method === 'DELETE') ? method as 'GET'|'POST'|'PUT'|'DELETE' : 'GET',
+                method: (method === 'GET' || method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') ? method as 'GET'|'POST'|'PUT'|'PATCH'|'DELETE' : 'GET',
                 urlTemplate: url,
               },
             }
@@ -392,10 +395,11 @@ export function AppContent() {
       <AppShell
         navbar={{ width: 240, breakpoint: 'sm', collapsed: { desktop: navbarCollapsed, mobile: navbarCollapsed } }}
         aside={{ width: 320, breakpoint: 'md', collapsed: { desktop: asideCollapsed, mobile: asideCollapsed } }}
-        header={{ height: 60 }}
+        header={{ height: isGuest ? 92 : 60 }}
         padding="md"
       >
         <AppShell.Header>
+          {isGuest && <GuestBanner />}
           <TopBar
             active={active}
             onRunAll={() => runFrom(0)}
@@ -1029,9 +1033,17 @@ function useHashPath(): [string, (path: string) => void] {
 
 export function App() {
   const token = useAuthStore((s) => s.token)
+  const isGuest = useAuthStore((s) => s.isGuest)
   const [path, navigate] = useHashPath();
 
-  if (!token) return <LoginPage />
+  // Reset-password route is public — check before auth gate
+  if (path.startsWith('/reset-password')) {
+    const tokenMatch = path.match(/[?&]token=([^&]+)/)
+    const resetToken = tokenMatch?.[1] ?? ''
+    return <ResetPasswordPage token={resetToken} />
+  }
+
+  if (!token && !isGuest) return <LoginPage />
 
   // Route: /run?bundle=... (F4 embed badge)
   if (path.startsWith('/run')) {

@@ -2,6 +2,7 @@ import Fastify, { FastifyServerOptions } from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import { authRoutes } from './routes/auth.js'
+import { passwordResetRoutes } from './routes/passwordReset.js'
 import { teamsRoutes } from './routes/teams.js'
 import { projectsRoutes } from './routes/projects.js'
 import { scenariosRoutes } from './routes/scenarios.js'
@@ -20,6 +21,7 @@ export function buildApp(opts: FastifyServerOptions = {}) {
   app.register(jwt, { secret: jwtSecret ?? 'dev-secret' })
 
   app.register(authRoutes, { prefix: '/auth' })
+  app.register(passwordResetRoutes, { prefix: '/auth' })
   app.register(teamsRoutes, { prefix: '/teams' })
   app.register(projectsRoutes, { prefix: '/teams' })
   app.register(scenariosRoutes, { prefix: '/teams' })
