@@ -9,6 +9,7 @@ import {
   IconDownload,
   IconFileCode,
   IconPackage,
+  IconPencil,
   IconTrash,
   IconUpload,
 } from '@tabler/icons-react'
@@ -24,7 +25,7 @@ import { GithubImportModal } from '../features/import/GithubImport'
 import type { ProjectBundle } from '../projects/types'
 
 export function ProjectSwitcher() {
-  const { projects, activeProjectId, setActiveProject, deleteProject, createProject, importBundle, importBundleObject, loading, importing, importErrors, error } =
+  const { projects, activeProjectId, setActiveProject, deleteProject, renameProject, createProject, importBundle, importBundleObject, loading, importing, importErrors, error } =
     useProjectsStore()
   const { activeTeamId } = useTeamStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -71,6 +72,38 @@ export function ProjectSwitcher() {
       labels: { confirm: 'Delete', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => deleteProject(activeTeamId, project._id),
+    })
+  }
+
+  function handleRename() {
+    const project = projects.find((p) => p._id === activeProjectId)
+    if (!project || !activeTeamId) return
+    let name = project.name
+    modals.open({
+      title: 'Rename project',
+      children: (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            const trimmed = name.trim()
+            if (!trimmed || trimmed === project.name) { modals.closeAll(); return }
+            try {
+              await renameProject(activeTeamId, project._id, trimmed)
+              modals.closeAll()
+            } catch {
+              notifications.show({ color: 'red', message: 'Failed to rename project' })
+            }
+          }}
+        >
+          <TextInput
+            defaultValue={project.name}
+            onChange={(ev) => { name = ev.currentTarget.value }}
+            data-autofocus
+            mb="sm"
+          />
+          <Button type="submit" size="sm" fullWidth>Rename</Button>
+        </form>
+      ),
     })
   }
 
@@ -212,6 +245,12 @@ export function ProjectSwitcher() {
                 onClick={() => setPublishOpen(true)}
               >
                 Publish bundle…
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconPencil size={14} />}
+                onClick={handleRename}
+              >
+                Rename project…
               </Menu.Item>
               <Menu.Divider />
               <Menu.Item

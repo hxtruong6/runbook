@@ -2,7 +2,7 @@
 import { create } from 'zustand'
 import {
   getProjects, deleteProject as apiDeleteProject,
-  postImportBundle, postProject, postAppendVersion,
+  postImportBundle, postProject, postAppendVersion, patchProject,
   type ApiProject, type ApiProjectVersion,
 } from '../api/projects'
 import { publishBundle as apiPublishBundle, type PublishResult } from '../api/registry'
@@ -55,6 +55,7 @@ type ProjectsState = {
   fetchProjects: (teamId: string) => Promise<void>
   createProject: (teamId: string, name: string) => Promise<ApiProject>
   deleteProject: (teamId: string, projectId: string) => Promise<void>
+  renameProject: (teamId: string, projectId: string, name: string) => Promise<void>
   setActiveProject: (id: string | null) => void
   importBundle: (file: File, teamId: string) => Promise<void>
   importBundleObject: (bundle: ProjectBundle, teamId: string) => Promise<void>
@@ -101,6 +102,13 @@ export const useProjectsStore = create<ProjectsState>()((set, get) => ({
     set((s) => ({
       projects: s.projects.filter((p) => p._id !== projectId),
       activeProjectId: s.activeProjectId === projectId ? null : s.activeProjectId,
+    }))
+  },
+
+  async renameProject(teamId, projectId, name) {
+    const updated = await patchProject(teamId, projectId, { name })
+    set((s) => ({
+      projects: s.projects.map((p) => (p._id === projectId ? updated : p)),
     }))
   },
 

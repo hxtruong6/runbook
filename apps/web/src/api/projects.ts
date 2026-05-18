@@ -35,6 +35,13 @@ export function deleteProject(teamId: string, projectId: string): Promise<void> 
   return apiFetch<void>(`${SERVER_BASE}/teams/${teamId}/projects/${projectId}`, { method: 'DELETE' })
 }
 
+export function patchProject(teamId: string, projectId: string, patch: { name?: string }): Promise<ApiProject> {
+  return apiFetch<ApiProject>(`${SERVER_BASE}/teams/${teamId}/projects/${projectId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
 export async function postImportBundle(teamId: string, bundle: ProjectBundle): Promise<ImportResult> {
   return apiFetch<ImportResult>(`${SERVER_BASE}/teams/${teamId}/projects/import`, {
     method: 'POST',
