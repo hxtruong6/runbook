@@ -9,14 +9,15 @@ import {
   TextInput,
   Textarea,
   Select,
-  SegmentedControl,
   Button,
   ActionIcon,
   Alert,
+  Divider,
 } from "@mantine/core";
 import { IconPlus, IconTrash, IconAlertCircle } from "@tabler/icons-react";
 import type { BlockDefData } from "../blocks/dataBlock";
 import { parsePathTokens, parseQueryEntries, parseBodyTokens } from "../blocks/urlTemplate";
+import { METHOD_COLORS } from "./MethodBadge";
 
 type JsonTemplateValue =
   | string
@@ -368,56 +369,57 @@ export function BlockEditorModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={isEditing ? `Edit block: ${initial?.kind}` : "New API Block"}
+      title={isEditing ? `Edit: ${initial?.label ?? initial?.kind}` : "New API Block"}
       size="xl"
     >
-      <ScrollArea mah="70vh" offsetScrollbars>
-        <Stack gap="md">
-          <Text size="sm" fw={600} c="dimmed">
-            General
-          </Text>
-          <Group grow>
-            <TextInput
-              label="Kind"
-              value={kind}
-              onChange={(e) => setKind(e.currentTarget.value)}
-              disabled={isEditing}
-              placeholder="my-api-block"
-            />
+      <ScrollArea mah="65vh" offsetScrollbars>
+        <Stack gap="md" pb="xs">
+          <Divider label="General" labelPosition="left" />
+          <Group grow align="flex-end">
+            {!isEditing && (
+              <TextInput
+                label="Kind"
+                value={kind}
+                onChange={(e) => setKind(e.currentTarget.value)}
+                placeholder="my-api-block"
+              />
+            )}
             <TextInput
               label="Label"
               value={label}
               onChange={(e) => setLabel(e.currentTarget.value)}
               placeholder="My API Block"
             />
+            <Select
+              label="Auth"
+              value={auth}
+              onChange={(v) => setAuth(v ?? "none")}
+              data={[
+                { value: "none", label: "None" },
+                { value: "jwt", label: "JWT" },
+                { value: "cookie-or-jwt", label: "Cookie or JWT" },
+              ]}
+            />
           </Group>
-          <Select
-            label="Auth"
-            value={auth}
-            onChange={(v) => setAuth(v ?? "none")}
-            data={[
-              { value: "none", label: "None" },
-              { value: "jwt", label: "JWT" },
-              { value: "cookie-or-jwt", label: "Cookie or JWT" },
-            ]}
-            w={220}
-          />
 
-          <Text size="sm" fw={600} c="dimmed">
-            Request
-          </Text>
+          <Divider label="Request" labelPosition="left" />
           <Group align="flex-end" gap="xs">
-            <div>
-              <Text size="sm" mb="xs">
-                Method
-              </Text>
-              <SegmentedControl
-                value={method}
-                onChange={handleMethodChange}
-                data={["GET", "POST", "PUT", "PATCH", "DELETE"]}
-                size="xs"
-              />
-            </div>
+            <Stack gap={6}>
+              <Text size="sm" fw={500}>Method</Text>
+              <Group gap={4}>
+                {(["GET", "POST", "PUT", "PATCH", "DELETE"] as const).map((m) => (
+                  <Button
+                    key={m}
+                    size="xs"
+                    variant={method === m ? "filled" : "light"}
+                    color={METHOD_COLORS[m] ?? "gray"}
+                    onClick={() => handleMethodChange(m)}
+                  >
+                    {m}
+                  </Button>
+                ))}
+              </Group>
+            </Stack>
             <TextInput
               label="URL"
               value={urlTemplate}
@@ -431,54 +433,35 @@ export function BlockEditorModal({
           <ParamSection title="Path Params" inputs={pathInputs} onUpdate={updateInput} />
           <ParamSection title="Query Params" inputs={queryInputs} onUpdate={updateInput} />
 
-          <Text size="sm" fw={600} c="dimmed">
-            Headers
-          </Text>
+          <Divider label="Headers" labelPosition="left" />
           <Stack gap="xs">
             {headers.map((h) => (
               <Group key={h.id} gap="xs">
                 <TextInput
                   placeholder="Header name"
                   value={h.key}
-                  onChange={(e) =>
-                    updateKV(setHeaders, h.id, "key", e.currentTarget.value)
-                  }
+                  onChange={(e) => updateKV(setHeaders, h.id, "key", e.currentTarget.value)}
                   style={{ flex: 1 }}
                 />
                 <TextInput
                   placeholder="Value or {{token}}"
                   value={h.value}
-                  onChange={(e) =>
-                    updateKV(setHeaders, h.id, "value", e.currentTarget.value)
-                  }
+                  onChange={(e) => updateKV(setHeaders, h.id, "value", e.currentTarget.value)}
                   style={{ flex: 1 }}
                 />
-                <ActionIcon
-                  aria-label="Remove header"
-                  color="red"
-                  variant="subtle"
-                  onClick={() => removeKV(setHeaders, h.id)}
-                >
+                <ActionIcon aria-label="Remove header" color="red" variant="subtle" onClick={() => removeKV(setHeaders, h.id)}>
                   <IconTrash size={16} />
                 </ActionIcon>
               </Group>
             ))}
-            <Button
-              variant="default"
-              size="xs"
-              leftSection={<IconPlus size={14} />}
-              onClick={() => setHeaders((h) => [...h, makeEmptyKV()])}
-              w="fit-content"
-            >
+            <Button variant="default" size="xs" leftSection={<IconPlus size={14} />} onClick={() => setHeaders((h) => [...h, makeEmptyKV()])} w="fit-content">
               Add header
             </Button>
           </Stack>
 
           {showBody && (
             <>
-              <Text size="sm" fw={600} c="dimmed">
-                Body
-              </Text>
+              <Divider label="Body" labelPosition="left" />
               <Textarea
                 rows={5}
                 value={bodyTemplate}
@@ -491,10 +474,15 @@ export function BlockEditorModal({
             </>
           )}
 
-          <Text size="sm" fw={600} c="dimmed">
-            Outputs
-          </Text>
+          <Divider label="Outputs" labelPosition="left" />
           <Stack gap="xs">
+            {outputs.length > 0 && (
+              <Group gap="xs">
+                <Text size="xs" fw={600} c="dimmed" style={{ flex: 1 }}>JSON Path</Text>
+                <Text size="xs" fw={600} c="dimmed" style={{ flex: 1 }}>Context Key</Text>
+                <div style={{ width: 28 }} />
+              </Group>
+            )}
             {outputs.map((o) => (
               <Group key={o.id} gap="xs">
                 <TextInput
@@ -502,51 +490,37 @@ export function BlockEditorModal({
                   value={o.jsonPath}
                   onChange={(e) => updateOutput(o.id, { jsonPath: e.currentTarget.value })}
                   style={{ flex: 1 }}
-                  label={outputs[0]?.id === o.id ? "JSON Path" : undefined}
                 />
                 <TextInput
                   placeholder="ctx.authToken"
                   value={o.contextKey}
                   onChange={(e) => updateOutput(o.id, { contextKey: e.currentTarget.value })}
                   style={{ flex: 1 }}
-                  label={outputs[0]?.id === o.id ? "Context Key" : undefined}
                 />
-                <ActionIcon
-                  aria-label="Remove output"
-                  color="red"
-                  variant="subtle"
-                  mt={outputs[0]?.id === o.id ? "lg" : undefined}
-                  onClick={() => removeOutput(o.id)}
-                >
+                <ActionIcon aria-label="Remove output" color="red" variant="subtle" onClick={() => removeOutput(o.id)}>
                   <IconTrash size={16} />
                 </ActionIcon>
               </Group>
             ))}
-            <Button
-              variant="default"
-              size="xs"
-              leftSection={<IconPlus size={14} />}
-              onClick={() => setOutputs((all) => [...all, makeEmptyOutput()])}
-              w="fit-content"
-            >
+            <Button variant="default" size="xs" leftSection={<IconPlus size={14} />} onClick={() => setOutputs((all) => [...all, makeEmptyOutput()])} w="fit-content">
               Add output
             </Button>
           </Stack>
-
-          {error && (
-            <Alert color="red" icon={<IconAlertCircle size={16} />}>
-              {error}
-            </Alert>
-          )}
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>Save</Button>
-          </Group>
         </Stack>
       </ScrollArea>
+
+      {/* Sticky footer — always visible regardless of scroll position */}
+      <Stack gap="xs" pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
+        {error && (
+          <Alert color="red" icon={<IconAlertCircle size={16} />}>
+            {error}
+          </Alert>
+        )}
+        <Group justify="flex-end">
+          <Button variant="default" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
+        </Group>
+      </Stack>
     </Modal>
   );
 }
