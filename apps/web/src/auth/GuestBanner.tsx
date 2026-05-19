@@ -12,12 +12,10 @@ export function GuestBanner() {
   return (
     <Group
       px="md"
-      py={6}
+      py="xs"
       justify="center"
-      style={{
-        background: 'var(--mantine-color-amber-6)',
-        position: 'relative',
-      }}
+      bg="amber.6"
+      pos="relative"
     >
       <Text size="sm" fw={500}>
         Guest mode — your data is saved locally only.{' '}
@@ -29,9 +27,9 @@ export function GuestBanner() {
       <ActionIcon
         variant="subtle"
         color="dark"
-        size="sm"
+        size="md"
         aria-label="Dismiss guest banner"
-        style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}
+        style={{ position: 'absolute', right: 'var(--mantine-spacing-xs)', top: '50%', transform: 'translateY(-50%)' }}
         onClick={() => setDismissed(true)}
       >
         <IconX size={14} />

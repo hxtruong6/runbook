@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import {
   ActionIcon,
   Alert,
+  Anchor,
   Box,
   Button,
   Group,
@@ -20,6 +21,7 @@ import {
   Tooltip,
   useMantineTheme,
 } from "@mantine/core";
+import { useAuthStore } from "../../auth/authStore";
 import { useReducedMotion } from "@mantine/hooks";
 import {
   IconX,
@@ -177,6 +179,7 @@ export function useTour(
 
   const [active, setActive] = useState(initialActive);
   const [step, setStep] = useState(0);
+  const isGuest = useAuthStore((s) => s.isGuest);
   const [bannerVisible, setBannerVisible] = useState(
     !isReturningUser && !isBannerDismissed()
   );
@@ -242,7 +245,7 @@ export function useTour(
   return {
     active,
     step,
-    bannerVisible,
+    bannerVisible: bannerVisible && isGuest,
     loading,
     error,
     next,
@@ -256,7 +259,7 @@ export function useTour(
 // TourBanner — dismissible top bar
 // ---------------------------------------------------------------------------
 
-export function TourBanner({ onDismiss }: { onDismiss: () => void }) {
+export function TourBanner({ onDismiss, onSignUp }: { onDismiss: () => void; onSignUp: () => void }) {
   return (
     <Alert
       color="violet"
@@ -269,24 +272,19 @@ export function TourBanner({ onDismiss }: { onDismiss: () => void }) {
       <Group justify="space-between" wrap="nowrap">
         <Text size="sm">
           Trying Runbook — your data stays in this browser.{" "}
-          <Text component="span" fw={600}>
-            Save &amp; sync?
-          </Text>
+          <Anchor component="button" fw={600} onClick={onSignUp}>
+            Create a free account
+          </Anchor>{" "}
+          to save &amp; sync.
         </Text>
-        <Group gap="xs" wrap="nowrap">
-          <Button variant="subtle" size="xs" onClick={onDismiss}>
-            Later
-          </Button>
-          <ActionIcon
-            size="md"
-            variant="subtle"
-            aria-label="Dismiss banner"
-            onClick={onDismiss}
-            style={{ minWidth: 44, minHeight: 44 }}
-          >
-            <IconX size={14} />
-          </ActionIcon>
-        </Group>
+        <ActionIcon
+          size="md"
+          variant="subtle"
+          aria-label="Dismiss banner"
+          onClick={onDismiss}
+        >
+          <IconX size={14} />
+        </ActionIcon>
       </Group>
     </Alert>
   );
@@ -417,11 +415,12 @@ interface TourProps {
 
 export function Tour({ onBundleLoaded }: TourProps) {
   const tour = useTour(onBundleLoaded);
+  const logout = useAuthStore((s) => s.logout);
 
   return (
     <>
       {tour.bannerVisible && (
-        <TourBanner onDismiss={tour.dismissBannerFn} />
+        <TourBanner onDismiss={tour.dismissBannerFn} onSignUp={logout} />
       )}
 
       {tour.error && (
