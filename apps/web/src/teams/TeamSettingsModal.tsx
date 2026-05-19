@@ -28,7 +28,7 @@ type Props = {
 }
 
 function roleBadgeColor(role: ApiMember['role']): string {
-  if (role === 'owner') return 'violet'
+  if (role === 'owner') return 'indigo'
   if (role === 'admin') return 'teal'
   return 'gray'
 }
@@ -80,10 +80,10 @@ export function TeamSettingsModal({ opened, onClose }: Props) {
     setInviting(true)
     try {
       await inviteMember(activeTeamId, email.trim(), role)
-      notifications.show({ color: 'green', title: 'Invitation sent', message: `${email.trim()} has been added as ${role}.` })
+      notifications.show({ color: 'sage', title: 'Invitation sent', message: `${email.trim()} has been added as ${role}.` })
       setEmail('')
     } catch (e) {
-      notifications.show({ color: 'red', title: 'Invite failed', message: (e as Error).message })
+      notifications.show({ color: 'coral', title: 'Invite failed', message: (e as Error).message })
     } finally {
       setInviting(false)
     }
@@ -100,14 +100,14 @@ export function TeamSettingsModal({ opened, onClose }: Props) {
         </Text>
       ),
       labels: { confirm: 'Remove', cancel: 'Cancel' },
-      confirmProps: { color: 'red' },
+      confirmProps: { color: 'coral' },
       onConfirm: async () => {
         if (!activeTeamId) return
         try {
           await removeMember(activeTeamId, member.userId)
-          notifications.show({ color: 'green', message: 'Member removed.' })
+          notifications.show({ color: 'sage', message: 'Member removed.' })
         } catch (e) {
-          notifications.show({ color: 'red', title: 'Remove failed', message: (e as Error).message })
+          notifications.show({ color: 'coral', title: 'Remove failed', message: (e as Error).message })
         }
       },
     })
@@ -122,7 +122,7 @@ export function TeamSettingsModal({ opened, onClose }: Props) {
       onClose={onClose}
       title={
         <Group gap="sm">
-          <ThemeIcon size="md" color="violet" variant="light" radius="md">
+          <ThemeIcon size="md" color="indigo" variant="light" radius="md">
             <IconSettings size={16} />
           </ThemeIcon>
           <div>
@@ -147,11 +147,11 @@ export function TeamSettingsModal({ opened, onClose }: Props) {
           )}
 
           {!membersLoading && membersError && (
-            <Alert color="red" icon={<IconAlertCircle size={16} />} title="Failed to load members">
+            <Alert color="coral" icon={<IconAlertCircle size={16} />} title="Failed to load members">
               {membersError}
               <Button
                 variant="subtle"
-                color="red"
+                color="coral"
                 size="xs"
                 mt="xs"
                 onClick={() => activeTeamId && fetchMembers(activeTeamId)}
@@ -190,7 +190,7 @@ export function TeamSettingsModal({ opened, onClose }: Props) {
                 {canRemove && member.userId !== currentUserId && (
                   <Tooltip label="Remove member" withinPortal>
                     <ActionIcon
-                      color="red"
+                      color="coral"
                       variant="subtle"
                       size="lg"
                       aria-label={`Remove member ${primary}`}

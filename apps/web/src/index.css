@@ -1,14 +1,14 @@
 * { box-sizing: border-box; }
 body, html, #root { margin: 0; height: 100%; }
 body {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Geist, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Visible keyboard focus everywhere — WCAG 2.4.7 */
 :focus-visible {
-  outline: 2px solid var(--mantine-color-violet-5);
+  outline: 2px solid var(--mantine-color-indigo-5);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -20,7 +20,7 @@ body {
   left: -9999px;
   top: 8px;
   padding: 8px 16px;
-  background: var(--mantine-color-violet-7);
+  background: var(--mantine-color-indigo-7);
   color: white;
   border-radius: 8px;
   z-index: 9999;
@@ -62,13 +62,71 @@ body {
 }
 
 @keyframes result-flash-ok {
-  0%   { box-shadow: 0 0 0 3px var(--mantine-color-teal-4); }
+  0%   { box-shadow: 0 0 0 3px var(--mantine-color-sage-4); }
   100% { box-shadow: 0 0 0 3px transparent; }
 }
 
 @keyframes result-flash-err {
-  0%   { box-shadow: 0 0 0 3px var(--mantine-color-red-4); }
+  0%   { box-shadow: 0 0 0 3px var(--mantine-color-coral-4); }
   100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+/* Result-flash hook: set data-flash="ok" or "err" for ~900ms to ring the card */
+[data-flash="ok"]  { animation: result-flash-ok  900ms cubic-bezier(0.3, 0, 0, 1) 1; }
+[data-flash="err"] { animation: result-flash-err 900ms cubic-bezier(0.3, 0, 0, 1) 1; }
+
+/* ===== Step-number rail (BlockCard) ===== */
+.rb-block-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  padding-top: 14px;
+}
+.rb-block-step {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 650;
+  background: var(--mantine-color-warmGray-1);
+  color: var(--mantine-color-warmGray-7);
+  border: 1px solid var(--mantine-color-warmGray-2);
+  transition: background-color 180ms cubic-bezier(0.2, 0, 0, 1),
+              color 180ms cubic-bezier(0.2, 0, 0, 1),
+              border-color 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+.rb-block-step--running {
+  background: var(--mantine-color-amber-1);
+  color: var(--mantine-color-amber-8);
+  border-color: var(--mantine-color-amber-3);
+  animation: status-pulse 1.4s ease-in-out infinite;
+}
+.rb-block-step--ok {
+  background: var(--mantine-color-sage-1);
+  color: var(--mantine-color-sage-7);
+  border-color: var(--mantine-color-sage-3);
+}
+.rb-block-step--err {
+  background: var(--mantine-color-coral-1);
+  color: var(--mantine-color-coral-7);
+  border-color: var(--mantine-color-coral-3);
+}
+.rb-block-step--current:not(.rb-block-step--ok):not(.rb-block-step--err):not(.rb-block-step--running) {
+  background: var(--mantine-color-indigo-1);
+  color: var(--mantine-color-indigo-7);
+  border-color: var(--mantine-color-indigo-3);
+}
+.rb-block-rail-line {
+  flex: 1;
+  width: 2px;
+  background: var(--mantine-color-warmGray-2);
+  margin-top: 6px;
+  min-height: 24px;
 }
 
 /* Login page — gradient background with floating blobs */
@@ -95,7 +153,7 @@ body {
   height: 600px;
   top: -200px;
   right: -150px;
-  background: radial-gradient(circle, var(--mantine-color-violet-4) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--mantine-color-indigo-4) 0%, transparent 70%);
   opacity: 0.22;
   animation: float-blob 9s ease-in-out infinite;
 }

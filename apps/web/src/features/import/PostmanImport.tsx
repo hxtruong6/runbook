@@ -151,10 +151,10 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
             gap="sm"
             p="xl"
             style={{
-              border: `2px dashed var(--mantine-color-${dragging ? 'violet-5' : 'default-border'})`,
+              border: `2px dashed var(--mantine-color-${dragging ? 'indigo-5' : 'default-border'})`,
               borderRadius: 'var(--mantine-radius-md)',
               cursor: 'pointer',
-              background: dragging ? 'var(--mantine-color-violet-0)' : undefined,
+              background: dragging ? 'var(--mantine-color-indigo-0)' : undefined,
               transition: 'border-color 150ms, background 150ms',
             }}
             onDrop={handleDrop}
@@ -162,7 +162,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
             onDragLeave={handleDragLeave}
             onClick={() => collectionInputRef.current?.click()}
           >
-            <ThemeIcon size="xl" variant="light" color="violet" radius="md">
+            <ThemeIcon size="xl" variant="light" color="indigo" radius="md">
               <IconUpload size={24} />
             </ThemeIcon>
             <Text size="sm" fw={500}>
@@ -184,7 +184,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
           </Button>
 
           {error && (
-            <Alert color="red" icon={<IconAlertCircle size={16} />}>
+            <Alert color="coral" icon={<IconAlertCircle size={16} />}>
               {error}
             </Alert>
           )}
@@ -222,7 +222,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
                 <Badge color="teal" variant="light">
                   {version.blocks.length} block{version.blocks.length !== 1 ? 's' : ''}
                 </Badge>
-                <Badge color="violet" variant="light">
+                <Badge color="indigo" variant="light">
                   {version.scenarios.length} scenario{version.scenarios.length !== 1 ? 's' : ''}
                 </Badge>
                 {version.environments.length > 0 && (
@@ -241,7 +241,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
                   spacing="xs"
                   size="sm"
                   icon={
-                    <ThemeIcon size={16} variant="light" color="violet" radius="xl">
+                    <ThemeIcon size={16} variant="light" color="indigo" radius="xl">
                       <IconCheck size={10} />
                     </ThemeIcon>
                   }
@@ -263,7 +263,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
           )}
 
           {error && (
-            <Alert color="red" icon={<IconAlertCircle size={16} />}>
+            <Alert color="coral" icon={<IconAlertCircle size={16} />}>
               {error}
             </Alert>
           )}
@@ -281,7 +281,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
 
       {step === 'importing' && (
         <Stack align="center" gap="md" py="xl">
-          <Loader size="md" color="violet" />
+          <Loader size="md" color="indigo" />
           <Text size="sm" c="dimmed">
             Importing…
           </Text>
@@ -290,7 +290,7 @@ export function PostmanImport({ opened, onClose, onImport }: Props) {
 
       {step === 'done' && (
         <Stack align="center" gap="md" py="xl">
-          <ThemeIcon size="xl" color="green" variant="light" radius="md">
+          <ThemeIcon size="xl" color="sage" variant="light" radius="md">
             <IconCheck size={24} />
           </ThemeIcon>
           <Text size="sm" fw={500}>

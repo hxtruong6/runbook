@@ -61,7 +61,7 @@ function BlockCard({ block, isBundle, onEdit, onDelete, onToggleTag }: BlockCard
       <Group justify="space-between" wrap="nowrap" gap={4}>
         <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
           <Group gap={4} wrap="nowrap" align="center">
-            <Badge size="xs" color={isBundle ? "violet" : "teal"} style={{ flexShrink: 0 }}>
+            <Badge size="xs" color={isBundle ? "indigo" : "teal"} style={{ flexShrink: 0 }}>
               {isBundle ? "bundle" : "local"}
             </Badge>
             <Text size="xs" fw={600} truncate style={{ flex: 1 }}>{block.label}</Text>
@@ -70,7 +70,7 @@ function BlockCard({ block, isBundle, onEdit, onDelete, onToggleTag }: BlockCard
                 drift
               </Badge>
             ) : (
-              <Badge size="xs" color="violet" variant="light" leftSection={<IconCamera size={10} />} style={{ flexShrink: 0 }}>
+              <Badge size="xs" color="indigo" variant="light" leftSection={<IconCamera size={10} />} style={{ flexShrink: 0 }}>
                 {inf!.runs}
               </Badge>
             ))}
@@ -105,7 +105,7 @@ function BlockCard({ block, isBundle, onEdit, onDelete, onToggleTag }: BlockCard
             <IconPencil size={12} />
           </ActionIcon>
           {!isBundle && (
-            <ActionIcon aria-label={`Delete ${block.label}`} variant="subtle" color="red" size="xs" onClick={onDelete}>
+            <ActionIcon aria-label={`Delete ${block.label}`} variant="subtle" color="coral" size="xs" onClick={onDelete}>
               <IconTrash size={12} />
             </ActionIcon>
           )}
@@ -180,7 +180,7 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
         <Text size="sm">Delete &ldquo;{label}&rdquo;? This cannot be undone.</Text>
       ),
       labels: { confirm: "Delete", cancel: "Cancel" },
-      confirmProps: { color: "red" },
+      confirmProps: { color: "coral" },
       onConfirm: () => onDelete(kind),
     });
   }
@@ -229,7 +229,7 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
                 </Badge>
               )}
               {bundleBlocks.length > 0 && (
-                <Badge size="xs" variant="light" color="violet">
+                <Badge size="xs" variant="light" color="indigo">
                   {bundleBlocks.length} bundle
                 </Badge>
               )}

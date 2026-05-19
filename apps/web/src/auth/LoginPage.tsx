@@ -78,7 +78,7 @@ export function LoginPage() {
               <form onSubmit={handleSubmit}>
                 <Stack gap="sm">
                   {error && (
-                    <Alert color="red" icon={<IconAlertCircle size={16} />}>
+                    <Alert color="coral" icon={<IconAlertCircle size={16} />}>
                       {error}
                     </Alert>
                   )}

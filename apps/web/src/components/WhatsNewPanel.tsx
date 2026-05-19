@@ -45,7 +45,7 @@ function ChangeRow({ change }: { change: ChangeEntry }) {
             {change.type}
           </Badge>
           {change.breaking && (
-            <Badge color="red" variant="filled" size="sm">
+            <Badge color="coral" variant="filled" size="sm">
               BREAKING
             </Badge>
           )}

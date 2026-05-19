@@ -302,7 +302,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
     try {
       await importBundleObject(finalBundle, activeTeamId)
       notifications.show({
-        color: 'green',
+        color: 'sage',
         title: 'Imported',
         message: `"${finalBundle.name}" — ${finalBundle.versions[0]?.blocks.length ?? 0} operations`,
       })
@@ -323,7 +323,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
       )
       // Primary success toast.
       notifications.show({
-        color: 'green',
+        color: 'sage',
         title: `Added version ${duplicate.suggestedVersion}`,
         message: `${duplicate.diff.added.length} added, ${duplicate.diff.changed.length} changed, ${duplicate.diff.removed.length} removed`,
       })
@@ -467,7 +467,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
                 <Text
                   component="span"
                   ff="monospace"
-                  c="violet"
+                  c="indigo"
                   style={{ cursor: 'pointer', textDecoration: 'underline' }}
                   onClick={() => {
                     setUrlInput(`http://127.0.0.1:PORT/${path}`)
@@ -494,12 +494,12 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           style={{
-            border: `2px dashed var(--mantine-color-${dragging ? 'violet-5' : 'default-border'})`,
+            border: `2px dashed var(--mantine-color-${dragging ? 'indigo-5' : 'default-border'})`,
             borderRadius: 'var(--mantine-radius-md)',
             padding: 'var(--mantine-spacing-md)',
             textAlign: 'center',
             cursor: 'pointer',
-            background: dragging ? 'var(--mantine-color-violet-0)' : undefined,
+            background: dragging ? 'var(--mantine-color-indigo-0)' : undefined,
             transition: 'border-color 150ms, background 150ms',
           }}
         >
@@ -536,7 +536,7 @@ export function OpenApiImport({ opened, onClose }: OpenApiImportProps) {
         {/* Error state */}
         {error && (
           <Alert
-            color="red"
+            color="coral"
             title="Import error"
             icon={<IconAlertTriangle size={16} />}
             withCloseButton
@@ -696,7 +696,7 @@ function DuplicateResolution({
   return (
     <Stack gap="md">
       <Alert
-        color="violet"
+        color="indigo"
         icon={<IconGitBranch size={18} />}
         title={`A project named "${state.existingProjectName}" already exists`}
       >
@@ -717,11 +717,11 @@ function DuplicateResolution({
             <Text size="xs" c="dimmed">{diff.unchanged} unchanged</Text>
           </Group>
           <Group gap="lg" wrap="wrap">
-            <DiffSummaryRow icon={<IconPlus size={12} />} color="green"
+            <DiffSummaryRow icon={<IconPlus size={12} />} color="sage"
               count={diff.added.length} label="new" />
             <DiffSummaryRow icon={<IconEdit size={12} />} color="amber"
               count={diff.changed.length} label="changed" />
-            <DiffSummaryRow icon={<IconMinus size={12} />} color="red"
+            <DiffSummaryRow icon={<IconMinus size={12} />} color="coral"
               count={diff.removed.length} label="removed" />
           </Group>
 
@@ -731,7 +731,7 @@ function DuplicateResolution({
                 {diff.removed.slice(0, 20).map((b) => (
                   <Group key={`r-${b.kind}`} gap={6} wrap="nowrap">
                     <IconMinus size={12} color="var(--mantine-color-red-6)" />
-                    <Badge size="xs" color="red" variant="light" ff="monospace">{b.request.method}</Badge>
+                    <Badge size="xs" color="coral" variant="light" ff="monospace">{b.request.method}</Badge>
                     <Text size="xs" ff="monospace" c="dimmed" truncate>{b.request.urlTemplate}</Text>
                   </Group>
                 ))}
@@ -746,7 +746,7 @@ function DuplicateResolution({
                 {diff.added.slice(0, 20).map((b) => (
                   <Group key={`a-${b.kind}`} gap={6} wrap="nowrap">
                     <IconPlus size={12} color="var(--mantine-color-green-7)" />
-                    <Badge size="xs" color="green" variant="light" ff="monospace">{b.request.method}</Badge>
+                    <Badge size="xs" color="sage" variant="light" ff="monospace">{b.request.method}</Badge>
                     <Text size="xs" ff="monospace" truncate>{b.request.urlTemplate}</Text>
                   </Group>
                 ))}

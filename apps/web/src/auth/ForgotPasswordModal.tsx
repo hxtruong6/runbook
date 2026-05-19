@@ -51,7 +51,7 @@ export function ForgotPasswordModal({ opened, onClose }: Props) {
               Enter your account email and we'll send you a link to reset your password.
             </Text>
             {error && (
-              <Alert color="red" icon={<IconAlertCircle size={16} />}>
+              <Alert color="coral" icon={<IconAlertCircle size={16} />}>
                 {error}
               </Alert>
             )}

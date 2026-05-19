@@ -15,14 +15,16 @@ import reactHooks from "eslint-plugin-react-hooks";
  */
 
 const FORBIDDEN_COLOR_NAMES = [
-  // Mantine color names that are NOT in our system. Use violet/teal/amber/warmGray + semantic (red/green/blue/gray).
-  "indigo",
+  // Mantine color names that are NOT in our system. Use indigo/teal/amber/warmGray + semantic (sage/coral/sky/gray).
+  "violet",
   "grape",
   "pink",
   "lime",
   "yellow",
   "orange",
   "cyan",
+  // Note: red/green/blue remain temporarily permitted; design system prefers
+  // sage (success) / coral (danger) / sky (info). Migrate component-by-component.
 ];
 
 export default tseslint.config(
@@ -56,7 +58,7 @@ export default tseslint.config(
         {
           selector: "Literal[value=/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/]",
           message:
-            "❌ Hex color literals are not allowed in components. Use a theme token: useMantineTheme().colors.violet[7], or a semantic color name like color=\"teal\". Add new colors to src/theme.ts.",
+            "❌ Hex color literals are not allowed in components. Use a theme token: useMantineTheme().colors.indigo[7], or a semantic color name like color=\"teal\". Add new colors to src/theme.ts.",
         },
         {
           selector: "TemplateElement[value.raw=/#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})/]",
@@ -66,7 +68,7 @@ export default tseslint.config(
         // Block hardcoded `color="indigo"` etc. for non-system color names.
         ...FORBIDDEN_COLOR_NAMES.map((name) => ({
           selector: `JSXAttribute[name.name='color'] > Literal[value='${name}']`,
-          message: `❌ color="${name}" is not in the design system. Use violet (primary), teal (secondary), amber (accent), or a semantic color (red, green, blue, gray). Defined in src/theme.ts.`,
+          message: `❌ color="${name}" is not in the design system. Use indigo (primary), teal (secondary), amber (accent), or a semantic color (sage, coral, sky, gray). Defined in src/theme.ts.`,
         })),
         // Block raw style={{ borderRadius: 10 }} — use Mantine radius prop or CSS variable.
         {

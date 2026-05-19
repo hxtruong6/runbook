@@ -49,7 +49,7 @@ function GalleryCard({
         </Text>
         <Group gap="xs" wrap="wrap">
           {entry.tags.map((tag) => (
-            <Badge key={tag} color="violet" size="xs">
+            <Badge key={tag} color="indigo" size="xs">
               {tag}
             </Badge>
           ))}
@@ -125,13 +125,13 @@ export function Gallery({ onNavigate }: GalleryProps) {
           {indexState.status === "error" && (
             <Alert
               icon={<IconAlertCircle size={16} />}
-              color="red"
+              color="coral"
               title="Failed to load gallery"
             >
               {indexState.message}
               <Button
                 variant="light"
-                color="red"
+                color="coral"
                 size="xs"
                 mt="sm"
                 onClick={() => window.location.reload()}

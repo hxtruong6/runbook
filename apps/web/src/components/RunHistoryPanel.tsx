@@ -120,11 +120,11 @@ export function RunHistoryPanel({ scenarioId, refreshKey }: Props) {
                     })}
                   </Text>
                   <Group gap="xs">
-                    <Badge size="xs" color="teal">
+                    <Badge size="xs" color="sage">
                       {r.passCount} ok
                     </Badge>
                     {r.failCount > 0 && (
-                      <Badge size="xs" color="red">
+                      <Badge size="xs" color="coral">
                         {r.failCount} failed
                       </Badge>
                     )}

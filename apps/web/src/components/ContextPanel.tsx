@@ -158,7 +158,7 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
               <ActionIcon
                 size="xs"
                 variant="subtle"
-                color="red"
+                color="coral"
                 aria-label={`Delete ${contextKey}`}
                 onClick={onDelete}
               >
@@ -251,7 +251,7 @@ export function ContextPanel() {
         <Group gap={6}>
           <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Context</Text>
           {count > 0 && (
-            <Badge size="xs" variant="light" color="violet">{count}</Badge>
+            <Badge size="xs" variant="light" color="indigo">{count}</Badge>
           )}
         </Group>
         <Tooltip label="Reset context" withArrow>

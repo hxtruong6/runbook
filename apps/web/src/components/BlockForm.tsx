@@ -81,7 +81,7 @@ function Field({
   const label = usingContext ? (
     <Group gap={6}>
       {field.label}
-      <Badge size="xs" variant="light" color="violet">
+      <Badge size="xs" variant="light" color="indigo">
         ← context: {field.fromContextKey}
       </Badge>
     </Group>
@@ -199,7 +199,7 @@ export function BlockForm({ def, overrides, context, onChange }: Props) {
         <Paper withBorder p="xs">
           <Group gap="xs" wrap="nowrap">
             {urlMethod && (
-              <Badge variant="light" color="violet" size="sm">
+              <Badge variant="light" color="indigo" size="sm">
                 {urlMethod}
               </Badge>
             )}

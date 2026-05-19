@@ -79,7 +79,7 @@ export function EnvSwitcher({ onOpenEditor }: Props) {
         styles={{
           input: {
             fontWeight: 500,
-            color: state.activeId ? undefined : 'var(--mantine-color-violet-6)',
+            color: state.activeId ? undefined : 'var(--mantine-color-indigo-6)',
           }
         }}
       />

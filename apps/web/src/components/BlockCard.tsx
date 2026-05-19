@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { Alert, ActionIcon, Badge, Box, Button, Collapse, Group, Menu, Paper, Stack, Text, Textarea, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconLayoutColumns } from "@tabler/icons-react";
@@ -51,6 +50,7 @@ import { BlockForm } from "./BlockForm";
 import { ResponseViewer } from "./ResponseViewer";
 import { openChairsideSocket, type SocketEvent, type SocketSession } from "../api/socket";
 import { SocketEventLog } from "./SocketEventLog";
+import { StatusBadge, type RunStatus } from "./StatusBadge";
 import { SCENARIO_REF_KIND } from "../blocks/scenarioRef";
 import type { Scenario } from "../scenarios/types";
 import { ScenarioRefCard } from "./ScenarioRefCard";
@@ -58,9 +58,10 @@ import { evaluateAssertions, type AssertionResult } from "../execution/assertion
 
 export const STATUS_COLOR_BADGE: Record<string, string> = {
   idle: "gray",
-  running: "yellow",
-  ok: "teal",
-  err: "red",
+  running: "amber",
+  ok: "sage",
+  err: "coral",
+  connected: "sage",
 };
 
 type Props = {
@@ -72,9 +73,15 @@ type Props = {
   onRemove?: () => void;
   onInsertBelow?: () => void;
   onSaveToLibrary?: () => void;
+  /** 0-based position in the scenario; renders the design-system step rail when provided. */
+  index?: number;
+  /** Total blocks in the scenario; hides the rail's bottom line on the last block. */
+  totalBlocks?: number;
+  /** Indicates the currently-running step in a Run-all flow; tints the step circle. */
+  isCurrent?: boolean;
 };
 
-export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplicate, onRemove, onInsertBelow, onSaveToLibrary }: Props) {
+export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplicate, onRemove, onInsertBelow, onSaveToLibrary, index, totalBlocks, isCurrent }: Props) {
   const registry = useBlockRegistry();
   const def = registry[block.kind];
   const { context, dispatch } = useRuntimeContext();
@@ -88,6 +95,17 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
   const [connected, setConnected] = useState(false);
   const [assertionResults, setAssertionResults] = useState<AssertionResult[]>([]);
   const [assertionsOpen, setAssertionsOpen] = useState(false);
+  const [flash, setFlash] = useState<"ok" | "err" | null>(null);
+  // Trigger the result-flash ring on completion. Cleared after ~0.9s so the
+  // animation does not stack on rapid reruns.
+  useEffect(() => {
+    if (!result || running) return;
+    const next = result.status === "ok" ? "ok" : result.status === "err" ? "err" : null;
+    if (!next) return;
+    setFlash(next);
+    const t = setTimeout(() => setFlash(null), 900);
+    return () => clearTimeout(t);
+  }, [result, running]);
 
   const assertions: Assertion[] = (() => {
     try {
@@ -117,7 +135,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
 
   if (!def) {
     return (
-      <Alert color="red" variant="light">
+      <Alert color="coral" variant="light">
         Unknown block kind: {block.kind}
       </Alert>
     );
@@ -127,7 +145,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
 
   function warnNoEnv() {
     notifications.show({
-      color: 'red',
+      color: 'coral',
       title: 'No environment set',
       message: 'Add an environment in the sidebar before running blocks.',
     })
@@ -177,8 +195,8 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
     setConnected(false);
   }
 
-  const status: "idle" | "running" | "ok" | "err" = isSocket
-    ? connected ? "ok" : "idle"
+  const status: RunStatus = isSocket
+    ? connected ? "connected" : "idle"
     : running
     ? "running"
     : result?.status === "ok"
@@ -187,23 +205,18 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
     ? "err"
     : "idle";
 
-  const statusLabel = isSocket ? (connected ? "connected" : "idle") : status;
+  const showRail = typeof index === "number";
+  const isLast = typeof totalBlocks === "number" && typeof index === "number" && index === totalBlocks - 1;
+  const stepStatusCls =
+    status === "running" ? "rb-block-step--running" :
+    status === "ok"      ? "rb-block-step--ok" :
+    status === "err"     ? "rb-block-step--err" : "";
 
-  return (
-    <Paper p="md" mb="sm">
+  const card = (
+    <Paper p="md" mb={showRail ? 0 : "sm"} data-flash={flash ?? undefined} style={{ flex: 1, minWidth: 0 }}>
       <Group justify="space-between" mb="sm">
         <Group gap="sm">
-          <motion.div
-            animate={status === 'running' ? { opacity: [1, 0.35, 1] } : { opacity: 1 }}
-            transition={status === 'running'
-              ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }
-              : { duration: 0.2 }}
-            style={{ display: 'inline-flex' }}
-          >
-            <Badge variant="light" color={STATUS_COLOR_BADGE[status]} size="sm">
-              {statusLabel}
-            </Badge>
-          </motion.div>
+          <StatusBadge status={status} />
           <Title order={6} style={{ margin: 0 }}>
             {def.label}
           </Title>
@@ -228,7 +241,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
               size="sm"
               aria-label={split ? "Switch to stack layout" : "Switch to split layout"}
               onClick={() => setSplit(s => !s)}
-              color={split ? "violet" : undefined}
+              color={split ? "indigo" : undefined}
             >
               <IconLayoutColumns size={14} />
             </ActionIcon>
@@ -237,7 +250,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
             <Button
               variant="filled"
               size="xs"
-              color={connected ? "red" : "violet"}
+              color={connected ? "coral" : "indigo"}
               onClick={connected ? disconnectSocket : connectSocket}
             >
               {connected ? "Disconnect" : "Connect"}
@@ -270,7 +283,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
               {onRemove && (
                 <>
                   <Menu.Divider />
-                  <Menu.Item color="red" onClick={onRemove}>Remove</Menu.Item>
+                  <Menu.Item color="coral" onClick={onRemove}>Remove</Menu.Item>
                 </>
               )}
             </Menu.Dropdown>
@@ -309,7 +322,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
                       variant="subtle"
                       size="xs"
                       onClick={() => setAssertionsOpen(o => !o)}
-                      color={assertions.length > 0 ? "violet" : undefined}
+                      color={assertions.length > 0 ? "indigo" : undefined}
                     >
                       Assertions {assertions.length > 0 ? `(${assertions.length})` : ""}
                     </Button>
@@ -350,7 +363,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
                     <Group key={i} gap="xs">
                       <Badge
                         size="xs"
-                        color={ar.passed ? "teal" : "red"}
+                        color={ar.passed ? "sage" : "coral"}
                         variant="light"
                       >
                         {ar.passed ? "pass" : "fail"}
@@ -381,7 +394,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
                   variant="subtle"
                   size="xs"
                   onClick={() => setAssertionsOpen(o => !o)}
-                  color={assertions.length > 0 ? "violet" : undefined}
+                  color={assertions.length > 0 ? "indigo" : undefined}
                 >
                   Assertions {assertions.length > 0 ? `(${assertions.length})` : ""}
                 </Button>
@@ -411,7 +424,7 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
                     <Group key={i} gap="xs">
                       <Badge
                         size="xs"
-                        color={ar.passed ? "teal" : "red"}
+                        color={ar.passed ? "sage" : "coral"}
                         variant="light"
                       >
                         {ar.passed ? "pass" : "fail"}
@@ -429,5 +442,19 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
         </>
       )}
     </Paper>
+  );
+
+  if (!showRail) return card;
+
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "stretch", marginBottom: "var(--mantine-spacing-sm)" }}>
+      <div className="rb-block-rail" aria-hidden="true">
+        <div className={`rb-block-step ${stepStatusCls} ${isCurrent ? "rb-block-step--current" : ""}`}>
+          {(index as number) + 1}
+        </div>
+        {!isLast && <div className="rb-block-rail-line" />}
+      </div>
+      {card}
+    </div>
   );
 }

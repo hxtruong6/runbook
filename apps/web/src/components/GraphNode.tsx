@@ -24,7 +24,7 @@ export function GraphNode({ data, selected }: GraphNodeProps) {
     <Box
       p="sm"
       style={{
-        border: `2px solid ${isOrphan ? "var(--mantine-color-red-4)" : selected ? "var(--mantine-color-violet-5)" : "var(--mantine-color-gray-3)"}`,
+        border: `2px solid ${isOrphan ? "var(--mantine-color-coral-4)" : selected ? "var(--mantine-color-indigo-5)" : "var(--mantine-color-gray-3)"}`,
         borderRadius: "var(--mantine-radius-md)",
         background: isStart ? "var(--mantine-color-gray-1)" : "var(--mantine-color-white)",
         minWidth: 160,
@@ -36,8 +36,8 @@ export function GraphNode({ data, selected }: GraphNodeProps) {
       )}
 
       <Group gap="xs" mb={4}>
-        <Badge size="xs" color="violet" variant="light">{blockInstance.kind}</Badge>
-        {isOrphan && <Badge size="xs" color="red" variant="light">orphan</Badge>}
+        <Badge size="xs" color="indigo" variant="light">{blockInstance.kind}</Badge>
+        {isOrphan && <Badge size="xs" color="coral" variant="light">orphan</Badge>}
       </Group>
 
       {editing ? (
@@ -73,21 +73,21 @@ export function GraphNode({ data, selected }: GraphNodeProps) {
             type="source"
             position={Position.Bottom}
             id="ok"
-            style={{ left: "35%", background: "var(--mantine-color-green-6)" }}
+            style={{ left: "35%", background: "var(--mantine-color-sage-6)" }}
           />
           <Handle
             type="source"
             position={Position.Bottom}
             id="error"
-            style={{ left: "65%", background: "var(--mantine-color-red-6)" }}
+            style={{ left: "65%", background: "var(--mantine-color-coral-6)" }}
           />
         </>
       )}
 
       {!isStart && (
         <Group gap={4} mt={6} justify="space-between">
-          <Text size="10px" c="green">✓ ok</Text>
-          <Text size="10px" c="red">✗ error</Text>
+          <Text size="10px" c="sage">✓ ok</Text>
+          <Text size="10px" c="coral">✗ error</Text>
         </Group>
       )}
     </Box>

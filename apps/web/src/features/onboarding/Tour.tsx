@@ -262,11 +262,11 @@ export function useTour(
 export function TourBanner({ onDismiss, onSignUp }: { onDismiss: () => void; onSignUp: () => void }) {
   return (
     <Alert
-      color="violet"
+      color="indigo"
       variant="light"
       icon={<IconInfoCircle size={16} />}
       radius={0}
-      style={{ borderBottom: "1px solid var(--mantine-color-violet-2)" }}
+      style={{ borderBottom: "1px solid var(--mantine-color-indigo-2)" }}
       styles={{ root: { padding: "var(--mantine-spacing-xs) var(--mantine-spacing-md)" } }}
     >
       <Group justify="space-between" wrap="nowrap">
@@ -365,7 +365,7 @@ export function TourTooltipOverlay({
                 borderRadius: "50%",
                 background:
                   i === stepIndex
-                    ? "var(--mantine-color-violet-6)"
+                    ? "var(--mantine-color-indigo-6)"
                     : "var(--mantine-color-gray-3)",
                 transition: prefersReducedMotion
                   ? "none"
@@ -424,7 +424,7 @@ export function Tour({ onBundleLoaded }: TourProps) {
       )}
 
       {tour.error && (
-        <Alert color="red" variant="light" m="md" icon={<IconInfoCircle size={16} />}>
+        <Alert color="coral" variant="light" m="md" icon={<IconInfoCircle size={16} />}>
           {tour.error}
         </Alert>
       )}

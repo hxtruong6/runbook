@@ -43,7 +43,7 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
       const s = await readScenarioFile(file)
       onImport({ ...s, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
     } catch (err) {
-      notifications.show({ color: 'red', title: 'Invalid scenario file', message: (err as Error).message })
+      notifications.show({ color: 'coral', title: 'Invalid scenario file', message: (err as Error).message })
     }
     e.target.value = ''
   }
@@ -70,7 +70,7 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
             />
           )}
           {activeTeamId && currentUserRole && (
-            <Badge size="xs" color={currentUserRole === 'owner' ? 'violet' : currentUserRole === 'admin' ? 'teal' : 'gray'}>
+            <Badge size="xs" color={currentUserRole === 'owner' ? 'indigo' : currentUserRole === 'admin' ? 'teal' : 'gray'}>
               {currentUserRole}
             </Badge>
           )}
@@ -87,7 +87,7 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
         <Group gap="xs" align="center">
           <Title order={5}>{active?.name ?? 'No scenario'}</Title>
           {active?.reusable === true && (
-            <Badge size="xs" variant="light" color="violet">ref</Badge>
+            <Badge size="xs" variant="light" color="indigo">ref</Badge>
           )}
         </Group>
 

@@ -129,7 +129,7 @@ function CopyBlock({ value }: { value: string }) {
   function handleCopy() {
     navigator.clipboard.writeText(value).then(() => {
       setCopied(true)
-      notifications.show({ color: 'green', message: 'Copied to clipboard', autoClose: 1500 })
+      notifications.show({ color: 'sage', message: 'Copied to clipboard', autoClose: 1500 })
       setTimeout(() => setCopied(false), 2000)
     })
   }
@@ -207,7 +207,7 @@ export function EmbedBadgeModal({ opened, onClose, defaultBundleUrl = '', defaul
         />
 
         {!hasBundle && (
-          <Alert color="blue">
+          <Alert color="sky">
             Enter a bundle URL above to generate embed snippets.
           </Alert>
         )}

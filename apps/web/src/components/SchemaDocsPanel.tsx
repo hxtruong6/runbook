@@ -33,7 +33,7 @@ function FieldTable({ rows }: { rows: { field: string; type: string; required?: 
             <Table.Td>
               <Group gap={4} wrap="nowrap">
                 <Code>{r.field}</Code>
-                {r.required && <Badge size="xs" color="red" variant="light">required</Badge>}
+                {r.required && <Badge size="xs" color="coral" variant="light">required</Badge>}
               </Group>
             </Table.Td>
             <Table.Td><Code c="teal">{r.type}</Code></Table.Td>
@@ -159,7 +159,7 @@ export function SchemaDocsPanel() {
       <div>
         <Title order={3}>JSON Template Reference</Title>
         <Text size="sm" c="dimmed" mt={4}>
-          All formats validated with Zod at import time. Fields marked <Badge size="xs" color="red" variant="light">required</Badge> must be present.
+          All formats validated with Zod at import time. Fields marked <Badge size="xs" color="coral" variant="light">required</Badge> must be present.
         </Text>
       </div>
 
@@ -170,7 +170,7 @@ export function SchemaDocsPanel() {
           <Accordion.Control>
             <Group gap="xs">
               <Text fw={600}>API Block</Text>
-              <Badge size="xs" color="violet" variant="light">BlockDefData</Badge>
+              <Badge size="xs" color="indigo" variant="light">BlockDefData</Badge>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
@@ -284,7 +284,7 @@ export function SchemaDocsPanel() {
           <Accordion.Control>
             <Group gap="xs">
               <Text fw={600}>Environment</Text>
-              <Badge size="xs" color="blue" variant="light">Environment</Badge>
+              <Badge size="xs" color="sky" variant="light">Environment</Badge>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>

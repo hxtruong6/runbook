@@ -69,10 +69,10 @@ function QuickStart() {
         >
           <Group justify="center" gap={0} wrap="nowrap" align="center">
             {[
-              { icon: IconLogin, label: 'Login', color: 'violet', cmd: 'runbook login' },
+              { icon: IconLogin, label: 'Login', color: 'indigo', cmd: 'runbook login' },
               { icon: IconUser, label: 'Verify', color: 'teal', cmd: 'runbook whoami' },
-              { icon: IconCloudUpload, label: 'Publish', color: 'blue', cmd: 'runbook publish' },
-              { icon: IconDownload, label: 'Install', color: 'green', cmd: 'runbook install' },
+              { icon: IconCloudUpload, label: 'Publish', color: 'sky', cmd: 'runbook publish' },
+              { icon: IconDownload, label: 'Install', color: 'sage', cmd: 'runbook install' },
             ].map((step, i, arr) => (
               <>
                 <Stack key={step.cmd} align="center" gap={6} style={{ minWidth: 90 }}>
@@ -159,7 +159,7 @@ function ProfilesGuide() {
       >
         <Stack gap="xs">
           <Group gap="xs">
-            <ThemeIcon size="sm" color="violet" variant="light" radius="xl">
+            <ThemeIcon size="sm" color="indigo" variant="light" radius="xl">
               <IconLayersLinked size={12} />
             </ThemeIcon>
             <Text size="xs" fw={700}>
@@ -170,7 +170,7 @@ function ProfilesGuide() {
           <Group gap="lg" align="flex-start">
             <Stack gap={4} style={{ flex: 1 }}>
               <Group gap={4}>
-                <Badge size="xs" color="violet">active</Badge>
+                <Badge size="xs" color="indigo">active</Badge>
                 <Text size="xs" fw={600}>default</Text>
               </Group>
               <Text size="xs" c="dimmed">localhost:3001</Text>
@@ -235,9 +235,9 @@ function CICDGuide() {
             Override priority (highest → lowest)
           </Text>
           {[
-            { label: 'CLI flags', example: '--server <url> --token <jwt>', color: 'violet' },
+            { label: 'CLI flags', example: '--server <url> --token <jwt>', color: 'indigo' },
             { label: 'Env vars', example: 'RUNBOOK_SERVER  RUNBOOK_TOKEN  RUNBOOK_TEAM', color: 'teal' },
-            { label: 'Active profile', example: '~/.config/runbook/config.json', color: 'blue' },
+            { label: 'Active profile', example: '~/.config/runbook/config.json', color: 'sky' },
           ].map((row, i) => (
             <Group key={i} gap="xs" align="center">
               <Badge size="sm" color={row.color} variant="light" style={{ minWidth: 90 }}>
@@ -299,7 +299,7 @@ export function CLIGuideModal({ opened, onClose }: Props) {
       onClose={onClose}
       title={
         <Group gap="sm">
-          <ThemeIcon size="md" color="violet" variant="light" radius="md">
+          <ThemeIcon size="md" color="indigo" variant="light" radius="md">
             <IconTerminal2 size={16} />
           </ThemeIcon>
           <div>

@@ -42,7 +42,7 @@ export function ProjectSwitcher() {
     if (!file || !activeTeamId) return
     await importBundle(file, activeTeamId)
     if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
-      notifications.show({ color: 'green', message: 'Bundle imported' })
+      notifications.show({ color: 'sage', message: 'Bundle imported' })
     }
     e.target.value = ''
   }
@@ -51,7 +51,7 @@ export function ProjectSwitcher() {
     if (!activeTeamId) return
     await importBundleObject(bundle, activeTeamId)
     if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
-      notifications.show({ color: 'green', message: 'Postman collection imported' })
+      notifications.show({ color: 'sage', message: 'Postman collection imported' })
     }
   }
 
@@ -59,7 +59,7 @@ export function ProjectSwitcher() {
     if (!activeTeamId) return
     await importBundleObject(bundle, activeTeamId)
     if (useProjectsStore.getState().importErrors.length === 0 && !useProjectsStore.getState().error) {
-      notifications.show({ color: 'green', message: 'Bundle imported from GitHub' })
+      notifications.show({ color: 'sage', message: 'Bundle imported from GitHub' })
     }
   }
 
@@ -70,7 +70,7 @@ export function ProjectSwitcher() {
       title: 'Delete project',
       children: <Text size="sm">Delete &ldquo;{project.name}&rdquo; and all its scenarios?</Text>,
       labels: { confirm: 'Delete', cancel: 'Cancel' },
-      confirmProps: { color: 'red' },
+      confirmProps: { color: 'coral' },
       onConfirm: () => deleteProject(activeTeamId, project._id),
     })
   }
@@ -91,7 +91,7 @@ export function ProjectSwitcher() {
               await renameProject(activeTeamId, project._id, trimmed)
               modals.closeAll()
             } catch {
-              notifications.show({ color: 'red', message: 'Failed to rename project' })
+              notifications.show({ color: 'coral', message: 'Failed to rename project' })
             }
           }}
         >
@@ -122,7 +122,7 @@ export function ProjectSwitcher() {
               await createProject(activeTeamId, trimmed)
               modals.closeAll()
             } catch {
-              notifications.show({ color: 'red', message: 'Failed to create project' })
+              notifications.show({ color: 'coral', message: 'Failed to create project' })
             }
           }}
         >
@@ -158,9 +158,9 @@ export function ProjectSwitcher() {
           />
         )}
 
-        {error && <Alert color="red" variant="light">{error}</Alert>}
+        {error && <Alert color="coral" variant="light">{error}</Alert>}
         {importErrors.length > 0 && (
-          <Alert color="red" title="Import errors">
+          <Alert color="coral" title="Import errors">
             {importErrors.map((e, i) => <Text key={i} size="xs">{e}</Text>)}
           </Alert>
         )}
@@ -254,7 +254,7 @@ export function ProjectSwitcher() {
               </Menu.Item>
               <Menu.Divider />
               <Menu.Item
-                color="red"
+                color="coral"
                 leftSection={<IconTrash size={14} />}
                 onClick={handleDelete}
               >

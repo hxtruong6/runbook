@@ -178,7 +178,7 @@ export function GithubImportModal({ opened, onClose, onImport }: Props) {
         />
 
         {error && (
-          <Alert color="red" icon={<IconAlertCircle size={16} />}>
+          <Alert color="coral" icon={<IconAlertCircle size={16} />}>
             {error}
           </Alert>
         )}

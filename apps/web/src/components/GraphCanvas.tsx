@@ -199,14 +199,14 @@ function GraphCanvasInner({ scenario, allScenarios, readOnly, onChange }: Props)
             <div
               key={n.blockInstance.id}
               style={{
-                border: "2px dashed var(--mantine-color-violet-4)",
+                border: "2px dashed var(--mantine-color-indigo-4)",
                 borderRadius: "var(--mantine-radius-md)",
                 padding: "var(--mantine-spacing-sm)",
                 marginTop: "var(--mantine-spacing-sm)",
-                background: "var(--mantine-color-violet-0)",
+                background: "var(--mantine-color-indigo-0)",
               }}
             >
-              <Text size="xs" c="violet" fw={600} mb="xs">
+              <Text size="xs" c="indigo" fw={600} mb="xs">
                 Expanded: {refScenario.name}
               </Text>
               <GraphCanvas

@@ -65,7 +65,7 @@ export function ScenarioRefPickerModal({ opened, onClose, onPick, scenarios }: P
             </Text>
           </div>
           {showBadge && (
-            <Badge size="xs" variant="light" color="violet">
+            <Badge size="xs" variant="light" color="indigo">
               ref
             </Badge>
           )}

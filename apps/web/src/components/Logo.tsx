@@ -7,7 +7,7 @@ type Props = {
 
 export function Logo({ size = 28, withWordmark = true }: Props) {
   const theme = useMantineTheme();
-  const violet = theme.colors.violet[7];
+  const indigo = theme.colors.indigo[7];
   const teal = theme.colors.teal[4];
   const surface = theme.white;
 
@@ -20,7 +20,7 @@ export function Logo({ size = 28, withWordmark = true }: Props) {
         role="img"
         aria-hidden="true"
       >
-        <rect width="64" height="64" rx="14" fill={violet} />
+        <rect width="64" height="64" rx="14" fill={indigo} />
         <rect x="12" y="18" width="22" height="4" rx="2" fill={surface} />
         <rect x="12" y="30" width="22" height="4" rx="2" fill={surface} />
         <rect

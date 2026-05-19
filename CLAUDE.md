@@ -13,25 +13,27 @@
 
 | Need | Use | Don't |
 |---|---|---|
-| Primary action | `<Button>` | `<Button color="indigo">` |
+| Primary action | `<Button>` | `<Button color="violet">` |
 | Secondary color | `color="teal"` | `style={{ color: "#0CA678" }}` |
 | Accent color | `color="amber"` | `style={{ color: "#F08C00" }}` |
-| Status: success | `color="green"` (Mantine built-in) | hardcoded green |
-| Status: danger | `color="red"` | hardcoded red |
-| Status: info | `color="blue"` | hardcoded blue |
+| Status: success | `color="sage"` (warm, calm green) | hardcoded green |
+| Status: danger | `color="coral"` (warm, not aggressive) | hardcoded red |
+| Status: info | `color="sky"` (calm blue) | hardcoded blue |
 | Border radius | `radius="md"` (or omit — `md` is default) | `style={{ borderRadius: 10 }}` |
 | Shadow | `shadow="sm"` | `style={{ boxShadow: "0 2px 4px..." }}` |
 | Padding/margin | `p="md"`, `m="sm"` | `style={{ padding: 16 }}` |
-| In CSS files | `var(--mantine-color-violet-7)` | `#6741D9` |
+| In CSS files | `var(--mantine-color-indigo-7)` | `#4F46E5` |
 | Custom token (motion, chart palette) | `useMantineTheme().other.motion` | redefine inline |
 
 ### Allowed system colors
 
-- **Brand**: `violet` (primary), `teal` (secondary), `amber` (accent), `warmGray` (neutral)
-- **Semantic**: `green` (success), `red` (danger), `blue` (info), `gray` (muted)
+- **Brand**: `indigo` (primary, `#4F46E5`), `teal` (secondary), `amber` (accent), `warmGray` (neutral)
+- **Semantic**: `sage` (success), `coral` (danger), `sky` (info), `gray` (muted)
+  - Mantine built-ins `red` / `green` / `blue` remain temporarily permitted while the codebase migrates to `sage` / `coral` / `sky`; prefer the semantic tokens for new code.
 - **Auth-method badges only** (special semantic set): `blue`, `teal`, `grape`, `amber`, `gray`
+- **HTTP method badges** (via `<MethodBadge>`): `GET` teal, `POST` indigo, `PUT/PATCH` amber, `DELETE` coral.
 
-Anything else (`indigo`, `pink`, `lime`, `orange`, `yellow`, `cyan`) — **don't use**. ESLint will block them. If you need a new color, add it to the `colors` object in `theme.ts`.
+Anything else (`violet`, `pink`, `lime`, `orange`, `yellow`, `cyan`) — **don't use**. ESLint will block them. If you need a new color, add it to the `colors` object in `theme.ts`.
 
 ### Adding new tokens
 

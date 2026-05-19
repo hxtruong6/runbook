@@ -28,7 +28,7 @@ export function PublishBundleModal({ opened, onClose }: Props) {
     try {
       const result = await useProjectsStore.getState().publishBundle(activeTeamId, scenarios)
       setPublishedHash(result.hash)
-      notifications.show({ color: 'green', message: `Published ${result.bundleId} @ ${result.latestVersion}` })
+      notifications.show({ color: 'sage', message: `Published ${result.bundleId} @ ${result.latestVersion}` })
     } catch (e) {
       setError((e as Error).message)
     }
@@ -44,10 +44,10 @@ export function PublishBundleModal({ opened, onClose }: Props) {
     <Modal opened={opened} onClose={handleClose} title="Publish to Registry">
       <Stack gap="md">
         {!project ? (
-          <Alert color="red">No active project selected.</Alert>
+          <Alert color="coral">No active project selected.</Alert>
         ) : publishedHash ? (
           <>
-            <Alert color="green" icon={<IconCheck size={16} />} title="Published">
+            <Alert color="sage" icon={<IconCheck size={16} />} title="Published">
               <Text size="sm" mb={4}>Bundle published successfully.</Text>
               <Text size="xs" c="dimmed" mb={4}>SHA-256 hash:</Text>
               <Code block style={{ wordBreak: 'break-all', fontSize: 11 }}>{publishedHash}</Code>
@@ -64,7 +64,7 @@ export function PublishBundleModal({ opened, onClose }: Props) {
             <Text size="xs" c="dimmed">
               This will publish the current project as a bundle to the registry. Anyone with access to this server can download and install it.
             </Text>
-            {error && <Alert color="red">{error}</Alert>}
+            {error && <Alert color="coral">{error}</Alert>}
             <Group justify="flex-end">
               <Button variant="default" onClick={handleClose}>Cancel</Button>
               <Button

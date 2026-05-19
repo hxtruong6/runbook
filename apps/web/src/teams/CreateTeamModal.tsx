@@ -18,7 +18,7 @@ export function CreateTeamModal() {
           <Text size="sm" c="dimmed">
             Teams group your projects and scenarios. You can invite colleagues later.
           </Text>
-          {error && <Alert color="red">{error}</Alert>}
+          {error && <Alert color="coral">{error}</Alert>}
           <TextInput
             label="Team name"
             placeholder="e.g. Acme Corp"

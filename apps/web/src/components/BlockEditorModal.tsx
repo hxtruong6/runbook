@@ -449,7 +449,7 @@ export function BlockEditorModal({
                   onChange={(e) => updateKV(setHeaders, h.id, "value", e.currentTarget.value)}
                   style={{ flex: 1 }}
                 />
-                <ActionIcon aria-label="Remove header" color="red" variant="subtle" onClick={() => removeKV(setHeaders, h.id)}>
+                <ActionIcon aria-label="Remove header" color="coral" variant="subtle" onClick={() => removeKV(setHeaders, h.id)}>
                   <IconTrash size={16} />
                 </ActionIcon>
               </Group>
@@ -497,7 +497,7 @@ export function BlockEditorModal({
                   onChange={(e) => updateOutput(o.id, { contextKey: e.currentTarget.value })}
                   style={{ flex: 1 }}
                 />
-                <ActionIcon aria-label="Remove output" color="red" variant="subtle" onClick={() => removeOutput(o.id)}>
+                <ActionIcon aria-label="Remove output" color="coral" variant="subtle" onClick={() => removeOutput(o.id)}>
                   <IconTrash size={16} />
                 </ActionIcon>
               </Group>
@@ -512,7 +512,7 @@ export function BlockEditorModal({
       {/* Sticky footer — always visible regardless of scroll position */}
       <Stack gap="xs" pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
         {error && (
-          <Alert color="red" icon={<IconAlertCircle size={16} />}>
+          <Alert color="coral" icon={<IconAlertCircle size={16} />}>
             {error}
           </Alert>
         )}

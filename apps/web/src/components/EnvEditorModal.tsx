@@ -132,7 +132,7 @@ function HeadersEditor({ headers, onChange }: HeadersEditorProps) {
             onChange={(e) => updateValue(idx, e.currentTarget.value)}
             style={{ flex: 1 }}
           />
-          <ActionIcon size="sm" variant="subtle" color="red" onClick={() => removeRow(idx)}>
+          <ActionIcon size="sm" variant="subtle" color="coral" onClick={() => removeRow(idx)}>
             <TrashIcon />
           </ActionIcon>
         </Group>
@@ -292,13 +292,13 @@ export function EnvEditorModal({ opened, onClose }: Props) {
     const result = EnvironmentSchema.safeParse(draft);
     if (!result.success) {
       const msg = result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
-      notifications.show({ color: "red", title: "Validation error", message: msg });
+      notifications.show({ color: "coral", title: "Validation error", message: msg });
       return;
     }
 
     const isDuplicateName = state.environments.some((e) => e.name === draft.name && e.id !== draft.id);
     if (isDuplicateName) {
-      notifications.show({ color: "red", title: "Validation error", message: "Environment name must be unique." });
+      notifications.show({ color: "coral", title: "Validation error", message: "Environment name must be unique." });
       return;
     }
 
@@ -318,7 +318,7 @@ export function EnvEditorModal({ opened, onClose }: Props) {
         </Text>
       ),
       labels: { confirm: "Delete", cancel: "Cancel" },
-      confirmProps: { color: "red" },
+      confirmProps: { color: "coral" },
       onConfirm: () => {
         dispatch({ type: "DELETE", id: envId });
         setSelectedId(null);
@@ -343,7 +343,7 @@ export function EnvEditorModal({ opened, onClose }: Props) {
       setDraft({ ...withNewId });
       notifications.show({ color: "green", title: "Imported", message: `"${withNewId.name}" imported.` });
     } catch (err) {
-      notifications.show({ color: "red", title: "Import failed", message: (err as Error).message });
+      notifications.show({ color: "coral", title: "Import failed", message: (err as Error).message });
     }
     e.target.value = "";
   }
@@ -387,8 +387,8 @@ export function EnvEditorModal({ opened, onClose }: Props) {
                     shadow={isSelected ? "sm" : "xs"}
                     style={{
                       cursor: "pointer",
-                      backgroundColor: isSelected ? "var(--mantine-color-violet-0)" : undefined,
-                      borderColor: isSelected ? "var(--mantine-color-violet-3)" : undefined,
+                      backgroundColor: isSelected ? "var(--mantine-color-indigo-0)" : undefined,
+                      borderColor: isSelected ? "var(--mantine-color-indigo-3)" : undefined,
                     }}
                     onClick={() => selectEnv(env.id)}
                   >
@@ -462,7 +462,7 @@ export function EnvEditorModal({ opened, onClose }: Props) {
               <Group gap={8} justify="space-between">
                 <Group gap={8}>
                   {isExisting && (
-                    <Button size="xs" color="red" variant="light" onClick={handleDelete}>
+                    <Button size="xs" color="coral" variant="light" onClick={handleDelete}>
                       Delete
                     </Button>
                   )}

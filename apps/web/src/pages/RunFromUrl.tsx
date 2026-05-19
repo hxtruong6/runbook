@@ -190,7 +190,7 @@ export function RunFromUrl({ onNavigateHome }: Props) {
         {/* CORS error */}
         {state.status === 'cors_error' && (
           <Alert
-            color="red"
+            color="coral"
             title="CORS blocked"
             icon={<IconAlertCircle size={16} />}
           >
@@ -210,7 +210,7 @@ export function RunFromUrl({ onNavigateHome }: Props) {
         {/* Schema error */}
         {state.status === 'schema_error' && (
           <Alert
-            color="red"
+            color="coral"
             title="Invalid bundle format"
             icon={<IconAlertCircle size={16} />}
           >
@@ -231,7 +231,7 @@ export function RunFromUrl({ onNavigateHome }: Props) {
         {/* Generic network error */}
         {state.status === 'network_error' && (
           <Alert
-            color="red"
+            color="coral"
             title="Could not load bundle"
             icon={<IconAlertCircle size={16} />}
           >
@@ -247,7 +247,7 @@ export function RunFromUrl({ onNavigateHome }: Props) {
         {/* Ready — bundle loaded, confirm import */}
         {state.status === 'ready' && (
           <Stack gap="md">
-            <Alert color="blue" title="Bundle ready">
+            <Alert color="sky" title="Bundle ready">
               <Text size="sm">
                 <strong>{state.bundle.name}</strong>
                 {state.bundle.description && ` — ${state.bundle.description}`}
@@ -281,11 +281,11 @@ export function RunFromUrl({ onNavigateHome }: Props) {
         {/* Imported successfully */}
         {state.status === 'imported' && (
           <Stack gap="md">
-            <Alert color="green" title="Imported">
+            <Alert color="sage" title="Imported">
               <Text size="sm">Bundle imported into your workspace.</Text>
             </Alert>
             <Group>
-              <Button leftSection={<ThemeIcon size={14} color="green" variant="transparent"><IconPlayerPlay size={14} /></ThemeIcon>} onClick={onNavigateHome}>
+              <Button leftSection={<ThemeIcon size={14} color="sage" variant="transparent"><IconPlayerPlay size={14} /></ThemeIcon>} onClick={onNavigateHome}>
                 Open workspace
               </Button>
             </Group>

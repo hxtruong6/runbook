@@ -60,7 +60,7 @@ export function ImportFromRegistryModal({ opened, onClose }: Props) {
       if (!valid) throw new Error('Bundle hash verification failed — bundle may be corrupted')
       await useProjectsStore.getState().importBundleObject(full.bundle, activeTeamId)
       setInstalled((s) => new Set([...s, entry.bundleId]))
-      notifications.show({ color: 'green', message: `Installed "${entry.name}"` })
+      notifications.show({ color: 'sage', message: `Installed "${entry.name}"` })
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -86,7 +86,7 @@ export function ImportFromRegistryModal({ opened, onClose }: Props) {
           onChange={(e) => handleQueryChange(e.currentTarget.value)}
         />
 
-        {error && <Alert color="red">{error}</Alert>}
+        {error && <Alert color="coral">{error}</Alert>}
 
         {loading ? (
           <Group justify="center" py="xl"><Loader size="sm" /></Group>
@@ -114,7 +114,7 @@ export function ImportFromRegistryModal({ opened, onClose }: Props) {
                     </Text>
                   </Stack>
                   {installed.has(entry.bundleId) ? (
-                    <Button size="xs" variant="light" color="green" leftSection={<IconCheck size={14} />} disabled>
+                    <Button size="xs" variant="light" color="sage" leftSection={<IconCheck size={14} />} disabled>
                       Installed
                     </Button>
                   ) : (

@@ -26,9 +26,9 @@ export function UserMenu() {
   async function handleCopyToken() {
     try {
       await navigator.clipboard.writeText(safeToken)
-      notifications.show({ color: 'green', message: 'Token copied to clipboard' })
+      notifications.show({ color: 'sage', message: 'Token copied to clipboard' })
     } catch {
-      notifications.show({ color: 'red', message: 'Could not copy token' })
+      notifications.show({ color: 'coral', message: 'Could not copy token' })
     }
   }
 
@@ -52,7 +52,7 @@ export function UserMenu() {
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item
-          color="red"
+          color="coral"
           leftSection={<IconLogout size={14} />}
           onClick={logout}
         >

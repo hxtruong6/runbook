@@ -192,12 +192,12 @@ export function RunDiff({ current, previous, defaultView = "unified" }: Props) {
       <Group gap="xs">
         <Text size="xs" c="dimmed" fw={600} tt="uppercase">Diff</Text>
         {addedCount > 0 && (
-          <Badge color="green" size="xs" data-testid="diff-added">
+          <Badge color="sage" size="xs" data-testid="diff-added">
             +{addedCount} added
           </Badge>
         )}
         {removedCount > 0 && (
-          <Badge color="red" size="xs" data-testid="diff-removed">
+          <Badge color="coral" size="xs" data-testid="diff-removed">
             -{removedCount} removed
           </Badge>
         )}

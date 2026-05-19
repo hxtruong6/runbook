@@ -306,7 +306,7 @@ function Demo() {
         <AppShell.Header>
           <Group h="100%" px="lg" justify="space-between">
             <Group gap="sm">
-              <ThemeIcon size="lg" radius="md" color="violet">
+              <ThemeIcon size="lg" radius="md" color="indigo">
                 <Text fw={700} c="white" size="sm">
                   32
                 </Text>
@@ -321,12 +321,12 @@ function Demo() {
               </Stack>
             </Group>
             <Group gap="xs">
-              <Badge color="violet">v1.0</Badge>
+              <Badge color="indigo">v1.0</Badge>
               <ThemeToggle />
               <ActionIcon aria-label="Settings">
                 <IconSettings size={18} />
               </ActionIcon>
-              <Avatar radius="xl" color="violet">
+              <Avatar radius="xl" color="indigo">
                 U
               </Avatar>
             </Group>
@@ -344,12 +344,12 @@ function Demo() {
                 withBorder={false}
                 style={{
                   background: dark
-                    ? `linear-gradient(135deg, ${t.colors.violet[9]} 0%, ${t.colors.dark[7]} 60%)`
-                    : `linear-gradient(135deg, ${t.colors.violet[0]} 0%, ${t.white} 60%)`,
+                    ? `linear-gradient(135deg, ${t.colors.indigo[9]} 0%, ${t.colors.dark[7]} 60%)`
+                    : `linear-gradient(135deg, ${t.colors.indigo[0]} 0%, ${t.white} 60%)`,
                 }}
               >
                 <Stack gap="sm">
-                  <Badge color="violet" w="fit-content">
+                  <Badge color="indigo" w="fit-content">
                     Design system v1
                   </Badge>
                   <Title order={1}>One system, every surface.</Title>
@@ -364,7 +364,7 @@ function Demo() {
                         notifications.show({
                           title: "Saved",
                           message: "Tokens applied across the app.",
-                          color: "violet",
+                          color: "indigo",
                         })
                       }
                     >
@@ -385,9 +385,9 @@ function Demo() {
                 <Paper>
                   <SimpleGrid cols={{ base: 3, sm: 6 }} spacing="lg">
                     <Swatch
-                      color={t.colors.violet[7]}
+                      color={t.colors.indigo[7]}
                       label="Primary"
-                      sub="violet 7"
+                      sub="indigo 7"
                     />
                     <Swatch
                       color={t.colors.teal[7]}
@@ -498,7 +498,7 @@ function Demo() {
                       <Stack key={label} gap={4} align="center">
                         <ThemeIcon
                           variant="light"
-                          color="violet"
+                          color="indigo"
                           size="lg"
                           radius="md"
                         >
@@ -537,7 +537,7 @@ function Demo() {
                             width: { xs: 8, sm: 12, md: 16, lg: 24, xl: 32 }[
                               s
                             ],
-                            background: t.colors.violet[5],
+                            background: t.colors.indigo[5],
                             borderRadius: 4,
                           }}
                         />
@@ -650,12 +650,12 @@ function Demo() {
                           +12.4% vs last week
                         </Text>
                       </Stack>
-                      <Ring value={68} color={t.colors.violet[7]} label="68%" />
+                      <Ring value={68} color={t.colors.indigo[7]} label="68%" />
                     </Group>
                   </Card>
                   <Card>
                     <Stack gap="xs">
-                      <Badge color="violet">Settings</Badge>
+                      <Badge color="indigo">Settings</Badge>
                       <Text fw={600}>Quick actions</Text>
                       <Switch label="Auto-refresh" defaultChecked />
                       <Switch label="Compact mode" />
@@ -689,7 +689,7 @@ function Demo() {
                             82%
                           </Text>
                         </Group>
-                        <Progress value={82} color="violet" radius="xl" />
+                        <Progress value={82} color="indigo" radius="xl" />
                       </Stack>
                     </Stack>
                   </Card>
@@ -739,7 +739,7 @@ function Demo() {
                         <Table.Tr key={r.name}>
                           <Table.Td>
                             <Group gap="sm">
-                              <Avatar size="sm" color="violet" radius="xl">
+                              <Avatar size="sm" color="indigo" radius="xl">
                                 {r.name[0]}
                               </Avatar>
                               <Text size="sm" fw={500}>
@@ -881,7 +881,7 @@ function Demo() {
                             Today
                           </Text>
                           <Title order={3}>$19,350</Title>
-                          <Progress value={68} color="violet" radius="xl" />
+                          <Progress value={68} color="indigo" radius="xl" />
                         </Stack>
                       </Card>
                       <Button fullWidth size="md">

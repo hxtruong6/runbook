@@ -20,7 +20,7 @@ export function InferenceBanner({ kind }: { kind: string }) {
     <>
       <Alert
         mt="xs"
-        color={hasDrift ? "amber" : "violet"}
+        color={hasDrift ? "amber" : "indigo"}
         variant="light"
         icon={hasDrift ? <IconAlertTriangle size={16} /> : <IconCamera size={16} />}
       >

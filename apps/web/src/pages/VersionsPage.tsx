@@ -57,7 +57,7 @@ function VersionList({
                   {v.version}
                 </Text>
                 {idx === 0 && (
-                  <Badge size="xs" color="violet">
+                  <Badge size="xs" color="indigo">
                     latest
                   </Badge>
                 )}
@@ -184,7 +184,7 @@ export function VersionsPage({ opened, onClose }: VersionsPageProps) {
         </Stack>
       ) : !project ? (
         <Stack p="md">
-          <Alert color="blue">No project selected. Open a project first.</Alert>
+          <Alert color="sky">No project selected. Open a project first.</Alert>
         </Stack>
       ) : showEmpty ? (
         <Stack align="center" gap="md" py="xl" px="md">

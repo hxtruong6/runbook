@@ -78,12 +78,12 @@ export function BlockFilterBar({
           {Array.from(selectedTags).map((tag) => (
             <Badge
               key={tag}
-              color="violet"
+              color="indigo"
               rightSection={
                 <ActionIcon
                   size="xs"
                   variant="transparent"
-                  color="violet"
+                  color="indigo"
                   aria-label={`Remove tag ${tag}`}
                   onClick={() => onToggleTag(tag)}
                 >
@@ -105,7 +105,7 @@ export function BlockFilterBar({
           <Text
             component="button"
             size="xs"
-            c="violet"
+            c="indigo"
             onClick={onClear}
             style={{
               background: "none",

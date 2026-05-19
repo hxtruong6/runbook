@@ -184,7 +184,7 @@ export function OpenApiImporterModal({ opened, onClose, onImport }: Props) {
           </Tabs>
 
           {error && (
-            <Alert color="red" icon={<IconAlertCircle size={16} />}>
+            <Alert color="coral" icon={<IconAlertCircle size={16} />}>
               {error}
             </Alert>
           )}
@@ -252,7 +252,7 @@ export function OpenApiImporterModal({ opened, onClose, onImport }: Props) {
           </ScrollArea.Autosize>
 
           {error && (
-            <Alert color="red" icon={<IconAlertCircle size={16} />}>
+            <Alert color="coral" icon={<IconAlertCircle size={16} />}>
               {error}
             </Alert>
           )}

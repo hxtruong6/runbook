@@ -39,6 +39,7 @@ import type { BlockDefData } from "./blocks/dataBlock";
 import { RunFromUrl } from "./pages/RunFromUrl";
 import { EmbedBadgeModal } from "./features/share/EmbedBadgeModal";
 import { EmptyState } from "./components/EmptyState";
+import { maybeShowSmallMercy } from "./features/feedback/smallMercy";
 import {
   ActionIcon,
   Alert,
@@ -248,6 +249,8 @@ export function AppContent() {
       lastResponse: lastOk?.response ?? null,
     });
     setRunVersion((v) => v + 1);
+    const allPassed = collectedResults.length > 0 && collectedResults.every((r) => r.status === "ok");
+    maybeShowSmallMercy({ blockCount: active.blocks.length, allPassed });
   }
 
   async function importScenario(s: Scenario) {
@@ -306,7 +309,7 @@ export function AppContent() {
       title: 'Delete scenario',
       children: <Text size="sm">Delete &ldquo;{scenario.name}&rdquo;? This cannot be undone.</Text>,
       labels: { confirm: 'Delete', cancel: 'Cancel' },
-      confirmProps: { color: 'red' },
+      confirmProps: { color: 'coral' },
       onConfirm: () => {
         if (!activeTeamId) return
         deleteScenario(activeTeamId, scenario.id)
@@ -383,7 +386,7 @@ export function AppContent() {
             upsertLocalBlock(newBlock)
             setLocalBlocks(loadLocalBlocks())
             modals.closeAll()
-            notifications.show({ color: 'green', message: `"${finalName}" saved to Block Library` })
+            notifications.show({ color: 'sage', message: `"${finalName}" saved to Block Library` })
           }}>
             Save
           </Button>
@@ -406,9 +409,9 @@ export function AppContent() {
   return (
     <RegistryProvider registry={registry}>
       <AppShell
-        navbar={{ width: 240, breakpoint: 'sm', collapsed: { desktop: navbarCollapsed, mobile: navbarCollapsed } }}
+        navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: navbarCollapsed, mobile: navbarCollapsed } }}
         aside={{ width: 320, breakpoint: 'md', collapsed: { desktop: asideCollapsed, mobile: asideCollapsed } }}
-        header={{ height: isGuest ? 92 : 60 }}
+        header={{ height: isGuest ? 88 : 56 }}
         padding="md"
       >
         <AppShell.Header>
@@ -446,7 +449,7 @@ export function AppContent() {
           <Group gap={4} px="xs" pt="xs" pb="xs" style={{ flexShrink: 0, borderBottom: '1px solid var(--mantine-color-default-border)' }}>
             <Button
               variant={sidebarMode === 'scenarios' ? 'filled' : 'subtle'}
-              color="violet"
+              color="indigo"
               size="xs"
               leftSection={<IconClipboardList size={14} />}
               aria-label="Scenarios view"
@@ -457,7 +460,7 @@ export function AppContent() {
             </Button>
             <Button
               variant={sidebarMode === 'library' ? 'filled' : 'subtle'}
-              color="violet"
+              color="indigo"
               size="xs"
               leftSection={<IconBook2 size={14} />}
               aria-label="Block library view"
@@ -524,7 +527,7 @@ export function AppContent() {
                 </Stack>
               ) : scenariosError ? (
                 <Stack gap={6}>
-                  <Alert color="red">{scenariosError}</Alert>
+                  <Alert color="coral">{scenariosError}</Alert>
                   <Button size="xs" variant="default" onClick={() => {
                     if (activeTeamId && activeProjectId) fetchScenarios(activeTeamId, activeProjectId)
                   }}>Retry</Button>
@@ -573,7 +576,7 @@ export function AppContent() {
                                     await useProjectsStore.getState().createProject(activeTeamId, trimmed)
                                     modals.closeAll()
                                   } catch {
-                                    notifications.show({ color: 'red', message: 'Failed to create project' })
+                                    notifications.show({ color: 'coral', message: 'Failed to create project' })
                                   }
                                 }}>
                                   <TextInput
@@ -624,7 +627,7 @@ export function AppContent() {
                                 }}>
                                   {s.reusable ? 'Make a flow' : 'Make reusable'}
                                 </Menu.Item>
-                                <Menu.Item color="red" onClick={(e) => { e.stopPropagation(); openDeleteModal(s) }}>
+                                <Menu.Item color="coral" onClick={(e) => { e.stopPropagation(); openDeleteModal(s) }}>
                                   Delete
                                 </Menu.Item>
                               </Menu.Dropdown>
@@ -660,7 +663,7 @@ export function AppContent() {
           </Tabs>
         </AppShell.Aside>
 
-        <AppShell.Main>
+        <AppShell.Main style={{ maxWidth: 920, marginLeft: "auto", marginRight: "auto" }}>
           {active && (
             <Group mb="md">
               <SegmentedControl
@@ -703,6 +706,8 @@ export function AppContent() {
                       >
                         <BlockCard
                           block={b}
+                          index={i}
+                          totalBlocks={active.blocks.length}
                           scenarios={scenarios}
                           onChange={(next) => {
                             const updatedBlocks = [...active.blocks];
@@ -721,7 +726,7 @@ export function AppContent() {
                               title: 'Remove block',
                               children: <Text size="sm">Remove this block? This cannot be undone.</Text>,
                               labels: { confirm: 'Remove', cancel: 'Cancel' },
-                              confirmProps: { color: 'red' },
+                              confirmProps: { color: 'coral' },
                               onConfirm: () => updateActive({ ...active, blocks: active.blocks.filter((_, idx) => idx !== i) }),
                             })
                           }}
@@ -746,7 +751,7 @@ export function AppContent() {
                   </AnimatePresence>
                   {active.blocks.length === 0 && (
                     <Stack align="center" gap="xs" py="xl">
-                      <ThemeIcon size={56} radius="xl" variant="light" color="violet">
+                      <ThemeIcon size={56} radius="xl" variant="light" color="indigo">
                         <IconClipboardList size={28} />
                       </ThemeIcon>
                       <Text fw={600} size="lg">This scenario is empty</Text>
@@ -767,7 +772,7 @@ export function AppContent() {
                 <Stack align="center" gap="md" py="xl">
                   {activeProjectId && scenarios.length === 0 ? (
                     <>
-                      <ThemeIcon size={56} radius="xl" variant="light" color="violet">
+                      <ThemeIcon size={56} radius="xl" variant="light" color="indigo">
                         <IconClipboardList size={28} />
                       </ThemeIcon>
                       <Text fw={600} size="lg">Start your first scenario</Text>
@@ -789,7 +794,7 @@ export function AppContent() {
                             }
                           }}
                         >
-                          <ThemeIcon size={40} radius="md" variant="light" color="violet" mb="sm">
+                          <ThemeIcon size={40} radius="md" variant="light" color="indigo" mb="sm">
                             <IconPlus size={20} />
                           </ThemeIcon>
                           <Text fw={600} size="sm">Start blank</Text>

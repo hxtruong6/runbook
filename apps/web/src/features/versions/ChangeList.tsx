@@ -64,7 +64,7 @@ const CATEGORY_META: Record<
   },
   removed: {
     label: "Removed",
-    color: "red",
+    color: "coral",
     icon: <IconMinus size={14} />,
   },
   note: {
@@ -111,7 +111,7 @@ function ChangeRow({ change }: { change: ChangeEntry }) {
         {change.type}
       </Badge>
       {change.breaking && (
-        <Badge color="red" variant="filled" size="xs">
+        <Badge color="coral" variant="filled" size="xs">
           BREAKING
         </Badge>
       )}
@@ -207,7 +207,7 @@ export function ChangeList({ versionLabel, changes }: ChangeListProps) {
       })
       .catch(() => {
         notifications.show({
-          color: "red",
+          color: "coral",
           message: "Could not copy to clipboard",
         });
       });

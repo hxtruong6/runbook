@@ -92,7 +92,7 @@ function SharedRunView({ data, onFork, forkLoading }: ViewProps) {
               <Text size="sm" fw={500}>{entry.label}</Text>
               <Badge color="teal" variant="light">{entry.kind}</Badge>
               {result.httpStatus !== undefined && (
-                <Badge color="blue" variant="outline">
+                <Badge color="sky" variant="outline">
                   HTTP {result.httpStatus}
                 </Badge>
               )}
@@ -102,7 +102,7 @@ function SharedRunView({ data, onFork, forkLoading }: ViewProps) {
             </Group>
 
             {'error' in result && result.error != null && (
-              <Alert color="red" icon={<IconAlertTriangle size={14} />} mt="xs">
+              <Alert color="coral" icon={<IconAlertTriangle size={14} />} mt="xs">
                 {String(result.error)}
               </Alert>
             )}
@@ -130,7 +130,7 @@ function SharedRunView({ data, onFork, forkLoading }: ViewProps) {
       {/* Header */}
       <Group justify="space-between" wrap="nowrap">
         <Group gap="sm">
-          <ThemeIcon size={40} radius="md" variant="light" color="violet">
+          <ThemeIcon size={40} radius="md" variant="light" color="indigo">
             <IconClipboardList size={20} />
           </ThemeIcon>
           <Box>
@@ -231,16 +231,16 @@ function SharedRunFromSlug({ slug }: { slug: string }) {
       return
     }
     if (!activeTeamId) {
-      notifications.show({ color: 'red', message: 'Sign in and select a team first.' })
+      notifications.show({ color: 'coral', message: 'Sign in and select a team first.' })
       return
     }
 
     setForking(true)
     try {
       await importBundleObject(share.payload.bundle as never, activeTeamId)
-      notifications.show({ color: 'green', title: 'Bundle imported!', message: 'The bundle has been added to your workspace.' })
+      notifications.show({ color: 'sage', title: 'Bundle imported!', message: 'The bundle has been added to your workspace.' })
     } catch (err) {
-      notifications.show({ color: 'red', title: 'Import failed', message: (err as Error).message })
+      notifications.show({ color: 'coral', title: 'Import failed', message: (err as Error).message })
     } finally {
       setForking(false)
     }
@@ -262,14 +262,14 @@ function SharedRunFromSlug({ slug }: { slug: string }) {
   if (error || !share) {
     return (
       <Stack p="xl" maw={720} mx="auto" gap="md" align="center" py="xl">
-        <ThemeIcon size={56} radius="xl" variant="light" color="red">
+        <ThemeIcon size={56} radius="xl" variant="light" color="coral">
           <IconAlertTriangle size={28} />
         </ThemeIcon>
         <Title order={3}>Share not found</Title>
         <Text c="dimmed" ta="center" maw={360}>
           {error ?? 'This share link has expired or does not exist.'}
         </Text>
-        <Alert color="red" icon={<IconAlertTriangle size={16} />}>
+        <Alert color="coral" icon={<IconAlertTriangle size={16} />}>
           Share links expire after 30 days.
         </Alert>
       </Stack>

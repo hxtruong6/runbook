@@ -105,7 +105,7 @@ export function SearchModal({
   }
 
   function colorFor(category: ResultItem["category"]) {
-    if (category === "scenario") return "violet";
+    if (category === "scenario") return "indigo";
     if (category === "block") return "teal";
     return "amber";
   }

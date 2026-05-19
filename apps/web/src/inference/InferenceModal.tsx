@@ -114,7 +114,7 @@ export function InferenceModal({
         <Group justify="flex-end">
           <Button
             variant="subtle"
-            color="red"
+            color="coral"
             leftSection={<IconTrash size={14} />}
             onClick={handleClear}
           >

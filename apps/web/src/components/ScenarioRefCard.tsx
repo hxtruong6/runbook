@@ -121,7 +121,7 @@ export function ScenarioRefCard({
           <Badge variant="light" color={STATUS_COLOR_BADGE[status]} size="sm">
             {status}
           </Badge>
-          <Badge color="violet" variant="light" size="sm">
+          <Badge color="indigo" variant="light" size="sm">
             scenario
           </Badge>
           {referencedScenario ? (
@@ -159,7 +159,7 @@ export function ScenarioRefCard({
               {onRemove && (
                 <>
                   <Menu.Divider />
-                  <Menu.Item color="red" onClick={onRemove}>Remove</Menu.Item>
+                  <Menu.Item color="coral" onClick={onRemove}>Remove</Menu.Item>
                 </>
               )}
             </Menu.Dropdown>
@@ -225,7 +225,7 @@ export function ScenarioRefCard({
             </Accordion>
           ) : (
             result.status === "err" && result.error && (
-              <Alert color="red" variant="light" mt="sm">
+              <Alert color="coral" variant="light" mt="sm">
                 <Text size="xs">{result.error}</Text>
               </Alert>
             )

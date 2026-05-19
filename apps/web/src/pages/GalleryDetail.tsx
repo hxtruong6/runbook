@@ -68,7 +68,7 @@ export function GalleryDetail({ slug, onNavigate }: GalleryDetailProps) {
     if (bundleState.status !== "loaded") return;
     if (!activeTeamId) {
       notifications.show({
-        color: "red",
+        color: "coral",
         title: "No active team",
         message: "Sign in and select a team before loading a bundle.",
       });
@@ -78,7 +78,7 @@ export function GalleryDetail({ slug, onNavigate }: GalleryDetailProps) {
     const validation = ProjectBundleSchema.safeParse(bundleState.bundle);
     if (!validation.success) {
       notifications.show({
-        color: "red",
+        color: "coral",
         title: "Invalid bundle",
         message: "Bundle failed schema validation.",
       });
@@ -97,7 +97,7 @@ export function GalleryDetail({ slug, onNavigate }: GalleryDetailProps) {
       onNavigate("/");
     } catch {
       notifications.show({
-        color: "red",
+        color: "coral",
         title: "Import failed",
         message: "Could not load the bundle into your workspace.",
       });
@@ -139,13 +139,13 @@ export function GalleryDetail({ slug, onNavigate }: GalleryDetailProps) {
           {bundleState.status === "error" && (
             <Alert
               icon={<IconAlertCircle size={16} />}
-              color="red"
+              color="coral"
               title="Failed to load bundle"
             >
               {bundleState.message}
               <Button
                 variant="light"
-                color="red"
+                color="coral"
                 size="xs"
                 mt="sm"
                 onClick={() => window.location.reload()}
@@ -188,7 +188,7 @@ export function GalleryDetail({ slug, onNavigate }: GalleryDetailProps) {
                     {latestVersion.scenarios.length !== 1 ? "s" : ""}
                   </Badge>
                   {entry?.tags.map((tag) => (
-                    <Badge key={tag} color="violet" variant="outline">
+                    <Badge key={tag} color="indigo" variant="outline">
                       <Group gap={4}>
                         <IconTag size={10} />
                         {tag}

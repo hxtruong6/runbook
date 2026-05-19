@@ -251,7 +251,7 @@ export function BurstDrawer({ opened, onClose, scenario, deps }: Props) {
         </Group>
         <BurstTimeline tickStates={tickStates} />
         <Group mt="xl">
-          <Button color="red" variant="default" onClick={cancelBurst}>Cancel</Button>
+          <Button color="coral" variant="default" onClick={cancelBurst}>Cancel</Button>
         </Group>
       </Box>
     );
@@ -282,7 +282,7 @@ export function BurstDrawer({ opened, onClose, scenario, deps }: Props) {
               <Accordion.Item key={i} value={String(i)}>
                 <Accordion.Control>
                   <Group gap="sm">
-                    <Badge color="red">{grp.count}×</Badge>
+                    <Badge color="coral">{grp.count}×</Badge>
                     <Text size="sm" truncate style={{ maxWidth: 360 }}>{grp.message}</Text>
                   </Group>
                 </Accordion.Control>

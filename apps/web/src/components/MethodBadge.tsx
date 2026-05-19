@@ -1,13 +1,19 @@
 import { Badge } from '@mantine/core'
 
 export const METHOD_COLORS: Record<string, string> = {
-  GET: 'green',
-  POST: 'blue',
+  GET: 'teal',
+  HEAD: 'teal',
+  POST: 'indigo',
   PUT: 'amber',
   PATCH: 'amber',
-  DELETE: 'red',
-  HEAD: 'gray',
+  DELETE: 'coral',
   OPTIONS: 'gray',
+  WS: 'sky',
+  SOCKET: 'sky',
+  SSE: 'sky',
+  GRAPHQL: 'gray',
+  RPC: 'gray',
+  GRPC: 'gray',
 }
 
 type Props = {

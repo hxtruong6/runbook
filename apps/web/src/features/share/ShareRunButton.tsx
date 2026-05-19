@@ -37,13 +37,13 @@ export function ShareRunButton({ scenarioId, runResult, bundleId, bundle }: Prop
 
       await navigator.clipboard.writeText(url)
       notifications.show({
-        color: 'green',
+        color: 'sage',
         title: 'Link copied!',
         message: 'Shareable run link copied to clipboard.',
       })
     } catch {
       notifications.show({
-        color: 'red',
+        color: 'coral',
         title: 'Share failed',
         message: 'Could not create share link. Please try again.',
       })
