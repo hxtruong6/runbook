@@ -124,7 +124,7 @@ export function TopBar({ active, onRunAll, onImport, onDuplicate, onToggleReusab
                   setInferenceEnabled(next)
                   setInferenceEnabledState(next)
                   notifications.show({
-                    color: next ? 'green' : 'gray',
+                    color: next ? 'sage' : 'gray',
                     message: `Schema inference ${next ? 'enabled' : 'disabled'}`,
                   })
                 }}

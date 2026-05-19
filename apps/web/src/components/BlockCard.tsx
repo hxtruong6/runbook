@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, ActionIcon, Badge, Box, Button, Collapse, Group, Menu, Paper, Stack, Text, Textarea, Title } from "@mantine/core";
+import { Alert, ActionIcon, Badge, Box, Button, Collapse, Group, Menu, Paper, Stack, Text, Textarea } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconLayoutColumns } from "@tabler/icons-react";
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle, type Layout } from "react-resizable-panels";
@@ -205,6 +205,8 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
     ? "err"
     : "idle";
 
+  const capturedKeys = result?.status === "ok" && result.captured ? Object.keys(result.captured) : [];
+
   const showRail = typeof index === "number";
   const isLast = typeof totalBlocks === "number" && typeof index === "number" && index === totalBlocks - 1;
   const stepStatusCls =
@@ -217,9 +219,10 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
       <Group justify="space-between" mb="sm">
         <Group gap="sm">
           <StatusBadge status={status} />
-          <Title order={6} style={{ margin: 0 }}>
-            {def.label}
-          </Title>
+          <InlineLabel
+            value={(typeof block.overrides._label === "string" ? block.overrides._label : "") || def.label}
+            onCommit={(next) => onChange({ ...block, overrides: { ...block.overrides, _label: next } })}
+          />
           {/* Hide the kind badge when it's an auto-generated curl/import id
               (looks like "get-users-1-mpa1ftnl"). Built-in kinds stay
               visible because they're useful as context references. */}
@@ -355,6 +358,16 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           <Panel minSize={pct(MIN_SPLIT_PCT)} style={{ minWidth: 0 }}>
             <Box pl="sm">
               <ResponseViewer result={result} />
+              {capturedKeys.length > 0 && (
+                <Group gap={6} mt="xs" wrap="wrap" align="center">
+                  <Text size="xs" c="dimmed" fw={600} tt="uppercase">Captured →</Text>
+                  {capturedKeys.map((k) => (
+                    <Badge key={k} size="xs" color="indigo" variant="light" style={{ fontFamily: 'var(--mantine-font-family-monospace)' }}>
+                      {k}
+                    </Badge>
+                  ))}
+                </Group>
+              )}
               {!isSocket && <InferenceBanner kind={block.kind} />}
               {assertionResults.length > 0 && (
                 <Stack gap={4} mt="xs">
@@ -416,6 +429,16 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           {isSocket ? <SocketEventLog events={events} /> : (
             <>
               <ResponseViewer result={result} />
+              {capturedKeys.length > 0 && (
+                <Group gap={6} mt="xs" wrap="wrap" align="center">
+                  <Text size="xs" c="dimmed" fw={600} tt="uppercase">Captured →</Text>
+                  {capturedKeys.map((k) => (
+                    <Badge key={k} size="xs" color="indigo" variant="light" style={{ fontFamily: 'var(--mantine-font-family-monospace)' }}>
+                      {k}
+                    </Badge>
+                  ))}
+                </Group>
+              )}
               {!isSocket && <InferenceBanner kind={block.kind} />}
               {assertionResults.length > 0 && (
                 <Stack gap={4} mt="xs">
@@ -456,5 +479,67 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
       </div>
       {card}
     </div>
+  );
+}
+
+/* InlineLabel — view shows title + pencil-on-hover. Click or focus to
+ * edit; Enter / blur commits, Esc cancels. Mirrors the handoff
+ * EditableLabel pattern from BlockCard.jsx. */
+function InlineLabel({ value, onCommit }: { value: string; onCommit: (next: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [editing]);
+  useEffect(() => { if (!editing) setDraft(value); }, [value, editing]);
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          const next = draft.trim();
+          if (next && next !== value) onCommit(next);
+          setEditing(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
+          else if (e.key === "Escape") { e.preventDefault(); setDraft(value); setEditing(false); }
+        }}
+        aria-label="Block label"
+        style={{
+          font: "650 14px/1.3 var(--mantine-font-family)",
+          color: "var(--mantine-color-text)",
+          background: "var(--mantine-color-default-hover)",
+          border: "1px solid var(--mantine-color-default-border)",
+          borderRadius: 6,
+          padding: "2px 6px",
+          maxWidth: 280,
+        }}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      aria-label={`Rename "${value}"`}
+      style={{
+        font: "650 14px/1.3 var(--mantine-font-family)",
+        color: "var(--mantine-color-text)",
+        background: "transparent",
+        border: "1px solid transparent",
+        borderRadius: 6,
+        padding: "2px 6px",
+        cursor: "pointer",
+      }}
+    >
+      {value}
+    </button>
   );
 }
