@@ -51,6 +51,9 @@ import { ResponseViewer } from "./ResponseViewer";
 import { openChairsideSocket, type SocketEvent, type SocketSession } from "../api/socket";
 import { SocketEventLog } from "./SocketEventLog";
 import { StatusBadge, type RunStatus } from "./StatusBadge";
+import { SplitRunButton } from "./SplitRunButton";
+import { MethodBadge } from "./MethodBadge";
+import { TokenizedUrl } from "./TokenizedUrl";
 import { SCENARIO_REF_KIND } from "../blocks/scenarioRef";
 import type { Scenario } from "../scenarios/types";
 import { ScenarioRefCard } from "./ScenarioRefCard";
@@ -233,11 +236,6 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           )}
         </Group>
         <Group gap="xs">
-          {onRunFromHere && !isSocket && (
-            <Button variant="default" size="xs" onClick={onRunFromHere}>
-              Run from here
-            </Button>
-          )}
           {!isSocket && (
             <ActionIcon
               variant="subtle"
@@ -259,14 +257,12 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
               {connected ? "Disconnect" : "Connect"}
             </Button>
           ) : (
-            <Button
-              variant="filled"
-              size="xs"
-              loading={running}
-              onClick={runHttp}
-            >
-              Run
-            </Button>
+            <SplitRunButton
+              running={running}
+              onRun={runHttp}
+              onRunFromHere={onRunFromHere}
+              onRunWithOverrides={() => { /* stub: future modal for one-shot overrides */ }}
+            />
           )}
           <Menu shadow="md" width={180} position="bottom-end">
             <Menu.Target>
@@ -275,9 +271,6 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              {onRunFromHere && !isSocket && (
-                <Menu.Item onClick={onRunFromHere}>Run from here</Menu.Item>
-              )}
               {onDuplicate && <Menu.Item onClick={onDuplicate}>Duplicate</Menu.Item>}
               {onInsertBelow && <Menu.Item onClick={onInsertBelow}>Insert below…</Menu.Item>}
               {onSaveToLibrary && !['socketConnect', 'scenario-ref', 'start'].includes(block.kind) && (
@@ -293,6 +286,24 @@ export function BlockCard({ block, onChange, onRunFromHere, scenarios, onDuplica
           </Menu>
         </Group>
       </Group>
+      {!isSocket && def.urlTemplate && (
+        <Group
+          gap="xs"
+          mb="sm"
+          px="xs"
+          py={6}
+          wrap="nowrap"
+          style={{
+            border: '1px solid var(--mantine-color-default-border)',
+            borderRadius: 'var(--mantine-radius-md)',
+            background: 'var(--mantine-color-default-hover)',
+            overflow: 'hidden',
+          }}
+        >
+          <MethodBadge method={def.method ?? 'GET'} size="xs" />
+          <TokenizedUrl url={def.urlTemplate} />
+        </Group>
+      )}
       {split ? (
         <PanelGroup
           orientation="horizontal"
