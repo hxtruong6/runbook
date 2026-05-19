@@ -92,6 +92,40 @@ Use `@tabler/icons-react`. Sizes: 14 / 16 / 18 / 20 / 24. Don't use unicode glyp
 
 `main.tsx` already wires `defaultColorScheme="auto"` — components must work in both light and dark. Don't hardcode background or text colors; use Mantine tokens.
 
+## UI/UX principles
+
+These principles apply to every component, every context. They are not sidebar-specific rules — they transfer to any new UI work.
+
+### 1. Size and weight must match context
+
+A control's visual weight should match the importance and available space of its container. The same action can be a large filled Button on a landing page and an `xs` icon button inside a list card — both are correct because they match their context. Mantine component defaults are tuned for standalone forms and full-width pages; always reconsider size when placing controls inside panels, sidebars, toolbars, or list items.
+
+Ask: *"Is this the most prominent thing on the screen right now?"* If no, reduce its size.
+
+### 2. Density matches the nature of the view
+
+- **Data-dense views** (sidebars, panels, tables, list items): compact spacing, smaller text, `xs`/`sm` sized controls.
+- **Primary screens and modals**: comfortable spacing, default sizes.
+- **Never mix densities** in the same region — a large button next to small text creates visual noise.
+
+### 3. Every unbounded list must scroll within its container
+
+If a list can grow beyond the screen, it needs `overflowY: auto` and a `maxHeight` anchored to a viewport unit or a known parent height. Letting content push the page layout is a bug, not a default.
+
+### 4. Inline actions are secondary — style them that way
+
+Edit, delete, and other per-row actions are not primary CTAs. They must be visually subordinate to the content they act on: smaller, lower contrast, revealed on hover where possible. An action icon the same size as the label it belongs to competes with the content.
+
+### 5. Visual review is mandatory before marking UI work done
+
+After any UI change: take a screenshot (Playwright or browser) and look at it. Check:
+- Do control sizes feel proportional to their container?
+- Does text truncate cleanly rather than overflow or wrap unexpectedly?
+- Is the list scrollable if it can grow?
+- Does it look right at both a narrow sidebar width and a wide layout?
+
+Do not report UI work complete without having looked at a rendered screenshot. Code review does not substitute for visual review.
+
 ## Linting
 
 ```bash

@@ -25,9 +25,11 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
       // Open ⋯ menu on the new scenario — use the scenario-specific aria-label set by B2 fix
       await page.getByRole('button', { name: /Untitled scenario options/i }).click()
       await page.getByRole('menuitem', { name: /rename/i }).click()
-      await page.getByRole('textbox').last().clear()
-      await page.getByRole('textbox').last().fill('My Renamed Scenario')
-      await page.getByRole('button', { name: /save|confirm/i }).last().click()
+      const renameDialog = page.getByRole('dialog')
+      await expect(renameDialog).toBeVisible({ timeout: 5000 })
+      await renameDialog.getByRole('textbox').clear()
+      await renameDialog.getByRole('textbox').fill('My Renamed Scenario')
+      await renameDialog.getByRole('button', { name: /save/i }).click()
       await expect(page.getByText('My Renamed Scenario').first()).toBeVisible({ timeout: 5000 })
     })
 
@@ -68,8 +70,12 @@ test.describe('Journey 13 — Scenario Lifecycle', () => {
     await page.getByRole('button', { name: 'Scenarios view' }).click()
     await page.getByRole('button', { name: /My first scenario options/i }).click()
     await page.getByRole('menuitem', { name: /rename/i }).click()
-    await page.getByRole('textbox').last().clear()
-    // Save must be disabled when name is empty
-    await expect(page.getByRole('button', { name: /save|confirm/i }).last()).toBeDisabled()
+    const renameDialog = page.getByRole('dialog')
+    await expect(renameDialog).toBeVisible({ timeout: 5000 })
+    await renameDialog.getByRole('textbox').clear()
+    // Submitting with empty name — dialog stays open with validation error
+    await renameDialog.getByRole('button', { name: /save/i }).click()
+    await expect(renameDialog).toBeVisible({ timeout: 2_000 })
+    await expect(renameDialog.getByText(/cannot be empty/i)).toBeVisible()
   })
 })

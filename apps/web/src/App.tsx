@@ -47,7 +47,7 @@ import {
   Box,
   Button,
   Code,
-  Collapse,
+
   Divider,
   Group,
   Menu,
@@ -68,7 +68,7 @@ import {
 } from "@mantine/core";
 import { modals, openConfirmModal } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { IconPlus, IconClipboardList, IconDots, IconTerminal2, IconTestPipe, IconBook2, IconChevronDown, IconChevronRight } from "@tabler/icons-react";
+import { IconPlus, IconClipboardList, IconDots, IconTerminal2, IconTestPipe, IconBook2 } from "@tabler/icons-react";
 import { GraphCanvas } from "./components/GraphCanvas";
 import { runGraph } from "./graph/runner";
 import type { GraphData } from "./graph/types";
@@ -103,7 +103,7 @@ export function AppContent() {
   const [asideTab, setAsideTab] = useState<'context' | 'schema'>('context')
   const [whatsNewOpen, setWhatsNewOpen] = useState(false)
   const [embedBadgeOpen, setEmbedBadgeOpen] = useState(false)
-  const [blockLibraryOpen, setBlockLibraryOpen] = useState(true)
+  
   const [previewScenario, setPreviewScenario] = useState<typeof PREBUILT_SCENARIOS[number] | null>(null)
   const [navbarCollapsed, setNavbarCollapsed] = useState(false)
   const [asideCollapsed, setAsideCollapsed] = useState(false)
@@ -263,14 +263,21 @@ export function AppContent() {
 
   function openRenameModal(scenario: Scenario) {
     let newName = scenario.name;
-    modals.open({
-      title: 'Rename scenario',
-      children: (
+    let setError: ((msg: string) => void) | null = null;
+
+    function RenameForm() {
+      const [error, setErrorState] = useState('')
+      setError = setErrorState
+      return (
         <form
           onSubmit={(e) => {
             e.preventDefault()
             const trimmed = newName.trim()
-            if (trimmed && activeTeamId) {
+            if (!trimmed) {
+              setErrorState('Name cannot be empty')
+              return
+            }
+            if (activeTeamId) {
               updateScenario(activeTeamId, { ...scenario, name: trimmed })
             }
             modals.closeAll()
@@ -278,13 +285,19 @@ export function AppContent() {
         >
           <TextInput
             defaultValue={scenario.name}
-            onChange={(e) => { newName = e.currentTarget.value }}
+            onChange={(e) => { newName = e.currentTarget.value; if (setError) setError('') }}
             data-autofocus
             mb="sm"
+            error={error}
           />
           <Button type="submit" size="sm" fullWidth>Save</Button>
         </form>
-      ),
+      )
+    }
+
+    modals.open({
+      title: 'Rename scenario',
+      children: <RenameForm />,
     });
   }
 
@@ -429,34 +442,30 @@ export function AppContent() {
         </AppShell.Header>
 
         <AppShell.Navbar style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Activity bar — mode switcher. Filled variant for the active
-              mode gives a stronger visual anchor; subtle inactive state
-              kept lightweight. */}
-          <Group gap="xs" px="xs" pt="xs" pb="xs" style={{ flexShrink: 0, borderBottom: '1px solid var(--mantine-color-default-border)' }}>
-            <Tooltip label="Scenarios" withinPortal>
-              <ActionIcon
-                variant={sidebarMode === 'scenarios' ? 'filled' : 'subtle'}
-                color="violet"
-                size="lg"
-                aria-label="Scenarios view"
-                aria-pressed={sidebarMode === 'scenarios'}
-                onClick={() => setSidebarMode('scenarios')}
-              >
-                <IconClipboardList size={18} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Block Library" withinPortal>
-              <ActionIcon
-                variant={sidebarMode === 'library' ? 'filled' : 'subtle'}
-                color="violet"
-                size="lg"
-                aria-label="Block library view"
-                aria-pressed={sidebarMode === 'library'}
-                onClick={() => setSidebarMode('library')}
-              >
-                <IconBook2 size={18} />
-              </ActionIcon>
-            </Tooltip>
+          {/* Activity bar — mode switcher */}
+          <Group gap={4} px="xs" pt="xs" pb="xs" style={{ flexShrink: 0, borderBottom: '1px solid var(--mantine-color-default-border)' }}>
+            <Button
+              variant={sidebarMode === 'scenarios' ? 'filled' : 'subtle'}
+              color="violet"
+              size="xs"
+              leftSection={<IconClipboardList size={14} />}
+              aria-label="Scenarios view"
+              aria-pressed={sidebarMode === 'scenarios'}
+              onClick={() => setSidebarMode('scenarios')}
+            >
+              Scenarios
+            </Button>
+            <Button
+              variant={sidebarMode === 'library' ? 'filled' : 'subtle'}
+              color="violet"
+              size="xs"
+              leftSection={<IconBook2 size={14} />}
+              aria-label="Block library view"
+              aria-pressed={sidebarMode === 'library'}
+              onClick={() => setSidebarMode('library')}
+            >
+              Library
+            </Button>
           </Group>
 
           {/* Project section — always visible */}
@@ -483,7 +492,9 @@ export function AppContent() {
             <Group justify="space-between" px="md" py="xs" style={{ flexShrink: 0 }}>
               <Group gap="xs">
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Scenarios</Text>
-                <Badge size="xs" variant="light" color="gray">{scenarios.length}</Badge>
+                {activeProjectId && (
+                  <Badge size="xs" variant="light" color="gray">{scenarios.length}</Badge>
+                )}
               </Group>
               <Tooltip label="New scenario" withinPortal>
                 <ActionIcon
@@ -542,7 +553,42 @@ export function AppContent() {
                         samples={[{ slug: 'openai', name: 'OpenAI API' }]}
                       />
                     ) : (
-                      <Text size="xs" c="dimmed" pl="xs">Select a project above</Text>
+                      <EmptyState
+                        icon={<IconClipboardList size={20} />}
+                        title="No project selected"
+                        helper="Create a project to start organizing your scenarios."
+                        primaryCta={{
+                          label: 'New project',
+                          onClick: () => {
+                            if (!activeTeamId) return
+                            let name = ''
+                            modals.open({
+                              title: 'New project',
+                              children: (
+                                <form onSubmit={async (e) => {
+                                  e.preventDefault()
+                                  const trimmed = name.trim()
+                                  if (!trimmed) return
+                                  try {
+                                    await useProjectsStore.getState().createProject(activeTeamId, trimmed)
+                                    modals.closeAll()
+                                  } catch {
+                                    notifications.show({ color: 'red', message: 'Failed to create project' })
+                                  }
+                                }}>
+                                  <TextInput
+                                    placeholder="Project name"
+                                    onChange={(ev) => { name = ev.currentTarget.value }}
+                                    data-autofocus
+                                    mb="sm"
+                                  />
+                                  <Button type="submit" size="sm" fullWidth>Create</Button>
+                                </form>
+                              ),
+                            })
+                          },
+                        }}
+                      />
                     )
                   ) : (
                     scenarios.map((s) => (
@@ -593,35 +639,6 @@ export function AppContent() {
             </ScrollArea>
           </Stack>
 
-          <Divider />
-
-          {/* Block Library section — collapsible */}
-          <Box style={{ flexShrink: 0, maxHeight: blockLibraryOpen ? 300 : 'auto', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <Group
-              justify="space-between"
-              px="md"
-              py="xs"
-              style={{ cursor: 'pointer', flexShrink: 0 }}
-              onClick={() => setBlockLibraryOpen((o) => !o)}
-            >
-              <Group gap="xs">
-                <IconBook2 size={14} color="var(--mantine-color-dimmed)" />
-                <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Block Library</Text>
-                <Badge size="xs" variant="light" color="gray">{localBlocks.length}</Badge>
-              </Group>
-              {blockLibraryOpen ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
-            </Group>
-            <Collapse in={blockLibraryOpen}>
-              <ScrollArea mah={240} px="md" pb="md">
-                <BlockDefsPanel
-                  localBlocks={localBlocks}
-                  onAdd={(block) => { upsertLocalBlock(block); setLocalBlocks(loadLocalBlocks()) }}
-                  onUpdate={(block) => { upsertLocalBlock(block); setLocalBlocks(loadLocalBlocks()) }}
-                  onDelete={(kind) => { deleteLocalBlock(kind); setLocalBlocks(loadLocalBlocks()) }}
-                />
-              </ScrollArea>
-            </Collapse>
-          </Box>
           </>
           )}
         </AppShell.Navbar>

@@ -19,10 +19,10 @@ test('paste cURL adds block to library', async ({ context, page }) => {
   await page.getByRole('menuitem', { name: /paste curl/i }).click()
 
   await expect(page.getByRole('dialog')).toBeVisible()
-  await page.locator('textarea').fill(HEALTH_CURL)
+  await page.getByRole('textbox', { name: /cURL command/i }).fill(HEALTH_CURL)
 
-  await expect(page.getByText(/GET/)).toBeVisible({ timeout: 3_000 })
-  await expect(page.getByText(/api\/health/i)).toBeVisible()
+  await expect(page.getByText('GET', { exact: true }).first()).toBeVisible({ timeout: 3_000 })
+  await expect(page.getByText(/api\/health/i).first()).toBeVisible()
 
   await page.screenshot({ path: 'e2e/_artifacts/journey-04-curl-preview.png' })
 

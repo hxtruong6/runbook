@@ -65,14 +65,14 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
     const hasDrift = (inf?.lastDrift?.length ?? 0) > 0;
     const isBundle = bundleKinds.has(block.kind) && !localKinds.has(block.kind);
     return (
-      <Paper key={block.kind} withBorder p="sm">
-        <Group justify="space-between" wrap="nowrap">
-          <Stack gap={2}>
-            <Group gap="xs" wrap="wrap">
+      <Paper key={block.kind} withBorder p={8}>
+        <Group justify="space-between" wrap="nowrap" gap={6}>
+          <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+            <Group gap={4} wrap="wrap">
               <Badge size="xs" color={isBundle ? "violet" : "teal"}>
                 {isBundle ? "bundle" : "local"}
               </Badge>
-              <Text fw={500}>{block.label}</Text>
+              <Text size="sm" fw={500} truncate>{block.label}</Text>
               {hasInference && (hasDrift ? (
                 <Badge
                   size="xs"
@@ -107,26 +107,28 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
                 </Badge>
               ))}
             </Group>
-            <Text size="xs" c="dimmed">
+            <Text size="xs" c="dimmed" truncate>
               {block.request.method} {block.request.urlTemplate}
             </Text>
           </Stack>
-          <Group gap="xs" wrap="nowrap">
+          <Group gap={4} wrap="nowrap">
             <ActionIcon
               aria-label={`Edit ${block.label}`}
               variant="subtle"
+              size="sm"
               onClick={() => handleEdit(block)}
             >
-              <IconPencil size={16} />
+              <IconPencil size={14} />
             </ActionIcon>
             {!isBundle && (
               <ActionIcon
                 aria-label={`Delete ${block.label}`}
                 variant="subtle"
                 color="red"
+                size="sm"
                 onClick={() => handleDelete(block.kind, block.label)}
               >
-                <IconTrash size={16} />
+                <IconTrash size={14} />
               </ActionIcon>
             )}
           </Group>
@@ -169,19 +171,12 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
 
   return (
     <>
-      <Stack gap="md">
+      <Stack gap="xs">
         <Group justify="space-between" wrap="nowrap">
-          {/* Section uses the same small uppercase label as Project /
-              Scenarios so it reads as a peer sub-section rather than a
-              competing top-level heading. */}
           <Text size="xs" tt="uppercase" c="dimmed" fw={600}>API Blocks</Text>
-          {/* Single "+ Add block" entry point — opens a menu with all
-              creation paths. Matches the project sidebar's Import menu so
-              users see a consistent "one trigger, many sources" pattern
-              instead of three competing buttons. */}
-          <Menu shadow="md" position="bottom-end" width={220}>
+          <Menu shadow="md" position="bottom-end" width={200}>
             <Menu.Target>
-              <Button size="xs" leftSection={<IconPlus size={14} />}>
+              <Button size="xs" leftSection={<IconPlus size={12} />} px="sm">
                 Add block
               </Button>
             </Menu.Target>
@@ -208,12 +203,9 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
           </Menu>
         </Group>
 
-        {/* Local + bundle blocks combined */}
-        <Stack gap="xs">
-          <Group gap="xs" justify="space-between">
-            <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-              Blocks
-            </Text>
+        <Stack gap={6}>
+          <Group gap={4} justify="space-between">
+            <Text size="xs" tt="uppercase" c="dimmed" fw={600}>Blocks</Text>
             <Group gap={6}>
               {localBlocks.length > 0 && (
                 <Badge size="xs" variant="light" color="teal">
@@ -257,12 +249,14 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
                   primaryCta={{ label: "Clear filters", onClick: filter.clearFilters }}
                 />
               ) : (
-                <BlockTreeNodes
-                  nodes={filter.tree}
-                  renderLeaf={renderBlockLeaf}
-                  isExpanded={filter.isExpanded}
-                  onToggle={filter.toggleExpanded}
-                />
+                <div style={{ overflowY: 'auto', maxHeight: '45vh' }}>
+                  <BlockTreeNodes
+                    nodes={filter.tree}
+                    renderLeaf={renderBlockLeaf}
+                    isExpanded={filter.isExpanded}
+                    onToggle={filter.toggleExpanded}
+                  />
+                </div>
               )}
             </>
           )}

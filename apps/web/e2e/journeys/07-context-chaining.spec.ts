@@ -18,7 +18,7 @@ test('run captures context variables in panel', async ({ context, page }) => {
 
   await page.getByRole('button', { name: 'Add block' }).click()
   await page.getByRole('menuitem', { name: /paste curl/i }).click()
-  await page.locator('textarea').fill(HEALTH_CURL)
+  await page.getByRole('textbox', { name: /cURL command/i }).fill(HEALTH_CURL)
   await page.getByRole('button', { name: /add to block library/i }).click()
   await expect(page.getByText(/added to your library/i)).toBeVisible({ timeout: 5_000 })
 

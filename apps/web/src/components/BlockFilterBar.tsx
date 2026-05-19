@@ -37,11 +37,12 @@ export function BlockFilterBar({
 }: Props) {
   return (
     <Stack gap="xs">
-      <Group gap="xs" wrap="nowrap">
+      <Group gap={6} wrap="nowrap">
         <TextInput
           flex={1}
-          placeholder="Filter blocks by label, URL, or tag"
-          leftSection={<IconSearch size={14} />}
+          size="xs"
+          placeholder="Filter…"
+          leftSection={<IconSearch size={12} />}
           value={query}
           onChange={(e) => onQueryChange(e.currentTarget.value)}
           rightSection={
@@ -49,15 +50,17 @@ export function BlockFilterBar({
               <ActionIcon
                 aria-label="Clear search"
                 onClick={() => onQueryChange("")}
-                size="sm"
+                size="xs"
+                variant="subtle"
               >
-                <IconX size={14} />
+                <IconX size={12} />
               </ActionIcon>
             ) : null
           }
         />
         <Select
           aria-label="Grouping mode"
+          size="xs"
           value={groupingMode}
           onChange={(v) => v && onGroupingModeChange(v as GroupingMode)}
           data={[
@@ -65,7 +68,7 @@ export function BlockFilterBar({
             { value: "path", label: "By path" },
             { value: "flat", label: "Flat" },
           ]}
-          w={130}
+          w={90}
           allowDeselect={false}
         />
       </Group>
