@@ -13,6 +13,7 @@ import {
   Text,
   Textarea,
 } from "@mantine/core";
+import { MethodBadge } from "../../components/MethodBadge";
 import { IconTerminal2, IconAlertCircle } from "@tabler/icons-react";
 import { parseCurl, type ParsedCurlResult } from "../../blocks/parseCurl";
 import type { BlockDefData } from "../../blocks/dataBlock";
@@ -138,9 +139,7 @@ function Preview({ parsed }: { parsed: ParsedCurlResult }) {
   return (
     <Stack gap="xs">
       <Group gap="xs" wrap="nowrap">
-        <Badge color="teal" size="sm">
-          {parsed.method}
-        </Badge>
+        <MethodBadge method={parsed.method} size="sm" />
         <Text size="xs" ff="monospace" style={{ wordBreak: "break-all" }}>
           {parsed.url}
         </Text>

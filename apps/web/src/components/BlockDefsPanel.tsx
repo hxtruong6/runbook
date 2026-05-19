@@ -18,6 +18,7 @@ import { BlockEditorModal } from "./BlockEditorModal";
 import { OpenApiImporterModal } from "./OpenApiImporterModal";
 import { PasteCurlModal } from "../features/paste-curl/PasteCurlModal";
 import { EmptyState } from "./EmptyState";
+import { MethodBadge } from "./MethodBadge";
 import { BlockFilterBar } from "./BlockFilterBar";
 import { BlockTreeNodes } from "./BlockTreeNode";
 import { useBlockFilter } from "../features/blocks/useBlockFilter";
@@ -75,8 +76,9 @@ function BlockCard({ block, isBundle, onEdit, onDelete, onToggleTag }: BlockCard
             ))}
           </Group>
           <Group gap={4} wrap="nowrap" align="center">
+            <MethodBadge method={block.request.method} />
             <Text size="xs" c="dimmed" ff="monospace" truncate>
-              {block.request.method} {block.request.urlTemplate}
+              {block.request.urlTemplate}
             </Text>
             {(block.tags ?? []).map((tag) => (
               <Badge

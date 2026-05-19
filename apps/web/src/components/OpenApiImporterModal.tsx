@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import {
   Alert,
-  Badge,
+
   Button,
   Checkbox,
   Group,
@@ -24,6 +24,7 @@ import {
 } from '@tabler/icons-react'
 import type { BlockDefData } from '../blocks/dataBlock'
 import { parseOpenApi, type ImportedBlock } from '../blocks/openApiImporter'
+import { MethodBadge } from './MethodBadge'
 
 type Props = {
   opened: boolean
@@ -31,12 +32,6 @@ type Props = {
   onImport: (blocks: BlockDefData[]) => void
 }
 
-const METHOD_COLORS: Record<string, string> = {
-  GET: 'blue',
-  POST: 'green',
-  PUT: 'amber',
-  DELETE: 'red',
-}
 
 export function OpenApiImporterModal({ opened, onClose, onImport }: Props) {
   const [step, setStep] = useState<'input' | 'review'>('input')
@@ -233,12 +228,7 @@ export function OpenApiImporterModal({ opened, onClose, onImport }: Props) {
                   />
                   <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                     <Group gap="xs" wrap="nowrap">
-                      <Badge
-                        size="xs"
-                        color={METHOD_COLORS[block.request.method] ?? 'gray'}
-                      >
-                        {block.request.method}
-                      </Badge>
+                      <MethodBadge method={block.request.method} />
                       <Text size="sm" fw={500} style={{ flexShrink: 0 }}>
                         {block.label}
                       </Text>

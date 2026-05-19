@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Badge,
+
   Box,
   Button,
   Code,
@@ -14,6 +14,7 @@ import {
 } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { IconCheck, IconCopy, IconX } from "@tabler/icons-react";
+import { MethodBadge } from "./MethodBadge";
 import type { BlockRunResult, ResolvedRequest } from "../blocks/types";
 import {
   generateAxios,
@@ -71,8 +72,9 @@ function ResultStatusBar({ result }: { result: BlockRunResult }) {
         {result.request && (
           <>
             <Text size="sm" c="dimmed">·</Text>
+            <MethodBadge method={result.request.method} size="sm" />
             <Text size="sm" c="dimmed" style={{ wordBreak: "break-all" }}>
-              {result.request.method} {result.request.url}
+              {result.request.url}
             </Text>
           </>
         )}
@@ -101,9 +103,7 @@ function RequestTab({ request }: { request?: ResolvedRequest }) {
   return (
     <Stack gap="xs" mt="xs">
       <Group gap="xs">
-        <Badge variant="light" size="sm">
-          {request.method}
-        </Badge>
+        <MethodBadge method={request.method} size="sm" />
         <Text size="xs" ff="monospace" style={{ wordBreak: "break-all" }}>
           {request.url}
         </Text>

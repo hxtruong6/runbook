@@ -29,6 +29,7 @@ import { useGalleryBundle, useGalleryIndex } from "./useGallery";
 import { useProjectsStore } from "../projects/projectsStore";
 import { useTeamStore } from "../teams/teamStore";
 import { ProjectBundleSchema } from "../projects/types";
+import { MethodBadge } from "../components/MethodBadge";
 
 interface GalleryDetailProps {
   slug: string;
@@ -225,20 +226,7 @@ export function GalleryDetail({ slug, onNavigate }: GalleryDetailProps) {
                         </Table.Td>
                         <Table.Td>{block.label}</Table.Td>
                         <Table.Td>
-                          <Badge
-                            color={
-                              block.request.method === "GET"
-                                ? "teal"
-                                : block.request.method === "POST"
-                                ? "violet"
-                                : block.request.method === "DELETE"
-                                ? "red"
-                                : "blue"
-                            }
-                            size="xs"
-                          >
-                            {block.request.method}
-                          </Badge>
+                          <MethodBadge method={block.request.method} />
                         </Table.Td>
                         <Table.Td>
                           <Code style={{ wordBreak: "break-all" }}>
