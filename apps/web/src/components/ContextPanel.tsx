@@ -27,6 +27,8 @@ import {
 import { useRuntimeContext } from "../context/ContextStore";
 
 const REDACTED_KEYS = new Set(["password"]);
+// Internal runtime keys — used by the engine but never surfaced to users
+const HIDDEN_KEYS = new Set(["socketSessionUuid"]);
 
 function copyToClipboard(value: string, key: string) {
   navigator.clipboard.writeText(value).then(() => {
@@ -124,8 +126,6 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
       ? ""
       : String(v);
 
-  const isSystemKey = contextKey === "socketSessionUuid";
-
   return (
     <Stack gap={2} style={{ borderBottom: "1px solid var(--mantine-color-gray-2)", paddingBottom: 8 }}>
       <Group gap={4} justify="space-between" wrap="nowrap">
@@ -140,11 +140,6 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
           >
             {contextKey}
           </Text>
-          {isSystemKey && (
-            <Text size="10px" c="dimmed" component="span">
-              (system)
-            </Text>
-          )}
         </Group>
         <Group gap={2} wrap="nowrap" style={{ flexShrink: 0 }}>
           {!REDACTED_KEYS.has(contextKey) && (
@@ -159,8 +154,7 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
               </ActionIcon>
             </Tooltip>
           )}
-          {!isSystemKey && (
-            <Tooltip label="Delete key" withArrow>
+          <Tooltip label="Delete key" withArrow>
               <ActionIcon
                 size="xs"
                 variant="subtle"
@@ -171,14 +165,9 @@ function EntryRow({ contextKey, value: v, onEdit, onDelete }: EntryRowProps) {
                 <IconTrash size={12} />
               </ActionIcon>
             </Tooltip>
-          )}
         </Group>
       </Group>
-      {isSystemKey ? (
-        <Text size="xs" c="dimmed" ff="monospace">{String(v)}</Text>
-      ) : (
-        <ValueCell contextKey={contextKey} value={v} onEdit={onEdit} />
-      )}
+      <ValueCell contextKey={contextKey} value={v} onEdit={onEdit} />
     </Stack>
   );
 }
@@ -237,7 +226,9 @@ export function ContextPanel() {
   const [search, setSearch] = useState("");
   const [addingKey, setAddingKey] = useState(false);
 
-  const allEntries = Object.entries(context).sort(([a], [b]) => a.localeCompare(b));
+  const allEntries = Object.entries(context)
+    .filter(([k]) => !HIDDEN_KEYS.has(k))
+    .sort(([a], [b]) => a.localeCompare(b));
   const filtered = search.trim()
     ? allEntries.filter(([k]) => k.toLowerCase().includes(search.toLowerCase()))
     : allEntries;
