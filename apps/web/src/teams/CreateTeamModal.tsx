@@ -21,7 +21,7 @@ export function CreateTeamModal() {
           {error && <Alert color="red">{error}</Alert>}
           <TextInput
             label="Team name"
-            placeholder="e.g. 32CO"
+            placeholder="e.g. Acme Corp"
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
             required
