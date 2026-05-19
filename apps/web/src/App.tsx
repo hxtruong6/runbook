@@ -553,7 +553,11 @@ export function AppContent() {
                             }
                           },
                         }}
-                        samples={[{ slug: 'openai', name: 'OpenAI API' }]}
+                        samples={[
+                          { slug: 'openai', name: 'OpenAI API' },
+                          { slug: 'github', name: 'GitHub REST API' },
+                          { slug: 'stripe', name: 'Stripe Payments API' },
+                        ]}
                       />
                     ) : (
                       <EmptyState

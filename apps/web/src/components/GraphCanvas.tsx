@@ -61,7 +61,7 @@ function toRFEdge(e: GraphEdge): Edge {
     target: e.target,
     markerEnd: { type: MarkerType.ArrowClosed },
     label: e.condition ? `${e.condition.jsonPath} ${e.condition.operator} ${e.condition.value}` : e.sourcePort,
-    style: { stroke: e.sourcePort === "ok" ? "var(--mantine-color-green-6)" : "var(--mantine-color-red-6)" },
+    style: { stroke: e.sourcePort === "ok" ? "var(--mantine-color-sage-6)" : "var(--mantine-color-coral-6)" },
   };
 }
 
