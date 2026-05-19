@@ -35,6 +35,84 @@ type Props = {
   onDelete: (kind: string) => void;
 };
 
+type BlockCardProps = {
+  block: BlockDefData;
+  isBundle: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleTag: (tag: string) => void;
+};
+
+function BlockCard({ block, isBundle, onEdit, onDelete, onToggleTag }: BlockCardProps) {
+  const [hovered, setHovered] = useState(false);
+  const inf = getInferenceFor(block.kind);
+  const hasInference = inf && inf.runs > 0;
+  const hasDrift = (inf?.lastDrift?.length ?? 0) > 0;
+
+  return (
+    <Paper
+      withBorder
+      px="xs"
+      py={5}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <Group justify="space-between" wrap="nowrap" gap={4}>
+        <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+          <Group gap={4} wrap="nowrap" align="center">
+            <Badge size="xs" color={isBundle ? "violet" : "teal"} style={{ flexShrink: 0 }}>
+              {isBundle ? "bundle" : "local"}
+            </Badge>
+            <Text size="xs" fw={600} truncate style={{ flex: 1 }}>{block.label}</Text>
+            {hasInference && (hasDrift ? (
+              <Badge size="xs" color="amber" variant="light" leftSection={<IconAlertTriangle size={10} />} style={{ flexShrink: 0 }}>
+                drift
+              </Badge>
+            ) : (
+              <Badge size="xs" color="violet" variant="light" leftSection={<IconCamera size={10} />} style={{ flexShrink: 0 }}>
+                {inf!.runs}
+              </Badge>
+            ))}
+          </Group>
+          <Group gap={4} wrap="nowrap" align="center">
+            <Text size="xs" c="dimmed" ff="monospace" truncate>
+              {block.request.method} {block.request.urlTemplate}
+            </Text>
+            {(block.tags ?? []).map((tag) => (
+              <Badge
+                key={tag}
+                size="xs"
+                color="gray"
+                variant="light"
+                leftSection={<IconTag size={10} />}
+                style={{ cursor: "pointer", flexShrink: 0 }}
+                onClick={() => onToggleTag(tag)}
+                aria-label={`Filter by tag ${tag}`}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </Group>
+        </Stack>
+        <Group
+          gap={2}
+          wrap="nowrap"
+          style={{ flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 120ms' }}
+        >
+          <ActionIcon aria-label={`Edit ${block.label}`} variant="subtle" size="xs" onClick={onEdit}>
+            <IconPencil size={12} />
+          </ActionIcon>
+          {!isBundle && (
+            <ActionIcon aria-label={`Delete ${block.label}`} variant="subtle" color="red" size="xs" onClick={onDelete}>
+              <IconTrash size={12} />
+            </ActionIcon>
+          )}
+        </Group>
+      </Group>
+    </Paper>
+  );
+}
+
 export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate, onDelete }: Props) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<BlockDefData | undefined>(undefined);
@@ -60,80 +138,16 @@ export function BlockDefsPanel({ localBlocks, bundleBlocks = [], onAdd, onUpdate
   const bundleKinds = new Set(bundleBlocks.map((b) => b.kind));
 
   function renderBlockLeaf(block: BlockDefData) {
-    const inf = getInferenceFor(block.kind);
-    const hasInference = inf && inf.runs > 0;
-    const hasDrift = (inf?.lastDrift?.length ?? 0) > 0;
     const isBundle = bundleKinds.has(block.kind) && !localKinds.has(block.kind);
     return (
-      <Paper key={block.kind} withBorder p={8}>
-        <Group justify="space-between" wrap="nowrap" gap={6}>
-          <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
-            <Group gap={4} wrap="wrap">
-              <Badge size="xs" color={isBundle ? "violet" : "teal"}>
-                {isBundle ? "bundle" : "local"}
-              </Badge>
-              <Text size="sm" fw={500} truncate>{block.label}</Text>
-              {hasInference && (hasDrift ? (
-                <Badge
-                  size="xs"
-                  color="amber"
-                  variant="light"
-                  leftSection={<IconAlertTriangle size={10} />}
-                >
-                  drift
-                </Badge>
-              ) : (
-                <Badge
-                  size="xs"
-                  color="violet"
-                  variant="light"
-                  leftSection={<IconCamera size={10} />}
-                >
-                  {inf!.runs}
-                </Badge>
-              ))}
-              {(block.tags ?? []).map((tag) => (
-                <Badge
-                  key={tag}
-                  size="xs"
-                  color="gray"
-                  variant="light"
-                  leftSection={<IconTag size={10} />}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => filter.toggleTag(tag)}
-                  aria-label={`Filter by tag ${tag}`}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </Group>
-            <Text size="xs" c="dimmed" truncate>
-              {block.request.method} {block.request.urlTemplate}
-            </Text>
-          </Stack>
-          <Group gap={4} wrap="nowrap">
-            <ActionIcon
-              aria-label={`Edit ${block.label}`}
-              variant="subtle"
-              size="sm"
-              onClick={() => handleEdit(block)}
-            >
-              <IconPencil size={14} />
-            </ActionIcon>
-            {!isBundle && (
-              <ActionIcon
-                aria-label={`Delete ${block.label}`}
-                variant="subtle"
-                color="red"
-                size="sm"
-                onClick={() => handleDelete(block.kind, block.label)}
-              >
-                <IconTrash size={14} />
-              </ActionIcon>
-            )}
-          </Group>
-        </Group>
-      </Paper>
+      <BlockCard
+        key={block.kind}
+        block={block}
+        isBundle={isBundle}
+        onEdit={() => handleEdit(block)}
+        onDelete={() => handleDelete(block.kind, block.label)}
+        onToggleTag={filter.toggleTag}
+      />
     );
   }
 
