@@ -4,6 +4,8 @@ import { ActionIcon, Badge, Box, Group, Text, TextInput } from "@mantine/core";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { useState } from "react";
 import type { GraphNodeData } from "../graph/types";
+import type { RunStatus } from "./StatusBadge";
+import { StatusBadge } from "./StatusBadge";
 
 type GraphNodeProps = NodeProps & {
   data: GraphNodeData & {
@@ -11,20 +13,37 @@ type GraphNodeProps = NodeProps & {
     isOrphan: boolean;
     isExpanded: boolean;
     onToggleExpand: (id: string) => void;
+    status?: RunStatus;
   };
 };
 
+const STATUS_BORDER: Partial<Record<RunStatus, string>> = {
+  running: "var(--mantine-color-amber-5)",
+  ok: "var(--mantine-color-sage-5)",
+  err: "var(--mantine-color-coral-5)",
+};
+
 export function GraphNode({ data, selected }: GraphNodeProps) {
-  const { blockInstance, name, onRename, isOrphan, isExpanded, onToggleExpand } = data;
+  const { blockInstance, name, onRename, isOrphan, isExpanded, onToggleExpand, status } = data;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
   const isStart = blockInstance.kind === "start";
 
+  const statusBorder = status ? STATUS_BORDER[status] : undefined;
+  const borderColor =
+    statusBorder ??
+    (isOrphan
+      ? "var(--mantine-color-coral-4)"
+      : selected
+        ? "var(--mantine-color-indigo-5)"
+        : "var(--mantine-color-gray-3)");
+
   return (
     <Box
       p="sm"
+      data-flash={status === "ok" ? "ok" : status === "err" ? "err" : undefined}
       style={{
-        border: `2px solid ${isOrphan ? "var(--mantine-color-coral-4)" : selected ? "var(--mantine-color-indigo-5)" : "var(--mantine-color-gray-3)"}`,
+        border: `2px solid ${borderColor}`,
         borderRadius: "var(--mantine-radius-md)",
         background: isStart ? "var(--mantine-color-gray-1)" : "var(--mantine-color-white)",
         minWidth: 160,
@@ -38,6 +57,7 @@ export function GraphNode({ data, selected }: GraphNodeProps) {
       <Group gap="xs" mb={4}>
         <Badge size="xs" color="indigo" variant="light">{blockInstance.kind}</Badge>
         {isOrphan && <Badge size="xs" color="coral" variant="light">orphan</Badge>}
+        {status && status !== "idle" && <StatusBadge status={status} size="xs" />}
       </Group>
 
       {editing ? (

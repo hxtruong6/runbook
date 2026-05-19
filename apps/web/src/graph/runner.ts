@@ -16,6 +16,7 @@ export async function runGraph(
   registry: Record<string, BlockDef>,
   scenarioLookup: (id: string) => Scenario | null,
   runOneBlockFn: RunOneBlockFn = runOneBlock,
+  onNodeStart?: (nodeId: string) => void,
 ): Promise<void> {
   const nodeMap = new Map(graphData.nodes.map((n) => [n.blockInstance.id, n]));
   const expandingIds = new Set<string>();
@@ -38,6 +39,7 @@ export async function runGraph(
     // Run the block
     const idx = 0; // index unused by graph runner, pass 0
     const nodeId = node.blockInstance.id;
+    onNodeStart?.(nodeId);
     const { result, nextCtx, abort } = await runOneBlockFn(
       node.blockInstance,
       ctx,

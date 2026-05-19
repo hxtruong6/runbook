@@ -112,6 +112,8 @@ export function AppContent() {
   const [insertAfterIdx, setInsertAfterIdx] = useState<number | null>(null);
   const [burstOpen, setBurstOpen] = useState(false);
   const [graphMode, setGraphMode] = useState<Record<string, 'list' | 'graph'>>({});
+  // Per-node status during graph runs. Drives the GraphNode pulse/tint.
+  const [graphNodeStatuses, setGraphNodeStatuses] = useState<Record<string, import("./components/StatusBadge").RunStatus>>({});
 
   function loadScenarioMode(scenarioId: string): 'list' | 'graph' | null {
     try {
@@ -210,6 +212,7 @@ export function AppContent() {
       const nodeKindByNodeId = new Map(
         active.graphData.nodes.map((n) => [n.blockInstance.id, n.blockInstance.kind])
       );
+      setGraphNodeStatuses({});
       await runGraph(
         active.graphData,
         context,
@@ -217,10 +220,14 @@ export function AppContent() {
           dispatch({ type: 'MERGE', values: newCtx });
           const kind = nodeKindByNodeId.get(nodeId);
           if (kind) captureRun(kind, result);
+          collectedResults.push(result);
+          setGraphNodeStatuses((s) => ({ ...s, [nodeId]: result.status === 'ok' ? 'ok' : 'err' }));
         },
         activeEnv,
         registry,
         (id) => scenarios.find((s) => s.id === id) ?? null,
+        undefined,
+        (nodeId) => setGraphNodeStatuses((s) => ({ ...s, [nodeId]: 'running' })),
       );
     } else {
       await runScenarioFrom(active.blocks, startIdx, context, (newCtx, idx, result) => {
@@ -409,8 +416,16 @@ export function AppContent() {
   return (
     <RegistryProvider registry={registry}>
       <AppShell
-        navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: navbarCollapsed, mobile: navbarCollapsed } }}
-        aside={{ width: 320, breakpoint: 'md', collapsed: { desktop: asideCollapsed, mobile: asideCollapsed } }}
+        navbar={{
+          width: navbarCollapsed ? 56 : 300,
+          breakpoint: 'sm',
+          collapsed: { mobile: navbarCollapsed },
+        }}
+        aside={{
+          width: asideCollapsed ? 56 : 320,
+          breakpoint: 'md',
+          collapsed: { mobile: asideCollapsed },
+        }}
         header={{ height: isGuest ? 88 : 56 }}
         padding="md"
       >
@@ -445,6 +460,31 @@ export function AppContent() {
         </AppShell.Header>
 
         <AppShell.Navbar style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {navbarCollapsed ? (
+            <Stack gap="xs" align="center" pt="sm">
+              <Tooltip label="Scenarios" position="right">
+                <ActionIcon
+                  variant={sidebarMode === 'scenarios' ? 'light' : 'subtle'}
+                  color="indigo"
+                  aria-label="Scenarios view"
+                  onClick={() => { setSidebarMode('scenarios'); setNavbarCollapsed(false); }}
+                >
+                  <IconClipboardList size={18} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Block library" position="right">
+                <ActionIcon
+                  variant={sidebarMode === 'library' ? 'light' : 'subtle'}
+                  color="indigo"
+                  aria-label="Block library view"
+                  onClick={() => { setSidebarMode('library'); setNavbarCollapsed(false); }}
+                >
+                  <IconBook2 size={18} />
+                </ActionIcon>
+              </Tooltip>
+            </Stack>
+          ) : (
+          <>
           {/* Activity bar — mode switcher */}
           <Group gap={4} px="xs" pt="xs" pb="xs" style={{ flexShrink: 0, borderBottom: '1px solid var(--mantine-color-default-border)' }}>
             <Button
@@ -648,9 +688,35 @@ export function AppContent() {
 
           </>
           )}
+          </>
+          )}
         </AppShell.Navbar>
 
         <AppShell.Aside style={{ display: "flex", flexDirection: "column" }}>
+          {asideCollapsed ? (
+            <Stack gap="xs" align="center" pt="sm">
+              <Tooltip label="Context" position="left">
+                <ActionIcon
+                  variant={asideTab === 'context' ? 'light' : 'subtle'}
+                  color="indigo"
+                  aria-label="Context panel"
+                  onClick={() => { setAsideTab('context'); setAsideCollapsed(false); }}
+                >
+                  <IconClipboardList size={18} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Schema" position="left">
+                <ActionIcon
+                  variant={asideTab === 'schema' ? 'light' : 'subtle'}
+                  color="indigo"
+                  aria-label="Schema panel"
+                  onClick={() => { setAsideTab('schema'); setAsideCollapsed(false); }}
+                >
+                  <IconBook2 size={18} />
+                </ActionIcon>
+              </Tooltip>
+            </Stack>
+          ) : (
           <Tabs
             value={asideTab}
             onChange={(v) => setAsideTab(v as 'context' | 'schema')}
@@ -665,6 +731,7 @@ export function AppContent() {
               {asideTab === 'schema' && <SchemaDocsPanel />}
             </Box>
           </Tabs>
+          )}
         </AppShell.Aside>
 
         <AppShell.Main style={{ maxWidth: 920, marginLeft: "auto", marginRight: "auto" }}>
@@ -690,6 +757,7 @@ export function AppContent() {
             <GraphCanvas
               scenario={active}
               allScenarios={scenarios}
+              nodeStatuses={graphNodeStatuses}
               readOnly={false}
               onChange={updateActive}
             />

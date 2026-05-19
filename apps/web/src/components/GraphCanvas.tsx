@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GraphData, GraphEdge, GraphNodeData } from "../graph/types";
 import type { Scenario } from "../scenarios/types";
 import { GraphNode } from "./GraphNode";
+import type { RunStatus } from "./StatusBadge";
 import { deriveBlocks } from "../graph/deriveBlocks";
 import { AddBlockMenu } from "./AddBlockMenu";
 
@@ -30,6 +31,8 @@ type Props = {
   allScenarios: Scenario[];
   readOnly: boolean;
   onChange: (updated: Scenario) => void;
+  /** Per-node run status (idle/running/ok/err) — drives the GraphNode pulse/tint. */
+  nodeStatuses?: Record<string, RunStatus>;
 };
 
 function toRFNode(
@@ -38,6 +41,7 @@ function toRFNode(
   onRename: (id: string, name: string) => void,
   expandedNodeIds: Set<string>,
   onToggleExpand: (id: string) => void,
+  status: RunStatus | undefined,
 ): Node {
   return {
     id: n.blockInstance.id,
@@ -49,6 +53,7 @@ function toRFNode(
       isOrphan: orphanIds.has(n.blockInstance.id),
       isExpanded: expandedNodeIds.has(n.blockInstance.id),
       onToggleExpand,
+      status,
     },
   };
 }
@@ -65,7 +70,7 @@ function toRFEdge(e: GraphEdge): Edge {
   };
 }
 
-function GraphCanvasInner({ scenario, allScenarios, readOnly, onChange }: Props) {
+function GraphCanvasInner({ scenario, allScenarios, readOnly, onChange, nodeStatuses }: Props) {
   const graphData = scenario.graphData!;
   const { fitView } = useReactFlow();
 
@@ -112,9 +117,9 @@ function GraphCanvasInner({ scenario, allScenarios, readOnly, onChange }: Props)
   }
 
   const rfNodes = useMemo(
-    () => graphData.nodes.map((n) => toRFNode(n, orphanIds, handleRename, expandedNodeIds, toggleExpand)),
+    () => graphData.nodes.map((n) => toRFNode(n, orphanIds, handleRename, expandedNodeIds, toggleExpand, nodeStatuses?.[n.blockInstance.id])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [graphData.nodes, orphanIds, expandedNodeIds],
+    [graphData.nodes, orphanIds, expandedNodeIds, nodeStatuses],
   );
   const rfEdges = useMemo(() => graphData.edges.map(toRFEdge), [graphData.edges]);
 
